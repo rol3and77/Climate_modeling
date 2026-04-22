@@ -4,28 +4,24 @@ I created a website that can be run in the Google Colab environment.
 The execution method is as follows.
 A total of four cells are required for execution.
 
----# 1. first cell #--------------------------------------------------------------------------------------
+---# 1. first cell #---
 !pip install -q streamlit numpy matplotlib scipy pandas numba
 !wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
 !dpkg -i cloudflared-linux-amd64.deb
-----------------------------------------------------------------------------------------------------------
 
----# 2. second cell #-------------------------------------------------------------------------------------
+---# 2. second cell #---
 Put the app.py file in the second cell.
-----------------------------------------------------------------------------------------------------------
 
----# 3. third cell #--------------------------------------------------------------------------------------
+---# 3. third cell #---
 import subprocess
 import threading
 def run_streamlit():
     subprocess.run(["streamlit", "run", "app.py", "--server.port", "8501"])
 thread = threading.Thread(target=run_streamlit, daemon=True)
 thread.start()
-----------------------------------------------------------------------------------------------------------
 
----# 4. fourth cell #-------------------------------------------------------------------------------------
+---# 4. fourth cell #---
 !cloudflared tunnel --url http://localhost:8501
-----------------------------------------------------------------------------------------------------------
 
 Run the cells sequentially from the first to the fourth.
 Click the link below to access the website. 
