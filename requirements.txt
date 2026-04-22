@@ -1,9 +1,10 @@
-streamlit
-numpy
-matplotlib
-scipy
-pandas
-numba
+
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
+import pandas as pd
+from numba import njit
 
 # --- 1. 웹 대시보드 설정 ---
 st.set_page_config(page_title="기후 모델링 연구 대시보드", layout="wide")
