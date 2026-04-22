@@ -90,17 +90,17 @@ This project is based on simplified climate modeling approaches, including energ
 
 ## 6. Project Structure | 프로젝트 구조
 
-```text
-climat_modeling
+climat_modeling/
 ├── README.md
 ├── README2.md
 ├── app.py
 ├── requirements.txt
 
+---
+
 ## 7. Installation and Execution | 실행 방법
 
 It can be run on Google Colab, please refer to the README.md.
-
 
 After running the final step, a public URL will be generated to access the dashboard.
 
@@ -110,30 +110,29 @@ After running the final step, a public URL will be generated to access the dashb
 
 This dashboard enables users to:
 
-- Explore climate response under different emission scenarios  
-- Analyze sensitivity of climate systems to parameter changes  
-- Compare model outputs with observational data  
-- Understand uncertainty in climate predictions  
+- Explore climate response under different emission scenarios
+- Analyze sensitivity of climate systems to parameter changes
+- Compare model outputs with observational data
+- Understand uncertainty in climate predictions
 
 ---
 
 ## 9. Future Work | 향후 연구 방향
 
-- Integration of real-world datasets (e.g., NASA, NOAA)  
-- Implementation of advanced climate models  
-- Incorporation of machine learning techniques  
-- Deployment on cloud-based platforms  
+- Integration of real-world datasets (e.g., NASA, NOAA)
+- Implementation of advanced climate models
+- Incorporation of machine learning techniques
+- Deployment on cloud-based platforms
 
 ---
 
 ## 10. Author
 
 Name: 유환빈  
-GitHub: https://github.com/rol3and77  
+GitHub: https://github.com/rol3and77
 
 ---
 
 ## 11. License
 
 This project is licensed under the MIT License.
-
