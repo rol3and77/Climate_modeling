@@ -7,7 +7,9 @@ A total of four cells are required for execution.
 ---# 1. first cell #---
 
 !pip install -q streamlit numpy matplotlib scipy pandas numba
+
 !wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+
 !dpkg -i cloudflared-linux-amd64.deb
 
 ---# 2. second cell #---
@@ -17,10 +19,15 @@ Put the app.py file in the second cell.
 ---# 3. third cell #---
 
 import subprocess
+
 import threading
+
 def run_streamlit():
+
     subprocess.run(["streamlit", "run", "app.py", "--server.port", "8501"])
+
 thread = threading.Thread(target=run_streamlit, daemon=True)
+
 thread.start()
 
 ---# 4. fourth cell #---
