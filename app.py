@@ -1,3 +1,4 @@
+
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
@@ -140,22 +141,24 @@ page_options = [
     "기후 모델링 용어 및 개념 정의"
 ]
 
-# 현재 페이지가 시작 페이지면 radio 기본 선택은 첫 번째 분석 섹션으로 둠
-radio_default_page = (
-    st.session_state["page"]
-    if st.session_state["page"] in page_options
-    else page_options[0]
-)
+if "sidebar_selected_page" not in st.session_state:
+    st.session_state["sidebar_selected_page"] = page_options[0]
+
+# 분석 섹션에 들어와 있을 때는 radio 선택 상태를 현재 페이지와 동기화
+if st.session_state["page"] in page_options:
+    st.session_state["sidebar_selected_page"] = st.session_state["page"]
 
 selected_page = st.sidebar.radio(
     "섹션 선택",
     page_options,
-    index=page_options.index(radio_default_page)
+    index=page_options.index(st.session_state["sidebar_selected_page"])
 )
 
-# 시작 페이지가 아닐 때만 radio 선택을 현재 페이지로 반영
-if st.session_state["page"] != "시작 페이지":
+# 사용자가 radio 선택을 바꾼 경우에는 시작 페이지에서도 즉시 이동
+if selected_page != st.session_state["sidebar_selected_page"]:
+    st.session_state["sidebar_selected_page"] = selected_page
     st.session_state["page"] = selected_page
+    st.rerun()
 
 page = st.session_state["page"]
 
