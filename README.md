@@ -19,15 +19,12 @@ Put the app.py file in the second cell.
 ---# 3. third cell #---
 
 import subprocess
-
 import threading
 
 def run_streamlit():
-
-subprocess.run(["streamlit", "run", "app.py", "--server.port", "8501"])
+    subprocess.run(["streamlit", "run", "app.py", "--server.port", "8501"])
 
 thread = threading.Thread(target=run_streamlit, daemon=True)
-
 thread.start()
 
 ---# 4. fourth cell #---
