@@ -102,6 +102,10 @@ climat_modeling/
 
 ## 7. Installation and Execution | 실행 방법
 
+If you click the link at the beginning of the README.md, you will be directly connected to the website. 
+
+If you would like to open it yourself, the method is as follows.
+
 It can be run on Google Colab, please refer to the README2.md.
 
 After running the final step, a public URL will be generated to access the dashboard.
