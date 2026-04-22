@@ -104,6 +104,8 @@ It can be run on Google Colab, please refer to the README2.md.
 
 After running the final step, a public URL will be generated to access the dashboard.
 
+or Click link in app.ipynb
+
 ---
 
 ## 8. Results and Usage | 활용
