@@ -1,43 +1,81 @@
-# Climate_modeling
+# Climate Modeling
+
 This is a climate model website created for an undergraduate research project.
-I created a website that can be run in the Google Colab environment.
-The execution method is as follows.
-A total of four cells are required for execution.
 
----# 1. first cell #---
+This project provides a website that can be executed in the Google Colab environment.
 
+The execution method is as follows.  
+A total of four cells are required.
+
+---
+
+## 1. First Cell
+
+Install required libraries and tools:
+
+```
 !pip install -q streamlit numpy matplotlib scipy pandas numba
 !wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
 !dpkg -i cloudflared-linux-amd64.deb
+```
 
---------------------------------------------------------------------------------------
+---
 
----# 2. second cell #---
+## 2. Second Cell
 
-Put the app.py file in the second cell.
+Insert the `app.py` file in this cell.
 
---------------------------------------------------------------------------------------
+```
+%%writefile app.py
+# Paste the full Streamlit application code here
+```
 
----# 3. third cell #---
+---
 
+## 3. Third Cell
+
+Run the Streamlit server:
+
+```
 import subprocess
 import threading
 
 def run_streamlit():
-    subprocess.run(["streamlit", "run", "app.py", "--server.port", "8501"])
+    subprocess.run([
+        "streamlit", "run", "app.py",
+        "--server.port", "8501"
+    ])
 
 thread = threading.Thread(target=run_streamlit, daemon=True)
 thread.start()
+```
 
---------------------------------------------------------------------------------------
+---
 
----# 4. fourth cell #---
+## 4. Fourth Cell
 
+Expose the application using Cloudflare tunnel:
+
+```
 !cloudflared tunnel --url http://localhost:8501
+```
 
---------------------------------------------------------------------------------------
+---
+
+## Execution Instructions
+
 Run the cells sequentially from the first to the fourth.
-Click the link below to access the website. 
+
+After running the fourth cell, you will see a message:
+
 "Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):"
-If the website does not run, try executing the cells again from the beginning in order, or run the fourth cell, wait for a moment, and then click the link.
-Viewing it as a RAW file will make it easier to copy the code.
+
+Click the generated link to access the website.
+
+---
+
+## Notes
+
+- If the website does not run properly, execute all cells again from the beginning in order.
+- Alternatively, rerun the fourth cell, wait for a moment, and then access the link again.
+- Viewing this file in RAW format may make it easier to copy the code.
