@@ -23,7 +23,7 @@ Install required libraries and tools:
 
 ## 2. Second Cell
 
-Insert the `requirements.txt` file in this cell.
+Insert the `app.py` file in this cell.
 
 ```
 %%writefile app.py
