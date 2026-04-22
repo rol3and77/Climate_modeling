@@ -24,7 +24,7 @@ import threading
 
 def run_streamlit():
 
-    subprocess.run(["streamlit", "run", "app.py", "--server.port", "8501"])
+subprocess.run(["streamlit", "run", "app.py", "--server.port", "8501"])
 
 thread = threading.Thread(target=run_streamlit, daemon=True)
 
