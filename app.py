@@ -591,6 +591,13 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     box-shadow: 0 3px 10px rgba(26,86,160,0.10);
 }
 
+.nav-btn-active button {
+    border-color: #1a56a0 !important;
+    background: #eef5ff !important;
+    color: #1a56a0 !important;
+    box-shadow: 0 4px 14px rgba(26,86,160,0.12) !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -856,13 +863,18 @@ def set_page(target):
 
 # ── Left Panel ────────────────────────────────────────────────────────────────
 def render_left_panel():
+    current = st.session_state.get("page", "시작 페이지")
+
     st.markdown(
         '<div class="nav-panel"><div class="nav-panel-title">탐색 메뉴</div>',
         unsafe_allow_html=True
     )
 
+    home_class = "nav-btn-active" if current == "시작 페이지" else "nav-btn"
+    st.markdown(f'<div class="{home_class}">', unsafe_allow_html=True)
     if st.button("시작 페이지", key="lnav_home", use_container_width=True):
         set_page("시작 페이지")
+    st.markdown("</div>", unsafe_allow_html=True)
 
     nav_labels = [
         "시나리오 예측",
@@ -874,8 +886,11 @@ def render_left_panel():
     ]
 
     for i, (lbl, pg) in enumerate(zip(nav_labels, NAV_PAGES)):
+        btn_class = "nav-btn-active" if current == pg else "nav-btn"
+        st.markdown(f'<div class="{btn_class}">', unsafe_allow_html=True)
         if st.button(lbl, key=f"lnav_{i}", use_container_width=True):
             set_page(pg)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
