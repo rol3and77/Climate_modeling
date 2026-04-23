@@ -644,6 +644,27 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     box-shadow: 0 4px 14px rgba(26,86,160,0.12);
 }
 
+/* ── 시나리오 버튼형 선택 ───────────────────────── */
+.settings-subtitle {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #18365c;
+    margin-bottom: 0.9rem;
+    letter-spacing: -0.02em;
+}
+
+.scenario-current {
+    margin-top: 0.9rem;
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.scenario-current strong {
+    color: #1a56a0;
+    font-weight: 800;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -954,27 +975,58 @@ def render_settings(current_page):
     controls = {}
 
     if current_page == "시나리오 기반 기후 변화 예측":
-        st.markdown(
-            '<div class="settings-shell"><div class="settings-title">배출 시나리오 설정</div>',
-            unsafe_allow_html=True,
-        )
+    st.markdown(
+        '''
+        <div class="settings-shell">
+            <div class="settings-title">배출 시나리오 설정</div>
+            <div class="settings-subtitle">배출 시나리오</div>
+        ''',
+        unsafe_allow_html=True,
+    )
 
-        scenario_options = [
-            "탄소중립",
-            "저배출",
-            "현재정책",
-            "고배출",
-            "극단배출",
-        ]
+    scenario_options = [
+        "탄소중립",
+        "저배출",
+        "현재정책",
+        "고배출",
+        "극단배출",
+    ]
 
-        controls["policy"] = st.select_slider(
-            "배출 시나리오",
-            options=scenario_options,
-            value=st.session_state.get("main_policy", "현재정책"),
-            key="main_policy",
-        )
+    current_policy = st.session_state.get("main_policy", "현재정책")
 
-        st.markdown("</div>", unsafe_allow_html=True)
+    c1, c2, c3, c4, c5 = st.columns(5, gap="small")
+
+    with c1:
+        if st.button("탄소중립", key="policy_btn_0", use_container_width=True):
+            st.session_state["main_policy"] = "탄소중립"
+            st.rerun()
+
+    with c2:
+        if st.button("저배출", key="policy_btn_1", use_container_width=True):
+            st.session_state["main_policy"] = "저배출"
+            st.rerun()
+
+    with c3:
+        if st.button("현재정책", key="policy_btn_2", use_container_width=True):
+            st.session_state["main_policy"] = "현재정책"
+            st.rerun()
+
+    with c4:
+        if st.button("고배출", key="policy_btn_3", use_container_width=True):
+            st.session_state["main_policy"] = "고배출"
+            st.rerun()
+
+    with c5:
+        if st.button("극단배출", key="policy_btn_4", use_container_width=True):
+            st.session_state["main_policy"] = "극단배출"
+            st.rerun()
+
+    controls["policy"] = st.session_state.get("main_policy", "현재정책")
+
+    st.markdown(
+        f'<div class="scenario-current">현재 선택: <strong>{controls["policy"]}</strong></div></div>',
+        unsafe_allow_html=True,
+    )
 
     elif current_page == "기후 시스템 파라미터 실험":
         st.markdown(
