@@ -770,6 +770,33 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     color: #1a56a0;
     font-weight: 900;
 }
+.scenario-hero {
+    background: linear-gradient(135deg, #1f5fbf 0%, #256fcb 55%, #3a86e8 100%);
+    border-radius: 20px;
+    padding: 1.3rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 28px rgba(31, 95, 191, 0.2);
+}
+
+.scenario-hero-top {
+    font-size: 0.75rem;
+    font-weight: 700;
+    opacity: 0.9;
+    margin-bottom: 0.4rem;
+}
+
+.scenario-hero-name {
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 0.4rem;
+}
+
+.scenario-hero-desc {
+    font-size: 0.9rem;
+    opacity: 0.95;
+    line-height: 1.6;
+}
 
 </style>
 """,
