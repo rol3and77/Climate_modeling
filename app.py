@@ -985,9 +985,9 @@ if page == "시작 페이지":
   <div class="hero-badge">Research Presentation Interface</div>
   <div class="hero-title">기후 모델링 연구 대시보드</div>
   <div class="hero-desc">
-    관측 자료와 물리 기반 기후 모형을 결합하여 역사적 온도 변화를 재현하고,
-    미래 배출 시나리오에 따른 전지구 평균기온의 장기 경로를 탐색하기 위한 연구형 대시보드입니다.
-    학술 발표, 모델 해석, 시나리오 기반 기후 분석을 위해 설계된 인터페이스입니다.
+    관측 자료와 물리 기반 기후 모형을 결합하여 역사적 온도 변화를 재현, 
+    미래 배출 시나리오에 따른 전지구 평균기온의 장기 경로를 탐색하기 위한 연구형 대시보드 입니다.
+    
   </div>
   <div class="hero-chips">
     <div class="hero-chip">물리 기반 모델</div>
