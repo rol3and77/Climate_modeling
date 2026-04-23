@@ -664,6 +664,82 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     color: #1a56a0;
     font-weight: 800;
 }
+/* ── 시나리오 선택 카드 ───────────────────────── */
+.settings-subtitle {
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #18365c;
+    margin-bottom: 0.9rem;
+    letter-spacing: -0.02em;
+}
+
+.scenario-current {
+    margin-top: 0.9rem;
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.scenario-current strong {
+    color: #1a56a0;
+    font-weight: 800;
+}
+
+.scenario-card-wrap {
+    display: block;
+}
+
+.scenario-card-wrap div[data-testid="stButton"] > button {
+    width: 100%;
+    min-height: 4.2rem;
+    border-radius: 20px;
+    border: 2px solid #c9d8ea;
+    background: #ffffff;
+    color: #2b5ea7;
+    font-weight: 700;
+    font-size: 0.92rem;
+    box-shadow: none;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+}
+
+.scenario-card-wrap div[data-testid="stButton"] > button:hover {
+    transform: translateY(-3px);
+    border-color: #1a56a0 !important;
+    background: #f7fbff !important;
+    box-shadow: 0 8px 24px rgba(26,86,160,0.13);
+}
+
+.scenario-card-wrap div[data-testid="stButton"] > button:active {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(26,86,160,0.10);
+}
+
+.scenario-card-wrap.active div[data-testid="stButton"] > button {
+    border-color: #1a56a0 !important;
+    background: #eef5ff !important;
+    color: #1a56a0 !important;
+    box-shadow: 0 4px 14px rgba(26,86,160,0.12) !important;
+}
+
+/* 모바일에서는 3개 + 2개 느낌으로 줄어들게 */
+@media (max-width: 1200px) {
+    .scenario-card-wrap div[data-testid="stButton"] > button {
+        min-height: 3.8rem;
+        font-size: 0.88rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .scenario-card-wrap div[data-testid="stButton"] > button {
+        min-height: 3.6rem;
+        font-size: 0.84rem;
+        padding: 0.4rem 0.35rem;
+    }
+}
 
 </style>
 """,
@@ -984,35 +1060,26 @@ def render_settings(current_page):
             unsafe_allow_html=True,
         )
 
+        scenario_options = [
+            "탄소중립",
+            "저배출",
+            "현재정책",
+            "고배출",
+            "극단배출",
+        ]
+
         current_policy = st.session_state.get("main_policy", "현재정책")
 
-        c1, c2, c3, c4, c5 = st.columns(5, gap="small")
-
-        with c1:
-            if st.button("탄소중립", key="policy_btn_0", use_container_width=True):
-                st.session_state["main_policy"] = "탄소중립"
-                st.rerun()
-
-        with c2:
-            if st.button("저배출", key="policy_btn_1", use_container_width=True):
-                st.session_state["main_policy"] = "저배출"
-                st.rerun()
-
-        with c3:
-            if st.button("현재정책", key="policy_btn_2", use_container_width=True):
-                st.session_state["main_policy"] = "현재정책"
-                st.rerun()
-
-        with c4:
-            if st.button("고배출", key="policy_btn_3", use_container_width=True):
-                st.session_state["main_policy"] = "고배출"
-                st.rerun()
-
-        with c5:
-            if st.button("극단배출", key="policy_btn_4", use_container_width=True):
-                st.session_state["main_policy"] = "극단배출"
-                st.rerun()
-
+        cols = st.columns(5, gap="small")
+        for i, label in enumerate(scenario_options):
+            active_class = " active" if current_policy == label else ""
+            with cols[i]:
+                st.markdown(f'<div class="scenario-card-wrap{active_class}">', unsafe_allow_html=True)
+                if st.button(label, key=f"scenario_btn_{i}", use_container_width=True):
+                    st.session_state["main_policy"] = label
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+    
         controls["policy"] = st.session_state.get("main_policy", "현재정책")
 
         st.markdown(
@@ -1021,7 +1088,6 @@ def render_settings(current_page):
         )
 
         st.markdown("</div>", unsafe_allow_html=True)
-
 
     elif current_page == "기후 시스템 파라미터 실험":
         st.markdown(
