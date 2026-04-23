@@ -1047,7 +1047,7 @@ def render_settings(current_page):
         html.append('</div>')
     
         st.markdown("".join(html), unsafe_allow_html=True)
-    
+        controls["policy"] = current_policy    
     elif current_page == "기후 시스템 파라미터 실험":
         st.markdown(
             '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
