@@ -271,6 +271,39 @@ section[data-testid="stSidebar"] { display: none; }
     padding: 0 0.25rem 0.85rem 0.25rem;
     border-bottom: 3px solid #dde7f2;
 }
+
+/* ── nav-link 전용 스타일 ── */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 4.2rem;
+    border-radius: 20px;
+    border: 2px solid #b9cfea;
+    background: #ffffff;
+    color: #2b5ea7 !important;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none !important;
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+
+.nav-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(26,86,160,0.13);
+}
+
+.nav-link.active {
+    border-color: #1a56a0;
+    background: #eef5ff;
+}
 .nav-hint { display: none; }
 
 /* ── Settings Shell ───────────────────────────────────────── */
@@ -888,19 +921,19 @@ def render_left_panel():
         ("연구 요약", "연구 요약 및 보고서", "summary"),
     ]
 
-    st.markdown(
-        '<div class="nav-panel"><div class="nav-panel-title">탐색 메뉴</div><div class="nav-links">',
-        unsafe_allow_html=True,
-    )
+    nav_html = ['<div class="nav-panel">']
+    nav_html.append('<div class="nav-panel-title">탐색 메뉴</div>')
+    nav_html.append('<div class="nav-links">')
 
     for label, page_name, slug in nav_items:
         active_class = " active" if current == page_name else ""
-        st.markdown(
-            f'<a class="nav-link{active_class}" href="?module={slug}" target="_self">{label}</a>',
-            unsafe_allow_html=True,
+        nav_html.append(
+            f'<a class="nav-link{active_class}" href="?module={slug}" target="_self">{label}</a>'
         )
 
-    st.markdown("</div></div>", unsafe_allow_html=True)
+    nav_html.append("</div></div>")
+
+    st.markdown("".join(nav_html), unsafe_allow_html=True)
 
     st.markdown('<div class="src-box">', unsafe_allow_html=True)
     with st.expander("자료 출처", expanded=False):
@@ -915,7 +948,7 @@ def render_left_panel():
 """
         )
     st.markdown("</div>", unsafe_allow_html=True)
-
+    
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
     controls = {}
