@@ -598,6 +598,49 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     box-shadow: 0 4px 14px rgba(26,86,160,0.12) !important;
 }
 
+/* ── Left Nav Links ───────────────────────────────────────── */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 4.2rem;
+    border-radius: 20px;
+    border: 2px solid #b9cfea;
+    background: #ffffff;
+    color: #2b5ea7 !important;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: -0.02em;
+    text-decoration: none !important;
+    box-shadow: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.nav-link:hover {
+    transform: translateY(-3px);
+    border-color: #1a56a0;
+    background: #f7fbff;
+    box-shadow: 0 8px 24px rgba(26,86,160,0.13);
+}
+
+.nav-link:active {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(26,86,160,0.10);
+}
+
+.nav-link.active {
+    border-color: #1a56a0;
+    background: #eef5ff;
+    color: #1a56a0 !important;
+    box-shadow: 0 4px 14px rgba(26,86,160,0.12);
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -865,34 +908,29 @@ def set_page(target):
 def render_left_panel():
     current = st.session_state.get("page", "시작 페이지")
 
-    st.markdown(
-        '<div class="nav-panel"><div class="nav-panel-title">탐색 메뉴</div>',
-        unsafe_allow_html=True
-    )
-
-    home_class = "nav-btn-active" if current == "시작 페이지" else "nav-btn"
-    st.markdown(f'<div class="{home_class}">', unsafe_allow_html=True)
-    if st.button("시작 페이지", key="lnav_home", use_container_width=True):
-        set_page("시작 페이지")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    nav_labels = [
-        "시나리오 예측",
-        "파라미터 실험",
-        "관측 비교",
-        "불확실성",
-        "용어 정의",
-        "연구 요약",
+    nav_items = [
+        ("시작 페이지", "시작 페이지", "home"),
+        ("시나리오 예측", "시나리오 기반 기후 변화 예측", "scenario"),
+        ("파라미터 실험", "기후 시스템 파라미터 실험", "experiment"),
+        ("관측 비교", "모델 적합도 및 관측자료 비교", "fit"),
+        ("불확실성", "모델 검증 및 불확실성 정량화", "uncertainty"),
+        ("용어 정의", "기후 모델링 용어 및 개념 정의", "glossary"),
+        ("연구 요약", "연구 요약 및 보고서", "summary"),
     ]
 
-    for i, (lbl, pg) in enumerate(zip(nav_labels, NAV_PAGES)):
-        btn_class = "nav-btn-active" if current == pg else "nav-btn"
-        st.markdown(f'<div class="{btn_class}">', unsafe_allow_html=True)
-        if st.button(lbl, key=f"lnav_{i}", use_container_width=True):
-            set_page(pg)
-        st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div class="nav-panel"><div class="nav-panel-title">탐색 메뉴</div><div class="nav-links">',
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    for label, page_name, slug in nav_items:
+        active_class = " active" if current == page_name else ""
+        st.markdown(
+            f'<a class="nav-link{active_class}" href="?module={slug}" target="_self">{label}</a>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
     st.markdown('<div class="src-box">', unsafe_allow_html=True)
     with st.expander("자료 출처", expanded=False):
@@ -907,7 +945,6 @@ def render_left_panel():
 """
         )
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
