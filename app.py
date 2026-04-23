@@ -698,44 +698,47 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     border-radius: 50%;
     background: #ffffff;
     border: 3px solid #bfd0e5;
-    margin: 0 auto 0.35rem auto;
-    box-shadow: 0 2px 6px rgba(43, 94, 167, 0.08);
+    margin: 0 auto 0.3rem auto;
     transition: all 0.2s ease;
 }
 
+/* hover */
 .scenario-step:hover .scenario-dot {
     transform: scale(1.15);
     border-color: #5b8fd6;
-    box-shadow: 0 6px 16px rgba(43, 94, 167, 0.2);
 }
 
+/* active */
 .scenario-step.active .scenario-dot {
     border: 7px solid #2b5ea7;
     transform: scale(1.2);
-    box-shadow: 0 8px 20px rgba(43, 94, 167, 0.25);
 }
 
 .scenario-step-label {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 800;
     color: #334155;
     line-height: 1.2;
     letter-spacing: -0.02em;
     white-space: nowrap;
+
+    opacity: 0;                 
+    transform: translateY(6px); 
     transition: all 0.2s ease;
 }
 
 .scenario-step:hover .scenario-step-label {
+    opacity: 1;
+    transform: translateY(0);
     color: #2b5ea7;
-    transform: translateY(-1px);
 }
 
 .scenario-step.active .scenario-step-label {
-    font-size: 0.78rem;   /* 👈 여기 핵심 */
+    opacity: 1;
+    transform: translateY(0);
+    font-size: 0.8rem;
     color: #1a56a0;
-    transform: translateY(-2px);
 }
-
 .scenario-scale-foot {
     display: flex;
     justify-content: space-between;
