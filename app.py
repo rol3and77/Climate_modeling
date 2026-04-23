@@ -1049,39 +1049,39 @@ def render_settings(current_page):
         st.markdown("".join(html), unsafe_allow_html=True)
     
     elif current_page == "기후 시스템 파라미터 실험":
-            st.markdown(
-                '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
-                unsafe_allow_html=True,
-            )
-            if st.button("초기화", use_container_width=True, key="main_reset_experiment"):
-                for k, v in {
-                    "main_exp_co2": 550,
-                    "main_exp_lambda": 1.5,
-                    "main_exp_aer": 1.0,
-                }.items():
-                    st.session_state[k] = v
-    
-            st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
-    
-            controls["exp_co2"] = st.slider(
-                "2100년 CO₂ 농도 (ppm)", 250, 1500,
-                int(st.session_state.get("main_exp_co2", 550)),
-                step=10, key="main_exp_co2",
-            )
-    
-            controls["exp_lambda"] = st.slider(
-                "기후 피드백 파라미터 (λ)", 0.5, 3.0,
-                float(st.session_state.get("main_exp_lambda", 1.5)),
-                step=0.1, key="main_exp_lambda",
-            )
-    
-            controls["exp_aer"] = st.slider(
-                "에어로졸 강도", 0.0, 3.0,
-                float(st.session_state.get("main_exp_aer", 1.0)),
-                step=0.1, key="main_exp_aer",
-            )
-    
-            st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(
+            '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("초기화", use_container_width=True, key="main_reset_experiment"):
+            for k, v in {
+                "main_exp_co2": 550,
+                "main_exp_lambda": 1.5,
+                "main_exp_aer": 1.0,
+            }.items():
+                st.session_state[k] = v
+
+        st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
+
+        controls["exp_co2"] = st.slider(
+            "2100년 CO₂ 농도 (ppm)", 250, 1500,
+            int(st.session_state.get("main_exp_co2", 550)),
+            step=10, key="main_exp_co2",
+        )
+
+        controls["exp_lambda"] = st.slider(
+            "기후 피드백 파라미터 (λ)", 0.5, 3.0,
+            float(st.session_state.get("main_exp_lambda", 1.5)),
+            step=0.1, key="main_exp_lambda",
+        )
+
+        controls["exp_aer"] = st.slider(
+            "에어로졸 강도", 0.0, 3.0,
+            float(st.session_state.get("main_exp_aer", 1.0)),
+            step=0.1, key="main_exp_aer",
+        )
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     elif current_page == "모델 적합도 및 관측자료 비교":
         st.markdown(
