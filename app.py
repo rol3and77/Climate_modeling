@@ -1022,7 +1022,7 @@ def render_left_panel():
     
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
-        controls = {}
+    controls = {}
     if current_page == "시나리오 기반 기후 변화 예측":
         current_policy = st.session_state.get("main_policy", "현재정책")
     
@@ -1057,6 +1057,7 @@ def render_settings(current_page):
         st.markdown("".join(html), unsafe_allow_html=True)
     
         controls["policy"] = current_policy
+        
     elif current_page == "기후 시스템 파라미터 실험":
             st.markdown(
                 '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
