@@ -679,7 +679,7 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     min-height: 3.8rem;
     padding: 0.7rem 0.5rem;
 
-    border-radius: 14px;
+    border-radius: 12px;
     border: 1.5px solid #c9d8ea;
 
     background: transparent;   /* 핵심 차이 */
