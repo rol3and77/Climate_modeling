@@ -686,56 +686,54 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 }
 
 .scenario-step {
-    width: 20%;
+    width: 18%;
     text-align: center;
     position: relative;
     text-decoration: none !important;
 }
 
-.scenario-step-inner {
-    display: block;
-    text-decoration: none !important;
-}
-
 .scenario-dot {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #ffffff;
     border: 3px solid #bfd0e5;
-    margin: 0 auto 0.55rem auto;
-    box-shadow: 0 2px 8px rgba(43, 94, 167, 0.08);
-    transition: all 0.18s ease;
+    margin: 0 auto 0.35rem auto;
+    box-shadow: 0 2px 6px rgba(43, 94, 167, 0.08);
+    transition: all 0.2s ease;
 }
 
 .scenario-step:hover .scenario-dot {
-    transform: scale(1.08);
-    border-color: #7ea7d8;
-    box-shadow: 0 6px 14px rgba(43, 94, 167, 0.16);
+    transform: scale(1.15);
+    border-color: #5b8fd6;
+    box-shadow: 0 6px 16px rgba(43, 94, 167, 0.2);
 }
 
 .scenario-step.active .scenario-dot {
-    background: #ffffff;
     border: 7px solid #2b5ea7;
-    box-shadow: 0 6px 16px rgba(43, 94, 167, 0.20);
+    transform: scale(1.2);
+    box-shadow: 0 8px 20px rgba(43, 94, 167, 0.25);
 }
 
 .scenario-step-label {
-    font-size: 0.78rem;
+    font-size: 0.65rem;
     font-weight: 800;
     color: #334155;
-    line-height: 1.35;
+    line-height: 1.2;
     letter-spacing: -0.02em;
-    transition: color 0.18s ease;
-    word-break: keep-all;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 }
 
 .scenario-step:hover .scenario-step-label {
     color: #2b5ea7;
+    transform: translateY(-1px);
 }
 
 .scenario-step.active .scenario-step-label {
+    font-size: 0.78rem;   /* 👈 여기 핵심 */
     color: #1a56a0;
+    transform: translateY(-2px);
 }
 
 .scenario-scale-foot {
