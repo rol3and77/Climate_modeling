@@ -667,56 +667,48 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 
 .scenario-link-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.8rem;
-}
-
-.scenario-link-grid {
-    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-    width: 100%;
-    box-sizing: border-box;
+    gap: 0.6rem;
 }
 
 .scenario-link-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 4.2rem;
-    width: 100%;
-    max-width: 100%;
-    padding: 0.65rem 0.5rem;
-    border-radius: 16px;
-    border: 1.6px solid #c9d8ea;
-    background: #ffffff;
+
+    min-height: 3.8rem;
+    padding: 0.7rem 0.5rem;
+
+    border-radius: 14px;
+    border: 1.5px solid #c9d8ea;
+
+    background: transparent;   /* 핵심 차이 */
     color: #2b5ea7 !important;
+
+    font-weight: 700;
+    font-size: 0.92rem;
+
     text-decoration: none !important;
-    font-weight: 800;
-    font-size: 0.96rem;
     text-align: center;
+
+    white-space: normal;
     word-break: keep-all;
-    box-sizing: border-box;
-    box-shadow: 0 1px 4px rgba(26,86,160,0.04);
-    transition:
-        transform 0.16s ease,
-        box-shadow 0.16s ease,
-        border-color 0.16s ease,
-        background 0.16s ease;
+
+    transition: all 0.15s ease;
 }
 
+/* hover */
 .scenario-link-card:hover {
-    transform: translateY(-2px);
-    border-color: #2b5ea7;
-    background: #f8fbff;
-    box-shadow: 0 4px 12px rgba(26,86,160,0.08);
+    border-color: #1a56a0;
+    background: rgba(26,86,160,0.05);
 }
 
+/* 선택된 카드 */
 .scenario-link-card.active {
     border-color: #1a56a0;
-    background: #eef5ff;
+    background: rgba(26,86,160,0.10);
     color: #1a56a0 !important;
-    box-shadow: 0 2px 8px rgba(26,86,160,0.10);
+    font-weight: 800;
 }
 
 </style>
