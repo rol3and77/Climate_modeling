@@ -665,44 +665,37 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-weight: 800;
 }
 
-/* ── 시나리오 segmented control ───────────────── */
-.scenario-seg-wrap {
+/* ── 시나리오 필터칩 ───────────────────────── */
+.scenario-chip-wrap {
     display: flex;
-    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
 }
 
-.scenario-seg {
-    display: inline-flex;
-    border: 2px solid #c9d8ea;
-    border-radius: 14px;
-    overflow: hidden;
+.scenario-chip {
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    border: 1.5px solid #c9d8ea;
     background: #ffffff;
-}
-
-.scenario-seg a {
-    padding: 0.55rem 0.9rem;
-    font-size: 0.9rem;
-    font-weight: 700;
     color: #2b5ea7 !important;
+    font-size: 0.88rem;
+    font-weight: 700;
     text-decoration: none !important;
-    border-right: 1px solid #dbe5f1;
     transition: all 0.15s ease;
 }
 
-/* 마지막 버튼 경계 제거 */
-.scenario-seg a:last-child {
-    border-right: none;
-}
-
 /* hover */
-.scenario-seg a:hover {
+.scenario-chip:hover {
+    border-color: #1a56a0;
     background: #f4f8ff;
 }
 
-/* 선택된 상태 */
-.scenario-seg a.active {
+/* 선택됨 */
+.scenario-chip.active {
     background: #1a56a0;
     color: #ffffff !important;
+    border-color: #1a56a0;
 }
 
 </style>
@@ -1022,7 +1015,7 @@ def render_left_panel():
     
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
-    controls = {}
+        controls = {}
     if current_page == "시나리오 기반 기후 변화 예측":
         current_policy = st.session_state.get("main_policy", "현재정책")
     
@@ -1038,17 +1031,16 @@ def render_settings(current_page):
             '<div class="settings-shell">',
             '<div class="settings-title">배출 시나리오 설정</div>',
             '<div class="settings-subtitle">배출 시나리오</div>',
-            '<div class="scenario-seg-wrap">',
-            '<div class="scenario-seg">'
+            '<div class="scenario-chip-wrap">'
         ]
     
         for label, slug in items:
             active = " active" if current_policy == label else ""
             html.append(
-                f'<a class="{active}" href="?module=scenario&policy={slug}" target="_self">{label}</a>'
+                f'<a class="scenario-chip{active}" href="?module=scenario&policy={slug}">{label}</a>'
             )
     
-        html.append('</div></div>')
+        html.append('</div>')
         html.append(
             f'<div class="scenario-current">현재 선택: <strong>{current_policy}</strong></div>'
         )
@@ -1056,8 +1048,6 @@ def render_settings(current_page):
     
         st.markdown("".join(html), unsafe_allow_html=True)
     
-        controls["policy"] = current_policy
-        
     elif current_page == "기후 시스템 파라미터 실험":
             st.markdown(
                 '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
