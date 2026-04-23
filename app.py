@@ -1,3 +1,4 @@
+%%writefile app.py
 import streamlit as st
 import numpy as np
 import matplotlib
@@ -596,6 +597,51 @@ div[data-testid="stImage"] img, div[data-testid="stPyplotRootElement"] {
     .hero-title { font-size: 1.6rem; }
     .block-container { padding: 1rem 1rem 2rem 1rem !important; }
 }
+
+/* ===== UI Refinement Patch ===== */
+
+/* Global Letter Spacing */
+body, p, div { letter-spacing: -0.01em; }
+.hero-title, .page-title, .modcard-title, .mcard-val { letter-spacing: -0.02em; }
+.mcard-label, .cond-label, .hero-badge { letter-spacing: 0.05em; }
+
+/* Spacing Tokens */
+:root {
+    --space-sm: 0.8rem;
+    --space-md: 1.2rem;
+    --space-lg: 1.6rem;
+}
+
+/* Unified Padding */
+.hero,
+.modcard,
+.mcard,
+.infobox,
+.nav-panel,
+.settings-shell,
+.pcard,
+.abstract-box,
+.cond-bar {
+    padding: var(--space-md) !important;
+}
+
+/* Container padding */
+.block-container {
+    padding: var(--space-lg) !important;
+}
+
+/* Internal spacing */
+.mcard-label,
+.modcard-num,
+.pcard-tag {
+    margin-bottom: var(--space-sm);
+}
+
+.modcard-title,
+.pcard-title {
+    margin-bottom: var(--space-sm);
+}
+
 </style>
 """,
     unsafe_allow_html=True,
