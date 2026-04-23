@@ -647,11 +647,6 @@ body, p, div { letter-spacing: -0.01em; }
     margin-bottom: var(--space-sm);
 }
 
-</style>
-""",
-    unsafe_allow_html=True,
-)
-
 .row-widget.stHorizontal {
     gap: 1.2rem !important;
 }
@@ -663,6 +658,12 @@ div[data-testid="column"] > div {
 .modcard {
     margin: 0 !important;
 }
+
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
 
 # ── 관측 데이터 ───────────────────────────────────────────────────────────────
 START_YEAR, END_YEAR = 1925, 2025
