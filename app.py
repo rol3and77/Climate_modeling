@@ -8,7 +8,11 @@ from pathlib import Path
 from urllib.parse import quote
 
 # --- 1. 웹 대시보드 설정 ---
-st.set_page_config(page_title="기후 모델링 연구 대시보드", layout="wide")
+st.set_page_config(
+    page_title="기후 모델링 연구 대시보드",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # --- 1-1. 전역 스타일 ---
 st.markdown("""
@@ -194,10 +198,6 @@ st.markdown("""
         display: block;
         height: 100%;
     }
-    .module-card-link, .module-card-link * {
-    text-decoration: none !important;
-    color: inherit !important;
-}
 
     .module-card {
         background: #ffffff;
@@ -416,6 +416,37 @@ def render_metric_card(title, value, note=""):
     )
 
 
+def apply_sidebar_visibility(current_page):
+    if current_page == "시작 페이지":
+        st.markdown(
+            """
+            <style>
+            section[data-testid="stSidebar"] {
+                display: none !important;
+            }
+            div[data-testid="collapsedControl"] {
+                display: none !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            """
+            <style>
+            section[data-testid="stSidebar"] {
+                display: block !important;
+            }
+            div[data-testid="collapsedControl"] {
+                display: block !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+
 def render_module_link_card(index_label, title, desc, slug):
     href = f"?module={quote(slug)}"
     st.markdown(
@@ -425,6 +456,7 @@ def render_module_link_card(index_label, title, desc, slug):
                 <div class="module-card-index">{index_label}</div>
                 <div class="module-card-title">{title}</div>
                 <div class="module-card-desc">{desc}</div>
+                <div class="module-card-cta">클릭하여 열기 →</div>
             </div>
         </a>
         """,
@@ -488,6 +520,7 @@ if selected_page != st.session_state["sidebar_selected_page"]:
     st.rerun()
 
 page = st.session_state["page"]
+apply_sidebar_visibility(page)
 
 st.sidebar.markdown("---")
 st.sidebar.header("설정")
