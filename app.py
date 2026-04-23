@@ -1213,19 +1213,11 @@ def render_settings(current_page):
         html = [
             '<div class="settings-shell">',
             '<div class="settings-title">배출 시나리오 설정</div>',
-    
-            f'''
-            <div class="scenario-hero">
-                <div class="scenario-hero-top">현재 선택 시나리오</div>
-                <div class="scenario-hero-name">
-                    {current_policy}
-                </div>
-                <div class="scenario-hero-desc">
-                    {scenario_meta[current_policy]["hero_desc"]}
-                </div>
-            </div>
-            ''',
-    
+            f'<div class="scenario-hero">'
+            f'<div class="scenario-hero-top">현재 선택 시나리오</div>'
+            f'<div class="scenario-hero-name">{current_policy}</div>'
+            f'<div class="scenario-hero-desc">{scenario_meta[current_policy]["hero_desc"]}</div>'
+            f'</div>',
             '<div class="scenario-scale-title">시나리오 강도</div>',
             '<div class="scenario-scale">',
             '<div class="scenario-scale-line"></div>',
@@ -1236,23 +1228,16 @@ def render_settings(current_page):
         for label in order:
             active = " active" if label == current_policy else ""
             html.append(
-                f'''
-                <div class="scenario-step{active}">
-                    <div class="scenario-dot"></div>
-                    <div class="scenario-step-label">{label}</div>
-                </div>
-                '''
+                f'<div class="scenario-step{active}">'
+                f'<div class="scenario-dot"></div>'
+                f'<div class="scenario-step-label">{label}</div>'
+                f'</div>'
             )
     
         html.extend([
             '</div>',
-            '<div class="scenario-scale-foot">',
-            '<span class="low">낮음</span>',
-            '<span class="mid">현재 수준</span>',
-            '<span class="high">높음</span>',
+            '<div class="scenario-scale-foot"><span class="low">낮음</span><span class="mid">현재 수준</span><span class="high">높음</span></div>',
             '</div>',
-            '</div>',
-    
             '<div class="settings-subtitle">시나리오 선택</div>',
             '<div class="scenario-card-grid">'
         ])
@@ -1262,12 +1247,10 @@ def render_settings(current_page):
             active = " active" if label == current_policy else ""
             wide = " wide" if label == "극단배출" else ""
             html.append(
-                f'''
-                <a class="scenario-card{active}{wide}" href="?module=scenario&policy={meta["slug"]}" target="_self">
-                    <div class="scenario-card-title">{label}</div>
-                    <div class="scenario-card-desc">{meta["desc"]}</div>
-                </a>
-                '''
+                f'<a class="scenario-card{active}{wide}" href="?module=scenario&policy={meta["slug"]}" target="_self">'
+                f'<div class="scenario-card-title">{label}</div>'
+                f'<div class="scenario-card-desc">{meta["desc"]}</div>'
+                f'</a>'
             )
     
         html.extend([
@@ -1277,8 +1260,7 @@ def render_settings(current_page):
         ])
     
         st.markdown("".join(html), unsafe_allow_html=True)
-        controls["policy"] = current_policy
-    
+        controls["policy"] = current_policy    
     elif current_page == "기후 시스템 파라미터 실험":
         st.markdown(
             '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
