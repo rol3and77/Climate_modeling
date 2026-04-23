@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
 from scipy.optimize import minimize
 import pandas as pd
 from numba import njit
@@ -23,20 +22,18 @@ st.markdown(
     """
 <style>
 /* ── Google Font: DM Sans (웹안전 fallback 포함) ── */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 
 /* ── Reset & Base ─────────────────────────────────────────── */
 html, body, [class*="css"] {
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     -webkit-font-smoothing: antialiased;
 }
-[data-testid="stAppViewContainer"] {
-    background: #f0f4f8;
-}
+[data-testid="stAppViewContainer"] { background: #f0f4f8; }
 [data-testid="stHeader"] { background: transparent; }
 section[data-testid="stSidebar"] { display: none; }
 .block-container {
-    padding: 1.6rem 2.2rem 3rem 2.2rem !important;
+    padding: 1.6rem !important;
     max-width: 1400px;
 }
 
@@ -44,9 +41,9 @@ section[data-testid="stSidebar"] { display: none; }
 .hero {
     background: linear-gradient(135deg, #1a56a0 0%, #1e6fb8 55%, #2185d0 100%);
     border-radius: 20px;
-    padding: 2.8rem 2.4rem 2.4rem 2.4rem;
+    padding: 1.6rem;
     color: #fff;
-    margin-bottom: 1.8rem;
+    margin-bottom: 1.6rem;
     position: relative;
     overflow: hidden;
 }
@@ -66,30 +63,30 @@ section[data-testid="stSidebar"] { display: none; }
     color: #e0f0ff;
     font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
-    padding: 0.28rem 0.75rem;
+    padding: 0.3rem 0.75rem;
     border-radius: 999px;
-    margin-bottom: 1rem;
+    margin-bottom: 0.9rem;
 }
 .hero-title {
     font-size: 2.3rem;
     font-weight: 800;
     line-height: 1.2;
     margin-bottom: 0.8rem;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
 }
 .hero-desc {
     font-size: 0.97rem;
-    line-height: 1.85;
-    color: #c8e2f8;
-    max-width: 820px;
+    line-height: 1.75;
+    color: #d5e5f7;
+    max-width: 980px;
 }
 .hero-chips {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
-    margin-top: 1.2rem;
+    margin-top: 1rem;
 }
 .hero-chip {
     background: rgba(255,255,255,0.13);
@@ -97,7 +94,7 @@ section[data-testid="stSidebar"] { display: none; }
     color: #e8f3ff;
     font-size: 0.8rem;
     font-weight: 600;
-    padding: 0.3rem 0.75rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 999px;
 }
 
@@ -106,8 +103,8 @@ section[data-testid="stSidebar"] { display: none; }
     font-size: 1.05rem;
     font-weight: 800;
     color: #0f2744;
-    margin: 1.6rem 0 1rem 0;
-    letter-spacing: -0.01em;
+    margin: 1.6rem 0 0.9rem 0;
+    letter-spacing: -0.02em;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -122,12 +119,11 @@ section[data-testid="stSidebar"] { display: none; }
 }
 
 /* ── Metric Cards ─────────────────────────────────────────── */
-.metric-row { display: flex; gap: 0.9rem; margin-bottom: 1.4rem; flex-wrap: wrap; }
 .mcard {
     background: #ffffff;
     border: 1px solid #d6e2f0;
     border-radius: 14px;
-    padding: 1.1rem 1.2rem;
+    padding: 1.2rem;
     flex: 1;
     min-width: 140px;
     box-shadow: 0 2px 8px rgba(26,86,160,0.06);
@@ -147,8 +143,8 @@ section[data-testid="stSidebar"] { display: none; }
     font-weight: 600;
     color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.55rem;
 }
 .mcard-val {
     font-size: 1.75rem;
@@ -175,7 +171,8 @@ section[data-testid="stSidebar"] { display: none; }
     background: #ffffff;
     border: 1px solid #d6e2f0;
     border-radius: 16px;
-    padding: 1.6rem;
+    padding: 1.5rem;
+    min-height: 170px;
     height: 100%;
     box-shadow: 0 2px 10px rgba(26,86,160,0.06);
     transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
@@ -188,6 +185,7 @@ section[data-testid="stSidebar"] { display: none; }
     justify-content: flex-start;
     color: inherit !important;
     box-sizing: border-box;
+    margin: 0 !important;
 }
 .modcard:hover {
     transform: translateY(-3px);
@@ -197,7 +195,7 @@ section[data-testid="stSidebar"] { display: none; }
 .modcard-num {
     font-size: 0.72rem;
     font-weight: 800;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
     color: #1a56a0;
     margin: 0 0 1rem 0;
@@ -215,7 +213,7 @@ section[data-testid="stSidebar"] { display: none; }
     border-radius: 1px;
 }
 .modcard-title {
-    font-size: 1.0rem;
+    font-size: 1rem;
     font-weight: 800;
     color: #0f2744;
     margin: 0 0 1rem 0;
@@ -235,7 +233,7 @@ section[data-testid="stSidebar"] { display: none; }
     border: 1px solid #bdd6f5;
     border-left: 4px solid #1a56a0;
     border-radius: 10px;
-    padding: 1rem 1.1rem;
+    padding: 1.1rem 1.2rem;
     margin-bottom: 1.2rem;
 }
 .infobox-title {
@@ -257,7 +255,7 @@ section[data-testid="stSidebar"] { display: none; }
     background: #f7f7f8;
     border: 2px solid #c9d8ea;
     border-radius: 26px;
-    padding: 1.35rem 1.25rem 1.15rem 1.25rem;
+    padding: 1.2rem;
     box-shadow: none;
     margin-bottom: 1rem;
     position: sticky;
@@ -273,16 +271,14 @@ section[data-testid="stSidebar"] { display: none; }
     padding: 0 0.25rem 0.85rem 0.25rem;
     border-bottom: 3px solid #dde7f2;
 }
-.nav-hint {
-    display: none;
-}
+.nav-hint { display: none; }
 
 /* ── Settings Shell ───────────────────────────────────────── */
 .settings-shell {
     background: #f7f7f8;
     border: 2px solid #c9d8ea;
     border-radius: 26px;
-    padding: 1.25rem 1.2rem 1.15rem 1.2rem;
+    padding: 1.2rem;
     box-shadow: none;
     margin-top: 0.2rem;
     margin-bottom: 0.9rem;
@@ -303,7 +299,7 @@ section[data-testid="stSidebar"] { display: none; }
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
-    padding: 0.65rem 0.8rem;
+    padding: 0.7rem 0.8rem;
     margin-top: 0.6rem;
 }
 
@@ -312,7 +308,7 @@ section[data-testid="stSidebar"] { display: none; }
     background: #ffffff;
     border: 1px solid #d6e2f0;
     border-radius: 16px;
-    padding: 1.3rem 1.3rem 1.2rem 1.3rem;
+    padding: 1.2rem;
     box-shadow: 0 2px 10px rgba(26,86,160,0.06);
     min-height: 185px;
     height: 100%;
@@ -323,13 +319,13 @@ section[data-testid="stSidebar"] { display: none; }
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #1a56a0;
-    margin-bottom: 0.55rem;
+    margin-bottom: 0.8rem;
 }
 .pcard-title {
-    font-size: 1.0rem;
+    font-size: 1rem;
     font-weight: 800;
     color: #0f2744;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.8rem;
     line-height: 1.4;
 }
 .pcard-body {
@@ -343,7 +339,7 @@ section[data-testid="stSidebar"] { display: none; }
     background: linear-gradient(180deg, #f0f6ff 0%, #e8f2ff 100%);
     border: 1px solid #bdd6f5;
     border-radius: 12px;
-    padding: 1.2rem 1.2rem 1.1rem 1.2rem;
+    padding: 1.2rem;
     margin: 0.4rem 0 1.2rem 0;
 }
 .abstract-label {
@@ -387,8 +383,6 @@ div[data-testid="stButton"] > button:focus {
     border-color: #8fb3df;
     outline: none;
 }
-
-/* 초기화 버튼 */
 div[data-testid="stButton"][key="main_reset_experiment"] > button,
 div[data-testid="stButton"] > button[kind="secondary"] {
     background: #ffffff !important;
@@ -423,12 +417,10 @@ div[data-testid="stSlider"] {
     padding: 0.15rem 0 0.9rem 0;
     margin-bottom: 0.25rem;
 }
-
 div[data-testid="stSlider"] label {
     display: block !important;
     margin-bottom: 0.5rem !important;
 }
-
 div[data-testid="stSlider"] label p {
     font-size: 0.95rem !important;
     font-weight: 700 !important;
@@ -436,14 +428,10 @@ div[data-testid="stSlider"] label p {
     margin: 0 !important;
     line-height: 1.3 !important;
 }
-
-/* 슬라이더 전체 */
 div[data-testid="stSlider"] [data-baseweb="slider"] {
     padding-top: 0.2rem !important;
     padding-bottom: 0.2rem !important;
 }
-
-/* 레일 */
 div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
     height: 8px !important;
     border-radius: 999px !important;
@@ -451,24 +439,16 @@ div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
     box-shadow: none !important;
     overflow: visible !important;
 }
-
-/* 내부 바 */
 div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div {
     height: 8px !important;
     border-radius: 999px !important;
 }
-
-/* 선택된 구간 */
 div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
     background: #2b6cb0 !important;
 }
-
-/* 안 선택된 구간 */
 div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:last-child {
     background: #d9e6f5 !important;
 }
-
-/* thumb */
 div[data-testid="stSlider"] [data-baseweb="slider"] [role="slider"] {
     width: 18px !important;
     height: 18px !important;
@@ -478,18 +458,12 @@ div[data-testid="stSlider"] [data-baseweb="slider"] [role="slider"] {
     box-shadow: 0 2px 6px rgba(43, 108, 176, 0.18) !important;
     cursor: grab !important;
 }
-
-/* hover */
 div[data-testid="stSlider"] [data-baseweb="slider"] [role="slider"]:hover {
     box-shadow: 0 3px 8px rgba(43, 108, 176, 0.24) !important;
 }
-
-/* active */
 div[data-testid="stSlider"] [data-baseweb="slider"] [role="slider"]:active {
     cursor: grabbing !important;
 }
-
-/* 값 텍스트 */
 div[data-testid="stSlider"] [data-baseweb="slider"] [data-testid="stSliderThumbValue"] {
     font-size: 0.82rem !important;
     font-weight: 700 !important;
@@ -498,8 +472,6 @@ div[data-testid="stSlider"] [data-baseweb="slider"] [data-testid="stSliderThumbV
     top: -24px !important;
     white-space: nowrap !important;
 }
-
-/* min/max 숨김 */
 div[data-testid="stSlider"] [data-testid="stTickBarMin"],
 div[data-testid="stSlider"] [data-testid="stTickBarMax"] {
     display: none !important;
@@ -533,33 +505,26 @@ details[data-testid="stExpander"] summary {
 }
 details[data-testid="stExpander"] summary:hover { background: #f0f6ff; }
 
-/* ── Spinner ──────────────────────────────────────────────── */
+/* ── Misc ─────────────────────────────────────────────────── */
 div[data-testid="stSpinner"] { color: #1a56a0 !important; }
-
-/* ── st.info ──────────────────────────────────────────────── */
 div[data-testid="stInfo"] {
     background: #f0f6ff;
     border: 1px solid #bdd6f5;
     border-radius: 10px;
     color: #1a56a0;
 }
-
-/* ── Caption ──────────────────────────────────────────────── */
 div[data-testid="stCaptionContainer"] { color: #94a3b8; font-size: 0.8rem; }
-
-/* ── Pyplot ───────────────────────────────────────────────── */
-div[data-testid="stImage"] img, div[data-testid="stPyplotRootElement"] {
-    border-radius: 12px;
-}
+div[data-testid="stImage"] img,
+div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 
 /* ── Page Title ───────────────────────────────────────────── */
 .page-title {
     font-size: 1.7rem;
     font-weight: 800;
     color: #0f2744;
-    letter-spacing: -0.025em;
-    line-height: 1.25;
-    margin-bottom: 0.2rem;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
 }
 .page-subtitle {
     font-size: 0.9rem;
@@ -568,12 +533,12 @@ div[data-testid="stImage"] img, div[data-testid="stPyplotRootElement"] {
     margin-bottom: 1.1rem;
 }
 
-/* ── Condition Bar (현재 실험 조건 표시) ──────────────────── */
+/* ── Condition Bar ────────────────────────────────────────── */
 .cond-bar {
     background: #ffffff;
     border: 1px solid #d6e2f0;
     border-radius: 14px;
-    padding: 0.9rem 1.2rem;
+    padding: 1rem 1.2rem;
     display: flex;
     gap: 2rem;
     flex-wrap: wrap;
@@ -600,65 +565,8 @@ div[data-testid="stImage"] img, div[data-testid="stPyplotRootElement"] {
 /* ── Responsive tweak ─────────────────────────────────────── */
 @media (max-width: 900px) {
     .hero-title { font-size: 1.6rem; }
-    .block-container { padding: 1rem 1rem 2rem 1rem !important; }
+    .block-container { padding: 1rem !important; }
 }
-
-/* ===== UI Refinement Patch ===== */
-
-/* Global Letter Spacing */
-body, p, div { letter-spacing: -0.01em; }
-.hero-title, .page-title, .modcard-title, .mcard-val { letter-spacing: -0.02em; }
-.mcard-label, .cond-label, .hero-badge { letter-spacing: 0.05em; }
-
-/* Spacing Tokens */
-:root {
-    --space-sm: 0.8rem;
-    --space-md: 1.2rem;
-    --space-lg: 1.6rem;
-}
-
-/* Unified Padding */
-.hero,
-.modcard,
-.mcard,
-.infobox,
-.nav-panel,
-.settings-shell,
-.pcard,
-.abstract-box,
-.cond-bar {
-    padding: var(--space-md) !important;
-}
-
-/* Container padding */
-.block-container {
-    padding: var(--space-lg) !important;
-}
-
-/* Internal spacing */
-.mcard-label,
-.modcard-num,
-.pcard-tag {
-    margin-bottom: var(--space-sm);
-}
-
-.modcard-title,
-.pcard-title {
-    margin-bottom: var(--space-sm);
-}
-
-.row-widget.stHorizontal {
-    gap: 1.2rem !important;
-}
-
-div[data-testid="column"] > div {
-    margin-bottom: 1.2rem !important;
-}
-
-.modcard {
-    margin: 0 !important;
-}
-
 </style>
 """,
     unsafe_allow_html=True,
@@ -877,6 +785,10 @@ def page_header(title, subtitle=""):
         st.markdown(
             f'<div class="page-subtitle">{subtitle}</div>', unsafe_allow_html=True
         )
+
+
+def grid_gap(height="1.2rem"):
+    st.markdown(f'<div style="height:{height};"></div>', unsafe_allow_html=True)
 
 
 # ── 페이지 / 네비게이션 상태 ───────────────────────────────────────────────────
@@ -1101,35 +1013,59 @@ if page == "시작 페이지":
             unsafe_allow_html=True,
         )
 
-    r1c1, r1c2 = st.columns(2, gap="medium")
+    row_gap = "1.2rem"
+
+    r1c1, r1c2 = st.columns(2, gap="large")
     with r1c1:
-        modcard(1, "시나리오 기반 기후 변화 예측",
-                "탄소중립부터 고배출 경로까지 다양한 배출 시나리오로 2100년까지의 전지구 평균기온과 해수면 상승을 비교합니다.",
-                "scenario")
+        modcard(
+            1,
+            "시나리오 기반 기후 변화 예측",
+            "탄소중립부터 고배출 경로까지 다양한 배출 시나리오로 2100년까지의 전지구 평균기온과 해수면 상승을 비교합니다.",
+            "scenario",
+        )
     with r1c2:
-        modcard(2, "기후 시스템 파라미터 실험",
-                "기후 피드백, 에어로졸 강도, 해양 열흡수 계수, ENSO 진폭을 직접 조정해 모델 응답이 어떻게 달라지는지 실험합니다.",
-                "experiment")
+        modcard(
+            2,
+            "기후 시스템 파라미터 실험",
+            "기후 피드백, 에어로졸 강도, 해양 열흡수 계수, ENSO 진폭을 직접 조정해 모델 응답이 어떻게 달라지는지 실험합니다.",
+            "experiment",
+        )
 
-    r2c1, r2c2 = st.columns(2, gap="medium")
+    grid_gap(row_gap)
+
+    r2c1, r2c2 = st.columns(2, gap="large")
     with r2c1:
-        modcard(3, "모델 적합도 및 관측자료 비교",
-                "관측 자료와 모델 출력의 차이를 시계열, 상대오차, 강제력 기여 요소로 분해하여 역사적 기후 변화를 평가합니다.",
-                "fit")
+        modcard(
+            3,
+            "모델 적합도 및 관측자료 비교",
+            "관측 자료와 모델 출력의 차이를 시계열, 상대오차, 강제력 기여 요소로 분해하여 역사적 기후 변화를 평가합니다.",
+            "fit",
+        )
     with r2c2:
-        modcard(4, "모델 검증 및 불확실성 정량화",
-                "잔차 진단, 불확실성 범위, 민감도 분석을 통해 예측 신뢰성과 구조적 특성을 검토합니다.",
-                "uncertainty")
+        modcard(
+            4,
+            "모델 검증 및 불확실성 정량화",
+            "잔차 진단, 불확실성 범위, 민감도 분석을 통해 예측 신뢰성과 구조적 특성을 검토합니다.",
+            "uncertainty",
+        )
 
-    r3c1, r3c2 = st.columns(2, gap="medium")
+    grid_gap(row_gap)
+
+    r3c1, r3c2 = st.columns(2, gap="large")
     with r3c1:
-        modcard(5, "기후 모델링 용어 및 개념 정의",
-                "본 모델에서 사용되는 주요 기후학 개념, 물리 파라미터, 검증 지표를 정리한 참고 페이지입니다.",
-                "glossary")
+        modcard(
+            5,
+            "기후 모델링 용어 및 개념 정의",
+            "본 모델에서 사용되는 주요 기후학 개념, 물리 파라미터, 검증 지표를 정리한 참고 페이지입니다.",
+            "glossary",
+        )
     with r3c2:
-        modcard(6, "연구 요약 및 보고서",
-                "프로젝트의 연구 목적, 모델 구조, 해석 주의점, 연구 의의를 정리하고 분석 리포트 다운로드를 제공합니다.",
-                "summary")
+        modcard(
+            6,
+            "연구 요약 및 보고서",
+            "프로젝트의 연구 목적, 모델 구조, 해석 주의점, 연구 의의를 정리하고 분석 리포트 다운로드를 제공합니다.",
+            "summary",
+        )
 
     st.caption("모듈 카드를 클릭하면 해당 분석 페이지로 바로 이동합니다.")
 
