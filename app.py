@@ -711,6 +711,12 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-weight: 800;
 }
 
+.scenario-link-card.active {
+    border-color: #1a56a0;
+    background: transparent;
+    border-bottom: 3px solid #1a56a0;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
