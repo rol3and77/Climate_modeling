@@ -175,7 +175,7 @@ section[data-testid="stSidebar"] { display: none; }
     background: #ffffff;
     border: 1px solid #d6e2f0;
     border-radius: 16px;
-    padding: 1.35rem 1.3rem;
+    padding: 1.6rem;
     height: 100%;
     box-shadow: 0 2px 10px rgba(26,86,160,0.06);
     transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
@@ -183,8 +183,11 @@ section[data-testid="stSidebar"] { display: none; }
     position: relative;
     overflow: hidden;
     text-decoration: none !important;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     color: inherit !important;
+    box-sizing: border-box;
 }
 .modcard:hover {
     transform: translateY(-3px);
@@ -197,10 +200,11 @@ section[data-testid="stSidebar"] { display: none; }
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #1a56a0;
-    margin-bottom: 0.55rem;
+    margin: 0 0 1rem 0;
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    line-height: 1;
 }
 .modcard-num::before {
     content: '';
@@ -214,14 +218,15 @@ section[data-testid="stSidebar"] { display: none; }
     font-size: 1.0rem;
     font-weight: 800;
     color: #0f2744;
-    margin-bottom: 0.65rem;
-    line-height: 1.4;
+    margin: 0 0 1rem 0;
+    line-height: 1.35;
     letter-spacing: -0.01em;
 }
 .modcard-desc {
     font-size: 0.88rem;
-    line-height: 1.7;
+    line-height: 1.75;
     color: #475569;
+    margin: 0;
 }
 
 /* ── Info / Note Box ──────────────────────────────────────── */
