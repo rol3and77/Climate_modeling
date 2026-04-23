@@ -644,7 +644,6 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     box-shadow: 0 4px 14px rgba(26,86,160,0.12);
 }
 
-/* ── 시나리오 선택 카드 ───────────────────────── */
 .settings-subtitle {
     font-size: 1rem;
     font-weight: 800;
@@ -666,54 +665,58 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-weight: 800;
 }
 
-.scenario-card-wrap {
-    display: block;
+.scenario-link-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
 }
 
-.scenario-card-wrap div[data-testid="stButton"] {
-    margin: 0 !important;
-}
-
-.scenario-card-wrap div[data-testid="stButton"] > button {
-    width: 100%;
-    min-height: 4.8rem !important;
-    border-radius: 18px !important;
-    border: 2px solid #c9d8ea !important;
-    background: #ffffff !important;
+.scenario-link-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 4.6rem;
+    padding: 0.7rem 0.5rem;
+    border-radius: 18px;
+    border: 2px solid #c9d8ea;
+    background: #ffffff;
     color: #2b5ea7 !important;
-    font-weight: 800 !important;
-    font-size: 1rem !important;
-    line-height: 1.25 !important;
-    padding: 0.8rem 0.6rem !important;
-    box-shadow: none !important;
-    white-space: normal !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    word-break: keep-all !important;
+    text-decoration: none !important;
+    font-weight: 800;
+    font-size: 1rem;
+    text-align: center;
+    word-break: keep-all;
+    box-sizing: border-box;
     transition:
         transform 0.18s ease,
         box-shadow 0.18s ease,
         border-color 0.18s ease,
-        background 0.18s ease !important;
+        background 0.18s ease;
 }
 
-.scenario-card-wrap div[data-testid="stButton"] > button:hover {
+.scenario-link-card:hover {
     transform: translateY(-3px);
-    border-color: #1a56a0 !important;
-    background: #f7fbff !important;
-    box-shadow: 0 8px 24px rgba(26,86,160,0.13) !important;
+    border-color: #1a56a0;
+    background: #f7fbff;
+    box-shadow: 0 8px 24px rgba(26,86,160,0.13);
 }
 
-.scenario-card-wrap div[data-testid="stButton"] > button:active {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(26,86,160,0.10) !important;
-}
-
-.scenario-card-wrap.active div[data-testid="stButton"] > button {
-    border-color: #1a56a0 !important;
-    background: #eef5ff !important;
+.scenario-link-card.active {
+    border-color: #1a56a0;
+    background: #eef5ff;
     color: #1a56a0 !important;
-    box-shadow: 0 4px 14px rgba(26,86,160,0.12) !important;
+    box-shadow: 0 4px 14px rgba(26,86,160,0.12);
+}
+
+@media (max-width: 900px) {
+    .scenario-link-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .scenario-link-card {
+        min-height: 4.2rem;
+        font-size: 0.92rem;
+    }
 }
 
 </style>
@@ -971,6 +974,16 @@ if q in slug_to_page:
     st.session_state["page"] = slug_to_page[q]
 
 page = st.session_state["page"]
+policy_q = st.query_params.get("policy")
+policy_map = {
+    "netzero": "탄소중립",
+    "low": "저배출",
+    "current": "현재정책",
+    "high": "고배출",
+    "extreme": "극단배출",
+}
+if policy_q in policy_map:
+    st.session_state["main_policy"] = policy_map[policy_q]
 
 
 def set_page(target):
@@ -1025,55 +1038,38 @@ def render_left_panel():
 def render_settings(current_page):
     controls = {}
     if current_page == "시나리오 기반 기후 변화 예측":
-        st.markdown(
-            '<div class="settings-shell"><div class="settings-title">배출 시나리오 설정</div>',
-            unsafe_allow_html=True,
-        )
-    
-        st.markdown(
-            '<div class="settings-subtitle">배출 시나리오</div>',
-            unsafe_allow_html=True,
-        )
-    
         current_policy = st.session_state.get("main_policy", "현재정책")
     
-        row1 = ["탄소중립", "저배출", "현재정책"]
-        row2 = ["고배출", "극단배출"]
+        scenario_items = [
+            ("탄소중립", "netzero"),
+            ("저배출", "low"),
+            ("현재정책", "current"),
+            ("고배출", "high"),
+            ("극단배출", "extreme"),
+        ]
     
-        cols1 = st.columns(3, gap="small")
-        for i, label in enumerate(row1):
+        scenario_html = [
+            '<div class="settings-shell">',
+            '<div class="settings-title">배출 시나리오 설정</div>',
+            '<div class="settings-subtitle">배출 시나리오</div>',
+            '<div class="scenario-link-grid">'
+        ]
+    
+        for label, slug in scenario_items:
             active_class = " active" if current_policy == label else ""
-            with cols1[i]:
-                st.markdown(f'<div class="scenario-card-wrap{active_class}">', unsafe_allow_html=True)
-                if st.button(label, key=f"scenario_btn_top_{i}", use_container_width=True):
-                    st.session_state["main_policy"] = label
-                    st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
+            scenario_html.append(
+                f'<a class="scenario-link-card{active_class}" href="?module=scenario&policy={slug}" target="_self">{label}</a>'
+            )
     
-        st.markdown('<div style="height:0.7rem;"></div>', unsafe_allow_html=True)
-    
-        spacer1, c4, c5, spacer2 = st.columns([0.5, 1, 1, 0.5], gap="small")
-    
-        for col, label, key in [
-            (c4, "고배출", "scenario_btn_bottom_0"),
-            (c5, "극단배출", "scenario_btn_bottom_1"),
-        ]:
-            active_class = " active" if current_policy == label else ""
-            with col:
-                st.markdown(f'<div class="scenario-card-wrap{active_class}">', unsafe_allow_html=True)
-                if st.button(label, key=key, use_container_width=True):
-                    st.session_state["main_policy"] = label
-                    st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
-    
-        controls["policy"] = st.session_state.get("main_policy", "현재정책")
-    
-        st.markdown(
-            f'<div class="scenario-current">현재 선택: <strong>{controls["policy"]}</strong></div>',
-            unsafe_allow_html=True,
+        scenario_html.append("</div>")
+        scenario_html.append(
+            f'<div class="scenario-current">현재 선택: <strong>{current_policy}</strong></div>'
         )
+        scenario_html.append("</div>")
     
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("".join(scenario_html), unsafe_allow_html=True)
+    
+        controls["policy"] = current_policy
 
 
     elif current_page == "기후 시스템 파라미터 실험":
