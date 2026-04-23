@@ -117,6 +117,45 @@ def get_optimized_params(obs_data):
     )
     return res.x
 
+@st.cache_data
+def load_report_file():
+    report_candidates = [
+        Path("기후모델 웹사이트 분석 리포트.docx"),
+        Path("기후모델 웹사이트 분석 리포트.docx"),
+        Path("/mnt/data/기후모델 웹사이트 분석 리포트.docx"),
+    ]
+    for path in report_candidates:
+        if path.exists():
+            return path.name, path.read_bytes()
+    return None, None
+
+def render_section_note(title, body):
+    st.markdown(
+        f"""
+        <div style="
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #334155;
+            border-radius: 14px;
+            padding: 1rem 1rem 0.95rem 1rem;
+            margin-bottom: 1rem;
+        ">
+            <div style="
+                font-size: 0.92rem;
+                font-weight: 800;
+                color: #334155;
+                margin-bottom: 0.35rem;
+            ">{title}</div>
+            <div style="
+                font-size: 0.96rem;
+                line-height: 1.8;
+                color: #475569;
+            ">{body}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 # --- 4. 사이드바 구성 ---
 st.sidebar.title("기후 모델링 연구 대시보드")
 
@@ -133,6 +172,7 @@ st.sidebar.header("탐색")
 
 # 시작 페이지 제외
 page_options = [
+    "연구 요약 및 보고서",
     "시나리오 기반 기후 변화 예측",
     "기후 시스템 파라미터 실험",
     "모델 적합도 및 관측자료 비교",
@@ -163,9 +203,11 @@ page = st.session_state["page"]
 
 st.sidebar.markdown("---")
 
-
 st.sidebar.header("설정")
-if page == "시나리오 기반 기후 변화 예측":
+if page == "연구 요약 및 보고서":
+    pass
+
+elif page == "시나리오 기반 기후 변화 예측":
     scenario_options = [
         "탄소중립 안정화 시나리오",
         "저온난화 경로 시나리오",
@@ -221,7 +263,71 @@ st.sidebar.markdown("""
 """)
 
 # --- 5. 페이지별 렌더링 ---
-if page == "시작 페이지":
+if page == "연구 요약 및 보고서":
+    st.title("연구 요약 및 보고서")
+    st.markdown("본 페이지는 웹 대시보드의 연구 목적, 모델 구조, 핵심 해석, 한계를 한눈에 정리한 요약 페이지입니다.")
+
+    render_section_note(
+        "연구 목적",
+        "본 프로젝트는 관측 자료와 단순화된 물리 기반 기후 모델을 결합하여 역사적 기온 변화를 재현하고, "
+        "배출 시나리오와 주요 물리 파라미터 변화에 따라 미래 온난화 경로가 어떻게 달라지는지를 해석하는 것을 목표로 합니다."
+    )
+
+    render_section_note(
+        "모델 구조와 물리적 가정",
+        "모델은 육지, 해양 혼합층, 심해의 세 층으로 구성된 간이 에너지 균형 구조를 사용합니다. "
+        "이산화탄소 복사 강제력, 에어로졸 냉각, 비이산화탄소 인위적 강제력, 화산 강제력, 내부 변동성을 포함하며, "
+        "전지구 평균 규모에서 장기 추세와 주요 기여 요인을 해석하는 데 초점을 둡니다."
+    )
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        st.markdown("### 핵심 분석 구성")
+        st.markdown(
+            """
+            - 시나리오 기반 장기 온난화 예측  
+            - 기후 피드백 및 해양 열흡수 파라미터 실험  
+            - 관측자료와의 적합도 비교  
+            - 잔차, 불확실성 범위, 민감도 분석  
+            - 용어 및 개념 정의 페이지 제공
+            """
+        )
+
+    with c2:
+        st.markdown("### 해석상의 주의점")
+        st.markdown(
+            """
+            - 본 모델은 **정밀 예측 모델**이 아니라 **해석 중심의 교육·연구용 모델**입니다.  
+            - 지역별 기후 차이보다 **전지구 평균 경향**을 다룹니다.  
+            - 일부 강제력과 내부 변동성은 단순화된 함수 형태로 표현됩니다.  
+            - 결과 수치는 절대적 예측값보다 **경향성과 민감도 비교**에 중점을 두고 해석해야 합니다.
+            """
+        )
+
+    st.markdown("### 연구 의의")
+    st.markdown(
+        """
+        이 대시보드는 단순한 시각화 도구를 넘어, 기후 시스템의 핵심 강제력과 반응 변수를 하나의 흐름 안에서 탐색할 수 있도록 구성되어 있습니다.  
+        특히 관측자료 비교, 파라미터 실험, 불확실성 정량화를 하나의 인터페이스에 통합함으로써 학부 수준에서 기후 모델링의 기본 구조와 검증 과정을 체계적으로 학습할 수 있도록 설계되었습니다.
+        """
+    )
+
+    st.markdown("### 보고서 다운로드")
+    report_name, report_bytes = load_report_file()
+
+    if report_bytes is not None:
+        st.download_button(
+            label="분석 리포트 다운로드",
+            data=report_bytes,
+            file_name=report_name,
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True
+        )
+    else:
+        st.info("동일 폴더에 분석 리포트(.docx) 파일이 있으면 이 위치에서 다운로드할 수 있습니다.")
+
+elif page == "시작 페이지":
     st.markdown("""
     <style>
     .hero-wrap {
@@ -369,7 +475,7 @@ if page == "시작 페이지":
             적합도 평가, 불확실성 정량화, 개념 정의를 독립적으로 수행할 수 있도록 구성되어 있습니다.
         </div>
         <div class="hero-note">
-            Designed for academic presentation, model interpretation, and scenario-based climate analysis.
+            학술 발표, 모델 해석, 시나리오 기반 기후 분석을 위해 설계된 연구형 인터페이스입니다.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -486,6 +592,12 @@ elif page == "시나리오 기반 기후 변화 예측":
     st.title("시나리오 기반 기후 변화 예측")
     st.markdown("미래 배출 경로에 따라 전지구 평균기온과 해수면 변화를 장기적으로 예측합니다.")
 
+    render_section_note(
+        "분석 목적",
+        "이 섹션은 서로 다른 배출 시나리오에 따라 장기 온난화 경로가 어떻게 달라지는지를 비교하기 위한 페이지입니다. "
+        "특히 1.5도와 2.0도 임계선과의 관계를 함께 제시함으로써, 각 시나리오가 기후 위험 수준과 어떻게 연결되는지 직관적으로 해석할 수 있도록 구성했습니다."
+    )
+
     emission_map = {
         "탄소중립 안정화 시나리오": 280,
         "저온난화 경로 시나리오": 380,
@@ -521,9 +633,22 @@ elif page == "시나리오 기반 기후 변화 예측":
     ax_fut.grid(True, alpha=0.2)
     st.pyplot(fig_fut)
 
+    render_section_note(
+        "해석",
+        "고배출에 가까운 경로일수록 온도 상승 속도가 빠르게 커지며, 임계 온도 도달 시점도 앞당겨집니다. "
+        "다만 본 결과는 단순화된 전지구 평균 모델을 기반으로 하므로, 정밀한 수치 예측보다는 시나리오 간 상대적 차이와 장기 경향을 해석하는 용도로 보는 것이 적절합니다."
+    )
+
 elif page == "기후 시스템 파라미터 실험":
     st.title("기후 시스템 파라미터 실험")
     st.markdown("주요 물리 파라미터를 직접 조정하여 기후 시스템의 반응을 비교합니다.")
+
+    render_section_note(
+        "분석 목적",
+        "이 페이지는 기후 피드백 강도, 에어로졸 냉각, 해양 열흡수, 내부 변동성과 같은 핵심 파라미터가 "
+        "장기 온난화 결과에 어떤 영향을 주는지 탐색하기 위해 구성되었습니다. "
+        "사용자는 동일한 초기조건에서도 물리 파라미터 선택에 따라 결과가 달라질 수 있음을 확인할 수 있습니다."
+    )
 
     custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso]
     res_exp, tl_exp, tm_exp, td_exp, _ = run_model(custom_params, -0.22, end_year=2100, end_co2=exp_co2)
@@ -547,16 +672,28 @@ elif page == "기후 시스템 파라미터 실험":
     ax_exp.legend(loc='upper left')
     st.pyplot(fig_exp)
 
+    render_section_note(
+        "해석",
+        "파라미터 변화에 따라 같은 배출 조건에서도 온난화 경로와 최종 온도 상승폭이 크게 달라질 수 있습니다. "
+        "특히 해양은 열용량이 크기 때문에 육지보다 더 느리게 반응하며, 이러한 반응 속도 차이는 장기 기후 변화 해석에서 중요한 의미를 가집니다."
+    )
+
     col_a, col_b, col_c = st.columns(3)
     col_a.metric("2100년 육지 온도 상승", f"+{tl_exp[-1]:.2f} °C")
     col_b.metric("2100년 해양 표층 온도 상승", f"+{tm_exp[-1]:.2f} °C")
     col_c.metric("2100년 심해 온도 상승", f"+{td_exp[-1]:.2f} °C")
 
-    st.markdown("이 실험 페이지는 피드백 강도, 에어로졸 냉각, 해양 열흡수, 내부 변동성이 장기 온난화 결과에 어떻게 작용하는지 탐색하는 데 유용합니다.")
+    st.markdown("이 실험 결과는 기후계가 단일 원인으로 결정되는 것이 아니라, 여러 물리 과정의 상호작용 속에서 장기 응답이 형성된다는 점을 보여줍니다.")
 
 elif page == "모델 적합도 및 관측자료 비교":
     st.title("모델 적합도 및 관측자료 비교")
     st.markdown("모델이 역사적 기온 변화를 얼마나 잘 재현하는지 평가하고, 물리적 기여 요소를 분해하여 제시합니다.")
+
+    render_section_note(
+        "분석 목적",
+        "이 섹션은 모델이 실제 관측자료의 장기 기온 변화를 어느 정도 재현할 수 있는지를 평가하기 위한 페이지입니다. "
+        "최적화된 파라미터를 이용해 관측값과 모의값의 차이를 정량화하고, 인위적 요인과 자연적 요인의 상대적 기여를 함께 해석할 수 있도록 구성했습니다."
+    )
 
     with st.spinner(f'{obs_choice} 데이터에 맞춰 모델을 최적화하는 중입니다...'):
         best_params = get_optimized_params(current_obs_data)
@@ -619,6 +756,12 @@ elif page == "모델 적합도 및 관측자료 비교":
 
     st.pyplot(fig)
 
+    render_section_note(
+        "해석",
+        "모델은 전체적인 장기 온난화 추세를 비교적 잘 재현하지만, 일부 시기에는 과대예측 또는 과소예측이 나타납니다. "
+        "이는 단순화된 강제력 입력과 내부 변동성 표현의 한계에서 비롯될 수 있으며, 동시에 reduced-complexity 모델이 장기 추세 설명에는 유용하지만 단기 변동 재현에는 제한이 있음을 보여줍니다."
+    )
+
     st.divider()
     col_dl1, col_dl2 = st.columns([3, 1])
     with col_dl1:
@@ -648,6 +791,12 @@ elif page == "모델 적합도 및 관측자료 비교":
 elif page == "모델 검증 및 불확실성 정량화":
     st.title("모델 검증 및 불확실성 정량화")
     st.markdown("잔차 진단, 불확실성 범위, 일대일 민감도 분석을 통해 모델의 신뢰성과 구조적 특성을 검토합니다.")
+
+    render_section_note(
+        "분석 목적",
+        "이 페이지는 모델의 잔차 구조, 파라미터 변화에 따른 예측 범위, 그리고 특정 파라미터의 민감도를 함께 확인함으로써 "
+        "모델 결과의 안정성과 해석 가능성을 점검하기 위해 구성되었습니다. 단일 값만 제시하는 것이 아니라, 결과가 얼마나 흔들릴 수 있는지도 함께 보여줍니다."
+    )
 
     with st.spinner(f'{diag_obs_choice} 자료를 기준으로 검증을 수행하는 중입니다...'):
         diag_best_params = get_optimized_params(diag_obs_data)
@@ -714,6 +863,12 @@ elif page == "모델 검증 및 불확실성 정량화":
     ax_unc.legend()
     ax_unc.grid(True, alpha=0.3)
     st.pyplot(fig_unc)
+
+    render_section_note(
+        "해석",
+        "파라미터를 조금씩 변화시켜도 평균 경로는 유지되지만, 후반부로 갈수록 예측 범위가 넓어지는 경향이 나타납니다. "
+        "이는 장기 예측일수록 파라미터 선택에 따른 민감도가 커진다는 의미이며, 단일 경로보다 불확실성 범위를 함께 제시하는 것이 더 정직한 해석 방식임을 보여줍니다."
+    )
 
     st.subheader("민감도 분석")
     if sens_param == "기후 피드백 파라미터":
