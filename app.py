@@ -477,6 +477,139 @@ if page == "시작 페이지":
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <div class="abstract-box">
+        <div class="abstract-label">Overview</div>
+        <div class="abstract-text">
+            본 대시보드는 단순한 시각화 도구를 넘어, 기후 시스템의 주요 강제력과 반응 변수를
+            하나의 흐름 안에서 검토할 수 있도록 구성되어 있습니다. 사용자는 시나리오 예측,
+            파라미터 실험, 관측자료 비교, 불확실성 분석을 통해 모델의 구조와 해석 가능성을
+            단계적으로 탐색할 수 있습니다.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='section-title'>핵심 결과 미리보기</div>", unsafe_allow_html=True)
+
+    preview_res, _, _, _, _ = run_model([1.5, 1.0, 2.0, 0.12], -0.22, end_year=2100, end_co2=550)
+    preview_2100 = preview_res[-1]
+    preview_rmse = np.sqrt(np.mean((
+        run_model([1.5, 1.0, 2.0, 0.12], -0.22)[0] -
+        np.interp(
+            years_axis,
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].values())
+        )
+    )**2))
+    preview_slr = preview_2100 * 35
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        render_metric_card("2100년 예상 온난화", f"+{preview_2100:.2f} °C", "현재 정책 유지 시나리오 기준")
+    with c2:
+        render_metric_card("예상 해수면 상승", f"+{preview_slr:.1f} cm", "단순 비례 가정 기반 참고값")
+    with c3:
+        render_metric_card("기본 모델 RMSE", f"{preview_rmse:.3f} °C", "관측자료와의 기본 적합도")
+
+    st.markdown("<div class='section-title'>온도 변화 개요</div>", unsafe_allow_html=True)
+
+    fig_home, ax_home = plt.subplots(figsize=(12, 4.8))
+    obs_preview = np.interp(
+        years_axis,
+        list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
+        list(obs_datasets["NASA GISS (GISTEMP v4)"].values())
+    )
+    ax_home.plot(years_axis, obs_preview, color='black', lw=2, label='Observed Temperature')
+    ax_home.plot(np.arange(1925, 2101), preview_res, color='crimson', lw=2.2, label='Reference Projection')
+    ax_home.axhline(1.5, color='orange', ls='--', label='1.5 C Threshold')
+    ax_home.set_title("Global Temperature Trend Overview")
+    ax_home.set_xlabel("Year")
+    ax_home.set_ylabel("Temperature Anomaly (C)")
+    ax_home.grid(True, alpha=0.25)
+    ax_home.legend(loc='upper left')
+    st.pyplot(fig_home)
+
+    render_section_note(
+        "시작 페이지 안내",
+        "이 첫 화면은 전체 프로젝트의 방향과 핵심 결과를 빠르게 확인하기 위한 요약 페이지입니다. "
+        "보다 자세한 해석은 각 분석 페이지에서 확인할 수 있으며, 시나리오별 비교·파라미터 실험·적합도 검증·불확실성 분석으로 이어집니다."
+    )
+
+    st.markdown("<div class='section-title'>주요 모듈</div>", unsafe_allow_html=True)
+
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        st.markdown("""
+        <div class="paper-card">
+            <div class="paper-index">Module 01</div>
+            <div class="paper-title">시나리오 기반 기후 변화 예측</div>
+            <div class="paper-desc">
+                탄소중립 안정화부터 고배출 경로까지 다양한 배출 시나리오를 설정하여
+                2100년까지의 전지구 평균기온 및 해수면 상승 경향을 비교합니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="paper-card">
+            <div class="paper-index">Module 02</div>
+            <div class="paper-title">기후 시스템 파라미터 실험</div>
+            <div class="paper-desc">
+                기후 피드백 파라미터, 에어로졸 강도, 해양 열흡수 계수, ENSO 진폭을 직접 조정해
+                모델 응답이 어떻게 달라지는지 실험할 수 있습니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_right:
+        st.markdown("""
+        <div class="paper-card">
+            <div class="paper-index">Module 03</div>
+            <div class="paper-title">모델 적합도 및 관측자료 비교</div>
+            <div class="paper-desc">
+                관측 자료와 모델 출력의 차이를 시계열, 상대오차, 강제력 기여 요소로 분해하여 제시합니다.
+                모델이 역사적 기후 변화를 어느 정도 설명하는지 평가합니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="paper-card">
+            <div class="paper-index">Module 04</div>
+            <div class="paper-title">모델 검증 및 불확실성 정량화</div>
+            <div class="paper-desc">
+                잔차 진단, 불확실성 범위, 민감도 분석을 통해 예측 신뢰성과 구조적 특성을 검토합니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div class='section-title'>빠른 탐색</div>", unsafe_allow_html=True)
+
+    b1, b2, b3, b4 = st.columns(4)
+
+    with b1:
+        if st.button("시나리오 분석", use_container_width=True):
+            st.session_state["page"] = "시나리오 기반 기후 변화 예측"
+            st.rerun()
+
+    with b2:
+        if st.button("파라미터 실험", use_container_width=True):
+            st.session_state["page"] = "기후 시스템 파라미터 실험"
+            st.rerun()
+
+    with b3:
+        if st.button("모델 검증", use_container_width=True):
+            st.session_state["page"] = "모델 검증 및 불확실성 정량화"
+            st.rerun()
+
+    with b4:
+        if st.button("연구 요약", use_container_width=True):
+            st.session_state["page"] = "연구 요약 및 보고서"
+            st.rerun()
+
+    st.caption("좌측 사이드바 또는 위 버튼을 통해 각 분석 페이지로 이동할 수 있습니다.")
+
 elif page == "시나리오 기반 기후 변화 예측":
     st.title("시나리오 기반 기후 변화 예측")
     render_section_note(
