@@ -665,56 +665,44 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-weight: 800;
 }
 
-.scenario-link-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.6rem;
+/* ── 시나리오 segmented control ───────────────── */
+.scenario-seg-wrap {
+    display: flex;
+    justify-content: center;
 }
 
-.scenario-link-card {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.scenario-seg {
+    display: inline-flex;
+    border: 2px solid #c9d8ea;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+}
 
-    min-height: 3.8rem;
-    padding: 0.7rem 0.5rem;
-
-    border-radius: 12px;
-    border: 1.5px solid #c9d8ea;
-
-    background: transparent;   /* 핵심 차이 */
-    color: #2b5ea7 !important;
-
+.scenario-seg a {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
     font-weight: 700;
-    font-size: 0.92rem;
-
+    color: #2b5ea7 !important;
     text-decoration: none !important;
-    text-align: center;
-
-    white-space: normal;
-    word-break: keep-all;
-
+    border-right: 1px solid #dbe5f1;
     transition: all 0.15s ease;
 }
 
+/* 마지막 버튼 경계 제거 */
+.scenario-seg a:last-child {
+    border-right: none;
+}
+
 /* hover */
-.scenario-link-card:hover {
-    border-color: #1a56a0;
-    background: rgba(26,86,160,0.05);
+.scenario-seg a:hover {
+    background: #f4f8ff;
 }
 
-/* 선택된 카드 */
-.scenario-link-card.active {
-    border-color: #1a56a0;
-    background: rgba(26,86,160,0.10);
-    color: #1a56a0 !important;
-    font-weight: 800;
-}
-
-.scenario-link-card.active {
-    border-color: #1a56a0;
-    background: transparent;
-    border-bottom: 3px solid #1a56a0;
+/* 선택된 상태 */
+.scenario-seg a.active {
+    background: #1a56a0;
+    color: #ffffff !important;
 }
 
 </style>
@@ -1038,7 +1026,7 @@ def render_settings(current_page):
     if current_page == "시나리오 기반 기후 변화 예측":
         current_policy = st.session_state.get("main_policy", "현재정책")
     
-        scenario_items = [
+        items = [
             ("탄소중립", "netzero"),
             ("저배출", "low"),
             ("현재정책", "current"),
@@ -1046,64 +1034,64 @@ def render_settings(current_page):
             ("극단배출", "extreme"),
         ]
     
-        scenario_html = [
+        html = [
             '<div class="settings-shell">',
             '<div class="settings-title">배출 시나리오 설정</div>',
             '<div class="settings-subtitle">배출 시나리오</div>',
-            '<div class="scenario-link-grid">'
+            '<div class="scenario-seg-wrap">',
+            '<div class="scenario-seg">'
         ]
     
-        for label, slug in scenario_items:
-            active_class = " active" if current_policy == label else ""
-            scenario_html.append(
-                f'<a class="scenario-link-card{active_class}" href="?module=scenario&policy={slug}" target="_self">{label}</a>'
+        for label, slug in items:
+            active = " active" if current_policy == label else ""
+            html.append(
+                f'<a class="{active}" href="?module=scenario&policy={slug}" target="_self">{label}</a>'
             )
     
-        scenario_html.append("</div>")
-        scenario_html.append(
+        html.append('</div></div>')
+        html.append(
             f'<div class="scenario-current">현재 선택: <strong>{current_policy}</strong></div>'
         )
-        scenario_html.append("</div>")
+        html.append('</div>')
     
-        st.markdown("".join(scenario_html), unsafe_allow_html=True)
+        st.markdown("".join(html), unsafe_allow_html=True)
     
         controls["policy"] = current_policy
-
-
-    elif current_page == "기후 시스템 파라미터 실험":
-        st.markdown(
-            '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
-            unsafe_allow_html=True,
-        )
-        if st.button("초기화", use_container_width=True, key="main_reset_experiment"):
-            for k, v in {
-                "main_exp_co2": 550,
-                "main_exp_lambda": 1.5,
-                "main_exp_aer": 1.0,
-            }.items():
-                st.session_state[k] = v
-
-        st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
-
-        controls["exp_co2"] = st.slider(
-            "2100년 CO₂ 농도 (ppm)", 250, 1500,
-            int(st.session_state.get("main_exp_co2", 550)),
-            step=10, key="main_exp_co2",
-        )
-
-        controls["exp_lambda"] = st.slider(
-            "기후 피드백 파라미터 (λ)", 0.5, 3.0,
-            float(st.session_state.get("main_exp_lambda", 1.5)),
-            step=0.1, key="main_exp_lambda",
-        )
-
-        controls["exp_aer"] = st.slider(
-            "에어로졸 강도", 0.0, 3.0,
-            float(st.session_state.get("main_exp_aer", 1.0)),
-            step=0.1, key="main_exp_aer",
-        )
-
-        st.markdown("</div>", unsafe_allow_html=True)
+    
+        elif current_page == "기후 시스템 파라미터 실험":
+            st.markdown(
+                '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
+                unsafe_allow_html=True,
+            )
+            if st.button("초기화", use_container_width=True, key="main_reset_experiment"):
+                for k, v in {
+                    "main_exp_co2": 550,
+                    "main_exp_lambda": 1.5,
+                    "main_exp_aer": 1.0,
+                }.items():
+                    st.session_state[k] = v
+    
+            st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
+    
+            controls["exp_co2"] = st.slider(
+                "2100년 CO₂ 농도 (ppm)", 250, 1500,
+                int(st.session_state.get("main_exp_co2", 550)),
+                step=10, key="main_exp_co2",
+            )
+    
+            controls["exp_lambda"] = st.slider(
+                "기후 피드백 파라미터 (λ)", 0.5, 3.0,
+                float(st.session_state.get("main_exp_lambda", 1.5)),
+                step=0.1, key="main_exp_lambda",
+            )
+    
+            controls["exp_aer"] = st.slider(
+                "에어로졸 강도", 0.0, 3.0,
+                float(st.session_state.get("main_exp_aer", 1.0)),
+                step=0.1, key="main_exp_aer",
+            )
+    
+            st.markdown("</div>", unsafe_allow_html=True)
 
     elif current_page == "모델 적합도 및 관측자료 비교":
         st.markdown(
