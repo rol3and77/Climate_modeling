@@ -974,23 +974,16 @@ def render_left_panel():
 def render_settings(current_page):
     controls = {}
 
-    if current_page == "시나리오 기반 기후 변화 예측":
-        st.markdown(
-        '''
-        <div class="settings-shell">
-            <div class="settings-title">배출 시나리오 설정</div>
-            <div class="settings-subtitle">배출 시나리오</div>
-        ''',
+if current_page == "시나리오 기반 기후 변화 예측":
+    st.markdown(
+        '<div class="settings-shell"><div class="settings-title">배출 시나리오 설정</div>',
         unsafe_allow_html=True,
     )
 
-    scenario_options = [
-        "탄소중립",
-        "저배출",
-        "현재정책",
-        "고배출",
-        "극단배출",
-    ]
+    st.markdown(
+        '<div class="settings-subtitle">배출 시나리오</div>',
+        unsafe_allow_html=True,
+    )
 
     current_policy = st.session_state.get("main_policy", "현재정책")
 
@@ -1024,10 +1017,13 @@ def render_settings(current_page):
     controls["policy"] = st.session_state.get("main_policy", "현재정책")
 
     st.markdown(
-        f'<div class="scenario-current">현재 선택: <strong>{controls["policy"]}</strong></div></div>',
+        f'<div class="scenario-current">현재 선택: <strong>{controls["policy"]}</strong></div>',
         unsafe_allow_html=True,
     )
 
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    
     elif current_page == "기후 시스템 파라미터 실험":
         st.markdown(
             '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
