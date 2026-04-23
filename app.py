@@ -5,6 +5,7 @@ from scipy.optimize import minimize
 import pandas as pd
 from numba import njit
 from pathlib import Path
+from urllib.parse import quote
 
 # --- 1. 웹 대시보드 설정 ---
 st.set_page_config(page_title="기후 모델링 연구 대시보드", layout="wide")
@@ -187,6 +188,70 @@ st.markdown("""
         margin-top: 0.6rem;
         margin-bottom: 0.8rem;
     }
+.module-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+    .module-card-link, .module-card-link * {
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
+    .module-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 1.2rem 1.25rem 1.15rem 1.25rem;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        min-height: 220px;
+        height: 100%;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .module-card:hover {
+        transform: translateY(-2px);
+        border-color: #94a3b8;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.09);
+    }
+
+    .module-card-index {
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 0.55rem;
+    }
+
+    .module-card-title {
+        font-size: 1.06rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 0.7rem;
+        line-height: 1.45;
+    }
+
+    .module-card-desc {
+        font-size: 0.94rem;
+        line-height: 1.72;
+        color: #475569;
+    }
+
+    .module-card-cta {
+        margin-top: 0.95rem;
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #334155;
+    }
+
+    @media (max-width: 1100px) {
+}
+
+    @media (max-width: 700px) {
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -350,14 +415,46 @@ def render_metric_card(title, value, note=""):
         unsafe_allow_html=True
     )
 
+
+def render_module_link_card(index_label, title, desc, slug):
+    href = f"?module={quote(slug)}"
+    st.markdown(
+        f"""
+        <a class="module-card-link" href="{href}" target="_self">
+            <div class="module-card">
+                <div class="module-card-index">{index_label}</div>
+                <div class="module-card-title">{title}</div>
+                <div class="module-card-desc">{desc}</div>
+            </div>
+        </a>
+        """,
+        unsafe_allow_html=True
+    )
+
 # --- 4. 사이드바 구성 ---
 st.sidebar.title("기후 모델링 연구 대시보드")
 
 if "page" not in st.session_state:
     st.session_state["page"] = "시작 페이지"
 
+module_slug_to_page = {
+    "home": "시작 페이지",
+    "scenario": "시나리오 기반 기후 변화 예측",
+    "experiment": "기후 시스템 파라미터 실험",
+    "fit": "모델 적합도 및 관측자료 비교",
+    "uncertainty": "모델 검증 및 불확실성 정량화",
+    "glossary": "기후 모델링 용어 및 개념 정의",
+    "summary": "연구 요약 및 보고서",
+}
+page_to_module_slug = {v: k for k, v in module_slug_to_page.items()}
+
+query_slug = st.query_params.get("module")
+if query_slug in module_slug_to_page:
+    st.session_state["page"] = module_slug_to_page[query_slug]
+
 if st.sidebar.button("시작 페이지", use_container_width=True):
     st.session_state["page"] = "시작 페이지"
+    st.query_params["module"] = "home"
     st.rerun()
 
 st.sidebar.markdown("---")
@@ -387,6 +484,7 @@ selected_page = st.sidebar.radio(
 if selected_page != st.session_state["sidebar_selected_page"]:
     st.session_state["sidebar_selected_page"] = selected_page
     st.session_state["page"] = selected_page
+    st.query_params["module"] = page_to_module_slug.get(selected_page, "home")
     st.rerun()
 
 page = st.session_state["page"]
@@ -405,6 +503,7 @@ if page == "시나리오 기반 기후 변화 예측":
     policy = st.sidebar.select_slider("배출 시나리오 선택", options=scenario_options, value="현재 정책 유지 시나리오")
 
 elif page == "기후 시스템 파라미터 실험":
+    st.query_params["module"] = "experiment"
     def reset_experiment():
         st.session_state["exp_co2_slider"] = 550
         st.session_state["exp_lambda_slider"] = 1.5
@@ -420,11 +519,13 @@ elif page == "기후 시스템 파라미터 실험":
     exp_enso = st.sidebar.slider("ENSO 진폭", 0.0, 0.5, 0.12, step=0.01, key="exp_enso_slider")
 
 elif page == "모델 적합도 및 관측자료 비교":
+    st.query_params["module"] = "fit"
     obs_choice = st.sidebar.selectbox("관측 데이터셋 선택", list(obs_datasets.keys()))
     current_obs_data = np.interp(years_axis, list(obs_datasets[obs_choice].keys()), list(obs_datasets[obs_choice].values()))
     target_year = st.sidebar.slider("일별 상세 분석 연도 선택", 1925, 2025, 2024)
 
 elif page == "모델 검증 및 불확실성 정량화":
+    st.query_params["module"] = "uncertainty"
     diag_obs_choice = st.sidebar.selectbox("검증용 데이터셋 선택", list(obs_datasets.keys()))
     diag_obs_data = np.interp(years_axis, list(obs_datasets[diag_obs_choice].keys()), list(obs_datasets[diag_obs_choice].values()))
     sens_param = st.sidebar.selectbox(
@@ -458,6 +559,8 @@ with st.sidebar.expander("자료 출처", expanded=False):
 
 # --- 5. 페이지 렌더링 ---
 if page == "시작 페이지":
+    st.query_params["module"] = "home"
+
     st.markdown("""
     <div class="hero-wrap">
         <div class="hero-kicker">Research Presentation Interface</div>
@@ -477,140 +580,60 @@ if page == "시작 페이지":
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class="abstract-box">
-        <div class="abstract-label">Overview</div>
-        <div class="abstract-text">
-            본 대시보드는 단순한 시각화 도구를 넘어, 기후 시스템의 주요 강제력과 반응 변수를
-            하나의 흐름 안에서 검토할 수 있도록 구성되어 있습니다. 사용자는 시나리오 예측,
-            파라미터 실험, 관측자료 비교, 불확실성 분석을 통해 모델의 구조와 해석 가능성을
-            단계적으로 탐색할 수 있습니다.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>분석 모듈 바로가기</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='section-title'>핵심 결과 미리보기</div>", unsafe_allow_html=True)
-
-    preview_res, _, _, _, _ = run_model([1.5, 1.0, 2.0, 0.12], -0.22, end_year=2100, end_co2=550)
-    preview_2100 = preview_res[-1]
-    preview_rmse = np.sqrt(np.mean((
-        run_model([1.5, 1.0, 2.0, 0.12], -0.22)[0] -
-        np.interp(
-            years_axis,
-            list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
-            list(obs_datasets["NASA GISS (GISTEMP v4)"].values())
+    row1_col1, row1_col2 = st.columns(2)
+    with row1_col1:
+        render_module_link_card(
+            "Module 01",
+            "시나리오 기반 기후 변화 예측",
+            "탄소중립 안정화부터 고배출 경로까지 다양한 배출 시나리오를 설정하여 2100년까지의 전지구 평균기온과 해수면 상승 경향을 비교합니다.",
+            "scenario"
         )
-    )**2))
-    preview_slr = preview_2100 * 35
+    with row1_col2:
+        render_module_link_card(
+            "Module 02",
+            "기후 시스템 파라미터 실험",
+            "기후 피드백 파라미터, 에어로졸 강도, 해양 열흡수 계수, ENSO 진폭을 직접 조정해 모델 응답이 어떻게 달라지는지 실험합니다.",
+            "experiment"
+        )
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        render_metric_card("2100년 예상 온난화", f"+{preview_2100:.2f} °C", "현재 정책 유지 시나리오 기준")
-    with c2:
-        render_metric_card("예상 해수면 상승", f"+{preview_slr:.1f} cm", "단순 비례 가정 기반 참고값")
-    with c3:
-        render_metric_card("기본 모델 RMSE", f"{preview_rmse:.3f} °C", "관측자료와의 기본 적합도")
+    row2_col1, row2_col2 = st.columns(2)
+    with row2_col1:
+        render_module_link_card(
+            "Module 03",
+            "모델 적합도 및 관측자료 비교",
+            "관측 자료와 모델 출력의 차이를 시계열, 상대오차, 강제력 기여 요소로 분해하여 제시하고 역사적 기후 변화를 얼마나 설명하는지 평가합니다.",
+            "fit"
+        )
+    with row2_col2:
+        render_module_link_card(
+            "Module 04",
+            "모델 검증 및 불확실성 정량화",
+            "잔차 진단, 불확실성 범위, 민감도 분석을 통해 예측 신뢰성과 구조적 특성을 검토합니다.",
+            "uncertainty"
+        )
 
-    st.markdown("<div class='section-title'>온도 변화 개요</div>", unsafe_allow_html=True)
+    row3_col1, row3_col2 = st.columns(2)
+    with row3_col1:
+        render_module_link_card(
+            "Module 05",
+            "기후 모델링 용어 및 개념 정의",
+            "본 모델에서 사용되는 주요 기후학 개념, 물리 파라미터, 검증 지표를 정리한 참고 페이지입니다.",
+            "glossary"
+        )
+    with row3_col2:
+        render_module_link_card(
+            "Module 06",
+            "연구 요약 및 보고서",
+            "프로젝트의 연구 목적, 모델 구조, 해석상의 주의점, 연구 의의를 한눈에 정리한 요약 페이지이며 분석 리포트 다운로드도 제공합니다.",
+            "summary"
+        )
 
-    fig_home, ax_home = plt.subplots(figsize=(12, 4.8))
-    obs_preview = np.interp(
-        years_axis,
-        list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
-        list(obs_datasets["NASA GISS (GISTEMP v4)"].values())
-    )
-    ax_home.plot(years_axis, obs_preview, color='black', lw=2, label='Observed Temperature')
-    ax_home.plot(np.arange(1925, 2101), preview_res, color='crimson', lw=2.2, label='Reference Projection')
-    ax_home.axhline(1.5, color='orange', ls='--', label='1.5 C Threshold')
-    ax_home.set_title("Global Temperature Trend Overview")
-    ax_home.set_xlabel("Year")
-    ax_home.set_ylabel("Temperature Anomaly (C)")
-    ax_home.grid(True, alpha=0.25)
-    ax_home.legend(loc='upper left')
-    st.pyplot(fig_home)
-
-    render_section_note(
-        "시작 페이지 안내",
-        "이 첫 화면은 전체 프로젝트의 방향과 핵심 결과를 빠르게 확인하기 위한 요약 페이지입니다. "
-        "보다 자세한 해석은 각 분석 페이지에서 확인할 수 있으며, 시나리오별 비교·파라미터 실험·적합도 검증·불확실성 분석으로 이어집니다."
-    )
-
-    st.markdown("<div class='section-title'>주요 모듈</div>", unsafe_allow_html=True)
-
-    col_left, col_right = st.columns(2)
-
-    with col_left:
-        st.markdown("""
-        <div class="paper-card">
-            <div class="paper-index">Module 01</div>
-            <div class="paper-title">시나리오 기반 기후 변화 예측</div>
-            <div class="paper-desc">
-                탄소중립 안정화부터 고배출 경로까지 다양한 배출 시나리오를 설정하여
-                2100년까지의 전지구 평균기온 및 해수면 상승 경향을 비교합니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="paper-card">
-            <div class="paper-index">Module 02</div>
-            <div class="paper-title">기후 시스템 파라미터 실험</div>
-            <div class="paper-desc">
-                기후 피드백 파라미터, 에어로졸 강도, 해양 열흡수 계수, ENSO 진폭을 직접 조정해
-                모델 응답이 어떻게 달라지는지 실험할 수 있습니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col_right:
-        st.markdown("""
-        <div class="paper-card">
-            <div class="paper-index">Module 03</div>
-            <div class="paper-title">모델 적합도 및 관측자료 비교</div>
-            <div class="paper-desc">
-                관측 자료와 모델 출력의 차이를 시계열, 상대오차, 강제력 기여 요소로 분해하여 제시합니다.
-                모델이 역사적 기후 변화를 어느 정도 설명하는지 평가합니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="paper-card">
-            <div class="paper-index">Module 04</div>
-            <div class="paper-title">모델 검증 및 불확실성 정량화</div>
-            <div class="paper-desc">
-                잔차 진단, 불확실성 범위, 민감도 분석을 통해 예측 신뢰성과 구조적 특성을 검토합니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<div class='section-title'>빠른 탐색</div>", unsafe_allow_html=True)
-
-    b1, b2, b3, b4 = st.columns(4)
-
-    with b1:
-        if st.button("시나리오 분석", use_container_width=True):
-            st.session_state["page"] = "시나리오 기반 기후 변화 예측"
-            st.rerun()
-
-    with b2:
-        if st.button("파라미터 실험", use_container_width=True):
-            st.session_state["page"] = "기후 시스템 파라미터 실험"
-            st.rerun()
-
-    with b3:
-        if st.button("모델 검증", use_container_width=True):
-            st.session_state["page"] = "모델 검증 및 불확실성 정량화"
-            st.rerun()
-
-    with b4:
-        if st.button("연구 요약", use_container_width=True):
-            st.session_state["page"] = "연구 요약 및 보고서"
-            st.rerun()
-
-    st.caption("좌측 사이드바 또는 위 버튼을 통해 각 분석 페이지로 이동할 수 있습니다.")
+    st.caption("모듈 카드를 클릭하면 해당 분석 페이지로 바로 이동합니다.")
 
 elif page == "시나리오 기반 기후 변화 예측":
+    st.query_params["module"] = "scenario"
     st.title("시나리오 기반 기후 변화 예측")
     render_section_note(
         "분석 목적",
@@ -932,6 +955,7 @@ elif page == "모델 검증 및 불확실성 정량화":
     st.pyplot(fig_sens)
 
 elif page == "기후 모델링 용어 및 개념 정의":
+    st.query_params["module"] = "glossary"
     st.title("기후 모델링 용어 및 개념 정의")
     render_section_note(
         "페이지 안내",
@@ -984,6 +1008,7 @@ elif page == "기후 모델링 용어 및 개념 정의":
     st.info("그래프 내부 제목과 축 라벨은 글꼴 호환성을 위해 영어로 유지했고, UI와 설명문은 한국어로 정리했습니다.")
 
 elif page == "연구 요약 및 보고서":
+    st.query_params["module"] = "summary"
     st.title("연구 요약 및 보고서")
     render_section_note(
         "연구 목적",
