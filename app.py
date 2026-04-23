@@ -671,52 +671,52 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     gap: 0.8rem;
 }
 
+.scenario-link-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .scenario-link-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 4.6rem;
-    padding: 0.7rem 0.5rem;
-    border-radius: 18px;
-    border: 2px solid #c9d8ea;
+    min-height: 4.2rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.65rem 0.5rem;
+    border-radius: 16px;
+    border: 1.6px solid #c9d8ea;
     background: #ffffff;
     color: #2b5ea7 !important;
     text-decoration: none !important;
     font-weight: 800;
-    font-size: 1rem;
+    font-size: 0.96rem;
     text-align: center;
     word-break: keep-all;
     box-sizing: border-box;
+    box-shadow: 0 1px 4px rgba(26,86,160,0.04);
     transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease,
-        border-color 0.18s ease,
-        background 0.18s ease;
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease;
 }
 
 .scenario-link-card:hover {
-    transform: translateY(-3px);
-    border-color: #1a56a0;
-    background: #f7fbff;
-    box-shadow: 0 8px 24px rgba(26,86,160,0.13);
+    transform: translateY(-2px);
+    border-color: #2b5ea7;
+    background: #f8fbff;
+    box-shadow: 0 4px 12px rgba(26,86,160,0.08);
 }
 
 .scenario-link-card.active {
     border-color: #1a56a0;
     background: #eef5ff;
     color: #1a56a0 !important;
-    box-shadow: 0 4px 14px rgba(26,86,160,0.12);
-}
-
-@media (max-width: 900px) {
-    .scenario-link-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .scenario-link-card {
-        min-height: 4.2rem;
-        font-size: 0.92rem;
-    }
+    box-shadow: 0 2px 8px rgba(26,86,160,0.10);
 }
 
 </style>
