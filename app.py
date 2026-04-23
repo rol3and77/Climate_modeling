@@ -1,15 +1,196 @@
-from pathlib import Path
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 import pandas as pd
 from numba import njit
+from pathlib import Path
 
 # --- 1. 웹 대시보드 설정 ---
 st.set_page_config(page_title="기후 모델링 연구 대시보드", layout="wide")
 
-# --- 2. 설정 및 관측 데이터 (Fixed & Expanded) ---
+# --- 1-1. 전역 스타일 ---
+st.markdown("""
+<style>
+    .hero-wrap {
+        padding: 4rem 2.2rem 3rem 2.2rem;
+        border-radius: 26px;
+        background:
+            linear-gradient(135deg, rgba(15,23,42,0.98) 0%, rgba(30,41,59,0.98) 58%, rgba(51,65,85,0.96) 100%);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
+        margin-bottom: 1.4rem;
+    }
+
+    .hero-kicker {
+        font-size: 0.86rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #cbd5e1;
+        font-weight: 700;
+        margin-bottom: 0.9rem;
+    }
+
+    .hero-title {
+        font-size: 2.65rem;
+        font-weight: 800;
+        line-height: 1.18;
+        margin-bottom: 0.9rem;
+        max-width: 920px;
+    }
+
+    .hero-desc {
+        font-size: 1.02rem;
+        line-height: 1.9;
+        color: #e2e8f0;
+        max-width: 940px;
+    }
+
+    .hero-note {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255,255,255,0.12);
+        font-size: 0.95rem;
+        color: #cbd5e1;
+    }
+
+    .tag-row {
+        display: flex;
+        gap: 0.55rem;
+        flex-wrap: wrap;
+        margin-top: 1.05rem;
+    }
+
+    .tag-chip {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #e2e8f0;
+        padding: 0.42rem 0.8rem;
+        border-radius: 999px;
+        font-size: 0.87rem;
+        font-weight: 600;
+    }
+
+    .section-title {
+        font-size: 1.22rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-top: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .subsection-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-top: 0.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .metric-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 1.05rem 1rem 0.95rem 1rem;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        min-height: 118px;
+    }
+
+    .metric-label {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 0.35rem;
+        line-height: 1.5;
+    }
+
+    .metric-num {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.15;
+        margin-bottom: 0.25rem;
+    }
+
+    .metric-note {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        line-height: 1.5;
+    }
+
+    .paper-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 1.25rem 1.25rem 1.15rem 1.25rem;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        min-height: 200px;
+        margin-bottom: 1rem;
+    }
+
+    .paper-index {
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 0.55rem;
+    }
+
+    .paper-title {
+        font-size: 1.08rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 0.65rem;
+        line-height: 1.45;
+    }
+
+    .paper-desc {
+        font-size: 0.95rem;
+        line-height: 1.75;
+        color: #475569;
+    }
+
+    .abstract-box {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #334155;
+        border-radius: 18px;
+        padding: 1.2rem 1.2rem 1.05rem 1.2rem;
+        margin-top: 0.3rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .abstract-label {
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+
+    .abstract-text {
+        font-size: 0.96rem;
+        line-height: 1.85;
+        color: #334155;
+    }
+
+    .mini-note {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 14px;
+        padding: 0.9rem 1rem;
+        font-size: 0.93rem;
+        color: #475569;
+        line-height: 1.7;
+        margin-top: 0.6rem;
+        margin-bottom: 0.8rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- 2. 설정 및 관측 데이터 ---
 START_YEAR, END_YEAR = 1925, 2025
 YEARS = END_YEAR - START_YEAR + 1
 years_axis = np.arange(START_YEAR, END_YEAR + 1)
@@ -17,7 +198,6 @@ dt = 24 * 3600
 land_frac, ocean_frac = 0.29, 0.71
 C_land, C_mixed, C_deep = 2.0e7, 1.2e8, 2.0e9
 
-# 다중 관측 데이터셋
 obs_datasets = {
     "NASA GISS (GISTEMP v4)": {
         1925:-0.22, 1940:0.10, 1950:-0.18, 1965:-0.10, 1980:0.26, 1990:0.48, 2000:0.62, 2010:0.88, 2020:1.18, 2025:1.38
@@ -30,7 +210,7 @@ obs_datasets = {
     }
 }
 
-# --- 3. 고정밀 물리 함수 (절대 수정 금지) ---
+# --- 3. 물리 함수 ---
 @st.cache_data
 def co2_forcing(C, T):
     return 5.35 * np.log(C / 280.0) * (1 + 0.01 * max(0, T))
@@ -122,8 +302,9 @@ def get_optimized_params(obs_data):
 def load_report_file():
     report_candidates = [
         Path("기후모델 웹사이트 분석 리포트.docx"),
+        Path("./기후모델 웹사이트 분석 리포트.docx"),
         Path("기후모델 웹사이트 분석 리포트.docx"),
-        Path("/mnt/data/기후모델 웹사이트 분석 리포트.docx"),
+        Path("./기후모델 웹사이트 분석 리포트.docx"),
     ]
     for path in report_candidates:
         if path.exists():
@@ -157,13 +338,24 @@ def render_section_note(title, body):
         unsafe_allow_html=True
     )
 
+def render_metric_card(title, value, note=""):
+    st.markdown(
+        f"""
+        <div class="metric-box">
+            <div class="metric-label">{title}</div>
+            <div class="metric-num">{value}</div>
+            <div class="metric-note">{note}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 # --- 4. 사이드바 구성 ---
 st.sidebar.title("기후 모델링 연구 대시보드")
 
 if "page" not in st.session_state:
     st.session_state["page"] = "시작 페이지"
 
-# 시작 화면 전용 액션 버튼
 if st.sidebar.button("시작 페이지", use_container_width=True):
     st.session_state["page"] = "시작 페이지"
     st.rerun()
@@ -171,20 +363,18 @@ if st.sidebar.button("시작 페이지", use_container_width=True):
 st.sidebar.markdown("---")
 st.sidebar.header("탐색")
 
-# 시작 페이지 제외
 page_options = [
-    "연구 요약 및 보고서",
     "시나리오 기반 기후 변화 예측",
     "기후 시스템 파라미터 실험",
     "모델 적합도 및 관측자료 비교",
     "모델 검증 및 불확실성 정량화",
-    "기후 모델링 용어 및 개념 정의"
+    "기후 모델링 용어 및 개념 정의",
+    "연구 요약 및 보고서"
 ]
 
 if "sidebar_selected_page" not in st.session_state:
     st.session_state["sidebar_selected_page"] = page_options[0]
 
-# 분석 섹션에 들어와 있을 때는 radio 선택 상태를 현재 페이지와 동기화
 if st.session_state["page"] in page_options:
     st.session_state["sidebar_selected_page"] = st.session_state["page"]
 
@@ -194,7 +384,6 @@ selected_page = st.sidebar.radio(
     index=page_options.index(st.session_state["sidebar_selected_page"])
 )
 
-# 사용자가 radio 선택을 바꾼 경우에는 시작 페이지에서도 즉시 이동
 if selected_page != st.session_state["sidebar_selected_page"]:
     st.session_state["sidebar_selected_page"] = selected_page
     st.session_state["page"] = selected_page
@@ -203,12 +392,9 @@ if selected_page != st.session_state["sidebar_selected_page"]:
 page = st.session_state["page"]
 
 st.sidebar.markdown("---")
-
 st.sidebar.header("설정")
-if page == "연구 요약 및 보고서":
-    pass
 
-elif page == "시나리오 기반 기후 변화 예측":
+if page == "시나리오 기반 기후 변화 예측":
     scenario_options = [
         "탄소중립 안정화 시나리오",
         "저온난화 경로 시나리오",
@@ -250,353 +436,53 @@ elif page == "모델 검증 및 불확실성 정량화":
             "ENSO 진폭"
         ]
     )
-
-st.sidebar.markdown("<br><br>" * 2, unsafe_allow_html=True)
-st.sidebar.markdown("---")
-st.sidebar.header("자료 출처")
-st.sidebar.caption("본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.")
-st.sidebar.markdown("""
-- **기온 관측 데이터**: [NASA GISS GISTEMP v4](https://data.giss.nasa.gov/gistemp/)
-- **CO2 농도 및 시나리오 참조**: [IPCC 제6차 평가보고서 AR6](https://www.ipcc.ch/report/ar6/wg1/)
-- **대기 CO2 실측값**: [NOAA Global Monitoring Laboratory](https://gml.noaa.gov/ccgg/trends/)
-- **화산 강제력 자료**: [Smithsonian Institution Global Volcanism Program](https://volcano.si.edu/)
-- **해수면 해석 자료**: [NASA Sea Level Change Portal](https://sealevel.nasa.gov/)
-""")
-
-# --- 5. 페이지별 렌더링 ---
-if page == "연구 요약 및 보고서":
-    st.title("연구 요약 및 보고서")
-    st.markdown("본 페이지는 웹 대시보드의 연구 목적, 모델 구조, 핵심 해석, 한계를 한눈에 정리한 요약 페이지입니다.")
-
-    render_section_note(
-        "연구 목적",
-        "본 프로젝트는 관측 자료와 단순화된 물리 기반 기후 모델을 결합하여 역사적 기온 변화를 재현하고, "
-        "배출 시나리오와 주요 물리 파라미터 변화에 따라 미래 온난화 경로가 어떻게 달라지는지를 해석하는 것을 목표로 합니다."
-    )
-
-    render_section_note(
-        "모델 구조와 물리적 가정",
-        "모델은 육지, 해양 혼합층, 심해의 세 층으로 구성된 간이 에너지 균형 구조를 사용합니다. "
-        "이산화탄소 복사 강제력, 에어로졸 냉각, 비이산화탄소 인위적 강제력, 화산 강제력, 내부 변동성을 포함하며, "
-        "전지구 평균 규모에서 장기 추세와 주요 기여 요인을 해석하는 데 초점을 둡니다."
-    )
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.markdown("### 핵심 분석 구성")
-        st.markdown(
-            """
-            - 시나리오 기반 장기 온난화 예측  
-            - 기후 피드백 및 해양 열흡수 파라미터 실험  
-            - 관측자료와의 적합도 비교  
-            - 잔차, 불확실성 범위, 민감도 분석  
-            - 용어 및 개념 정의 페이지 제공
-            """
-        )
-
-    with c2:
-        st.markdown("### 해석상의 주의점")
-        st.markdown(
-            """
-            - 본 모델은 **정밀 예측 모델**이 아니라 **해석 중심의 교육·연구용 모델**입니다.  
-            - 지역별 기후 차이보다 **전지구 평균 경향**을 다룹니다.  
-            - 일부 강제력과 내부 변동성은 단순화된 함수 형태로 표현됩니다.  
-            - 결과 수치는 절대적 예측값보다 **경향성과 민감도 비교**에 중점을 두고 해석해야 합니다.
-            """
-        )
-
-    st.markdown("### 연구 의의")
-    st.markdown(
+else:
+    st.sidebar.markdown(
         """
-        이 대시보드는 단순한 시각화 도구를 넘어, 기후 시스템의 핵심 강제력과 반응 변수를 하나의 흐름 안에서 탐색할 수 있도록 구성되어 있습니다.  
-        특히 관측자료 비교, 파라미터 실험, 불확실성 정량화를 하나의 인터페이스에 통합함으로써 학부 수준에서 기후 모델링의 기본 구조와 검증 과정을 체계적으로 학습할 수 있도록 설계되었습니다.
-        """
+        <div class="mini-note">
+            현재 페이지는 설명형 또는 요약형 페이지입니다. 좌측 섹션 메뉴에서 원하는 분석 페이지로 이동하면 해당 설정이 활성화됩니다.
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
-    st.markdown("### 보고서 다운로드")
-    report_name, report_bytes = load_report_file()
-
-    if report_bytes is not None:
-        st.download_button(
-            label="분석 리포트 다운로드",
-            data=report_bytes,
-            file_name=report_name,
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            use_container_width=True
-        )
-    else:
-        st.info("동일 폴더에 분석 리포트(.docx) 파일이 있으면 이 위치에서 다운로드할 수 있습니다.")
-
-elif page == "시작 페이지":
+with st.sidebar.expander("자료 출처", expanded=False):
+    st.caption("본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.")
     st.markdown("""
-    <style>
-    .hero-wrap {
-        padding: 4rem 2.2rem 3rem 2.2rem;
-        border-radius: 26px;
-        background:
-            linear-gradient(135deg, rgba(15,23,42,0.98) 0%, rgba(30,41,59,0.98) 58%, rgba(51,65,85,0.96) 100%);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
-        margin-bottom: 1.4rem;
-    }
+    - **기온 관측 데이터**: [NASA GISS GISTEMP v4](https://data.giss.nasa.gov/gistemp/)
+    - **CO2 농도 및 시나리오 참조**: [IPCC 제6차 평가보고서 AR6](https://www.ipcc.ch/report/ar6/wg1/)
+    - **대기 CO2 실측값**: [NOAA Global Monitoring Laboratory](https://gml.noaa.gov/ccgg/trends/)
+    - **화산 강제력 자료**: [Smithsonian Institution Global Volcanism Program](https://volcano.si.edu/)
+    - **해수면 해석 자료**: [NASA Sea Level Change Portal](https://sealevel.nasa.gov/)
+    """)
 
-    .hero-kicker {
-        font-size: 0.86rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: #cbd5e1;
-        font-weight: 700;
-        margin-bottom: 0.9rem;
-    }
-
-    .hero-title {
-        font-size: 2.6rem;
-        font-weight: 800;
-        line-height: 1.18;
-        margin-bottom: 1rem;
-        max-width: 920px;
-    }
-
-    .hero-desc {
-        font-size: 1.02rem;
-        line-height: 1.9;
-        color: #e2e8f0;
-        max-width: 920px;
-    }
-
-    .hero-note {
-        margin-top: 1.25rem;
-        padding-top: 1rem;
-        border-top: 1px solid rgba(255,255,255,0.12);
-        font-size: 0.94rem;
-        color: #cbd5e1;
-    }
-
-    .section-title {
-        font-size: 1.22rem;
-        font-weight: 800;
-        color: #0f172a;
-        margin-top: 0.6rem;
-        margin-bottom: 1rem;
-    }
-
-    .metric-box {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 18px;
-        padding: 1.1rem 1rem;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-        text-align: center;
-        min-height: 110px;
-    }
-
-    .metric-num {
-        font-size: 1.45rem;
-        font-weight: 800;
-        color: #0f172a;
-        margin-bottom: 0.22rem;
-    }
-
-    .metric-label {
-        font-size: 0.9rem;
-        color: #64748b;
-        line-height: 1.6;
-    }
-
-    .paper-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 1.25rem 1.25rem 1.15rem 1.25rem;
-        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
-        min-height: 200px;
-        margin-bottom: 1rem;
-    }
-
-    .paper-index {
-        font-size: 0.8rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #64748b;
-        margin-bottom: 0.55rem;
-    }
-
-    .paper-title {
-        font-size: 1.08rem;
-        font-weight: 800;
-        color: #0f172a;
-        margin-bottom: 0.65rem;
-        line-height: 1.45;
-    }
-
-    .paper-desc {
-        font-size: 0.95rem;
-        line-height: 1.75;
-        color: #475569;
-    }
-
-    .abstract-box {
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        border: 1px solid #e2e8f0;
-        border-left: 4px solid #334155;
-        border-radius: 18px;
-        padding: 1.2rem 1.2rem 1.05rem 1.2rem;
-        margin-top: 0.3rem;
-        margin-bottom: 1.1rem;
-    }
-
-    .abstract-label {
-        font-size: 0.82rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #64748b;
-        margin-bottom: 0.5rem;
-    }
-
-    .abstract-text {
-        font-size: 0.96rem;
-        line-height: 1.85;
-        color: #334155;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
+# --- 5. 페이지 렌더링 ---
+if page == "시작 페이지":
     st.markdown("""
     <div class="hero-wrap">
         <div class="hero-kicker">Research Presentation Interface</div>
         <div class="hero-title">기후 모델링 연구 대시보드</div>
         <div class="hero-desc">
             관측 자료와 물리 기반 기후 모형을 결합하여 역사적 온도 변화를 재현하고,
-            미래 배출 시나리오에 따른 전지구 평균기온의 장기 경로를 탐색하기 위한
-            발표형 연구 인터페이스입니다. 각 분석 섹션은 시나리오 예측, 파라미터 실험,
-            적합도 평가, 불확실성 정량화, 개념 정의를 독립적으로 수행할 수 있도록 구성되어 있습니다.
+            미래 배출 시나리오에 따른 전지구 평균기온의 장기 경로를 탐색하기 위한 연구형 대시보드입니다.
+        </div>
+        <div class="tag-row">
+            <div class="tag-chip">물리 기반 모델</div>
+            <div class="tag-chip">관측자료 비교</div>
+            <div class="tag-chip">불확실성 분석</div>
         </div>
         <div class="hero-note">
-            학술 발표, 모델 해석, 시나리오 기반 기후 분석을 위해 설계된 연구형 인터페이스입니다.
+            학술 발표, 모델 해석, 시나리오 기반 기후 분석을 위해 설계된 인터페이스입니다.
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="abstract-box">
-        <div class="abstract-label">Abstract</div>
-        <div class="abstract-text">
-            본 대시보드는 단순 시각화 도구를 넘어, 기후 시스템의 주요 강제력과 반응 변수를
-            통합적으로 검토할 수 있는 연구 발표용 환경을 목표로 한다.
-            사용자는 다양한 관측 데이터셋을 바탕으로 모델의 적합도를 평가할 수 있으며,
-            미래 배출 시나리오와 핵심 물리 파라미터를 조정함으로써 예측 결과의 구조와 민감도를 비교할 수 있다.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        st.markdown("""
-        <div class="metric-box">
-            <div class="metric-num">1925–2100</div>
-            <div class="metric-label">Historical reconstruction<br>and future projection horizon</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with m2:
-        st.markdown("""
-        <div class="metric-box">
-            <div class="metric-num">5 Sections</div>
-            <div class="metric-label">Scenario, experiment,<br>validation, uncertainty, glossary</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with m3:
-        st.markdown("""
-        <div class="metric-box">
-            <div class="metric-num">Multi-source</div>
-            <div class="metric-label">Comparative use of observational<br>temperature datasets</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<div class='section-title'>Modules</div>", unsafe_allow_html=True)
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.markdown("""
-        <div class="paper-card">
-            <div class="paper-index">Module 01</div>
-            <div class="paper-title">시나리오 기반 기후 변화 예측</div>
-            <div class="paper-desc">
-                탄소중립 안정화부터 고배출 경로까지 다양한 배출 시나리오를 설정하여
-                2100년까지의 전지구 평균기온 및 해수면 상승 경향을 비교합니다.
-                발표 도입부에서 정책 경로별 차이를 직관적으로 제시하기에 적합합니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="paper-card">
-            <div class="paper-index">Module 02</div>
-            <div class="paper-title">기후 시스템 파라미터 실험</div>
-            <div class="paper-desc">
-                기후 피드백 파라미터, 에어로졸 강도, 해양 열흡수 계수, ENSO 진폭을 직접 조정해
-                모델 응답이 어떻게 달라지는지 실험할 수 있습니다.
-                변수 변화에 따른 시스템 민감도를 설명할 때 유용합니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c2:
-        st.markdown("""
-        <div class="paper-card">
-            <div class="paper-index">Module 03</div>
-            <div class="paper-title">모델 적합도 및 관측자료 비교</div>
-            <div class="paper-desc">
-                관측 자료와 모델 출력의 차이를 시계열, 상대오차, 강제력 기여 요소로 분해하여 제시합니다.
-                모델이 역사적 기후 변화를 어느 정도 설명하는지 평가하는 핵심 분석 섹션입니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="paper-card">
-            <div class="paper-index">Module 04</div>
-            <div class="paper-title">모델 검증 및 불확실성 정량화</div>
-            <div class="paper-desc">
-                잔차 진단, 불확실성 범위, 일대일 민감도 분석을 통해 예측 신뢰성과 구조적 특성을 검토합니다.
-                결과 해석의 한계와 모델 안정성을 논의하는 발표 후반부에 적합합니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<div class='section-title'>Start Presentation</div>", unsafe_allow_html=True)
-
-    b1, b2, b3 = st.columns([1.15, 1.15, 1.3])
-
-    with b1:
-        if st.button("시나리오 분석 시작", use_container_width=True):
-            st.session_state["page"] = "시나리오 기반 기후 변화 예측"
-            st.rerun()
-
-    with b2:
-        if st.button("파라미터 실험 시작", use_container_width=True):
-            st.session_state["page"] = "기후 시스템 파라미터 실험"
-            st.rerun()
-
-    with b3:
-        if st.button("모델 검증 보기", use_container_width=True):
-            st.session_state["page"] = "모델 검증 및 불확실성 정량화"
-            st.rerun()
-
-    st.caption("좌측 사이드바를 통해 전체 섹션으로 이동할 수 있습니다.")
 
 elif page == "시나리오 기반 기후 변화 예측":
     st.title("시나리오 기반 기후 변화 예측")
-    st.markdown("미래 배출 경로에 따라 전지구 평균기온과 해수면 변화를 장기적으로 예측합니다.")
-
     render_section_note(
         "분석 목적",
         "이 섹션은 서로 다른 배출 시나리오에 따라 장기 온난화 경로가 어떻게 달라지는지를 비교하기 위한 페이지입니다. "
-        "특히 1.5도와 2.0도 임계선과의 관계를 함께 제시함으로써, 각 시나리오가 기후 위험 수준과 어떻게 연결되는지 직관적으로 해석할 수 있도록 구성했습니다."
+        "1.5도와 2.0도 임계선과의 관계를 함께 제시하여 각 시나리오의 상대적 기후 위험 수준을 해석할 수 있도록 구성했습니다."
     )
 
     emission_map = {
@@ -611,12 +497,16 @@ elif page == "시나리오 기반 기후 변화 예측":
     p_2100 = res_full[-1]
     trend_21c = np.polyfit(np.arange(1925, 2101), res_full, 1)[0]
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("2100년 예상 온난화", f"+{p_2100:.2f} °C")
-    col2.metric("2100년 예상 해수면 상승", f"+{p_2100*35:.1f} cm")
-    col3.metric("장기 평균 온난화 속도", f"{trend_21c:.3f} °C/year")
+    st.markdown("<div class='section-title'>핵심 결과</div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        render_metric_card("2100년 예상 온난화", f"+{p_2100:.2f} °C", "선택한 시나리오 기준 장기 예측값")
+    with c2:
+        render_metric_card("2100년 예상 해수면 상승", f"+{p_2100*35:.1f} cm", "단순 비례 가정에 따른 참고 지표")
+    with c3:
+        render_metric_card("장기 평균 온난화 속도", f"{trend_21c:.3f} °C/year", "1925–2100 전체 구간 평균 추세")
 
-    fig_fut, ax_fut = plt.subplots(figsize=(12, 5))
+    fig_fut, ax_fut = plt.subplots(figsize=(12, 5.5))
     ax_fut.plot(
         years_axis,
         np.interp(years_axis, list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()), list(obs_datasets["NASA GISS (GISTEMP v4)"].values())),
@@ -637,24 +527,30 @@ elif page == "시나리오 기반 기후 변화 예측":
     render_section_note(
         "해석",
         "고배출에 가까운 경로일수록 온도 상승 속도가 빠르게 커지며, 임계 온도 도달 시점도 앞당겨집니다. "
-        "다만 본 결과는 단순화된 전지구 평균 모델을 기반으로 하므로, 정밀한 수치 예측보다는 시나리오 간 상대적 차이와 장기 경향을 해석하는 용도로 보는 것이 적절합니다."
+        "다만 본 결과는 전지구 평균 기반의 단순화된 모델에서 도출된 것으로, 정밀 예측값이라기보다 시나리오 간 상대적 차이와 장기 경향을 비교하는 해석용 결과로 보는 것이 적절합니다."
     )
 
 elif page == "기후 시스템 파라미터 실험":
     st.title("기후 시스템 파라미터 실험")
-    st.markdown("주요 물리 파라미터를 직접 조정하여 기후 시스템의 반응을 비교합니다.")
-
     render_section_note(
         "분석 목적",
         "이 페이지는 기후 피드백 강도, 에어로졸 냉각, 해양 열흡수, 내부 변동성과 같은 핵심 파라미터가 "
-        "장기 온난화 결과에 어떤 영향을 주는지 탐색하기 위해 구성되었습니다. "
-        "사용자는 동일한 초기조건에서도 물리 파라미터 선택에 따라 결과가 달라질 수 있음을 확인할 수 있습니다."
+        "장기 온난화 결과에 어떤 영향을 주는지 탐색하기 위해 구성되었습니다."
     )
 
     custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso]
     res_exp, tl_exp, tm_exp, td_exp, _ = run_model(custom_params, -0.22, end_year=2100, end_co2=exp_co2)
 
-    fig_exp, ax_exp = plt.subplots(figsize=(14, 6))
+    st.markdown("<div class='section-title'>핵심 결과</div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        render_metric_card("2100년 육지 온도 상승", f"+{tl_exp[-1]:.2f} °C", "육지는 상대적으로 빠르게 반응")
+    with c2:
+        render_metric_card("2100년 해양 표층 온도 상승", f"+{tm_exp[-1]:.2f} °C", "표층 해양의 완충 효과 반영")
+    with c3:
+        render_metric_card("2100년 심해 온도 상승", f"+{td_exp[-1]:.2f} °C", "심해는 가장 느리게 반응")
+
+    fig_exp, ax_exp = plt.subplots(figsize=(12, 5.5))
     years_exp = np.arange(1925, 2101)
     ax_exp.plot(
         years_axis,
@@ -675,21 +571,12 @@ elif page == "기후 시스템 파라미터 실험":
 
     render_section_note(
         "해석",
-        "파라미터 변화에 따라 같은 배출 조건에서도 온난화 경로와 최종 온도 상승폭이 크게 달라질 수 있습니다. "
+        "같은 배출 조건에서도 파라미터 선택에 따라 최종 온도 상승폭과 경로가 달라질 수 있습니다. "
         "특히 해양은 열용량이 크기 때문에 육지보다 더 느리게 반응하며, 이러한 반응 속도 차이는 장기 기후 변화 해석에서 중요한 의미를 가집니다."
     )
 
-    col_a, col_b, col_c = st.columns(3)
-    col_a.metric("2100년 육지 온도 상승", f"+{tl_exp[-1]:.2f} °C")
-    col_b.metric("2100년 해양 표층 온도 상승", f"+{tm_exp[-1]:.2f} °C")
-    col_c.metric("2100년 심해 온도 상승", f"+{td_exp[-1]:.2f} °C")
-
-    st.markdown("이 실험 결과는 기후계가 단일 원인으로 결정되는 것이 아니라, 여러 물리 과정의 상호작용 속에서 장기 응답이 형성된다는 점을 보여줍니다.")
-
 elif page == "모델 적합도 및 관측자료 비교":
     st.title("모델 적합도 및 관측자료 비교")
-    st.markdown("모델이 역사적 기온 변화를 얼마나 잘 재현하는지 평가하고, 물리적 기여 요소를 분해하여 제시합니다.")
-
     render_section_note(
         "분석 목적",
         "이 섹션은 모델이 실제 관측자료의 장기 기온 변화를 어느 정도 재현할 수 있는지를 평가하기 위한 페이지입니다. "
@@ -699,6 +586,27 @@ elif page == "모델 적합도 및 관측자료 비교":
     with st.spinner(f'{obs_choice} 데이터에 맞춰 모델을 최적화하는 중입니다...'):
         best_params = get_optimized_params(current_obs_data)
         best_global, best_tl, best_tm, best_td, daily_all = run_model(best_params, current_obs_data[0])
+
+    err = np.where(
+        np.abs(current_obs_data) > 0.1,
+        ((best_global - current_obs_data) / np.abs(current_obs_data)) * 100,
+        0
+    )
+    avg_err = np.mean(np.abs(err))
+    rmse = np.sqrt(np.mean((best_global - current_obs_data)**2))
+    mae = np.mean(np.abs(best_global - current_obs_data))
+    bias = np.mean(best_global - current_obs_data)
+
+    st.markdown("<div class='section-title'>핵심 지표</div>", unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        render_metric_card("RMSE", f"{rmse:.3f} °C", "제곱근 평균 오차")
+    with c2:
+        render_metric_card("MAE", f"{mae:.3f} °C", "절대값 평균 오차")
+    with c3:
+        render_metric_card("Bias", f"{bias:.3f} °C", "전반적 과대/과소 예측 경향")
+    with c4:
+        render_metric_card("Mean % Error", f"{avg_err:.2f}%", "상대 오차의 평균 크기")
 
     fig, axes = plt.subplots(3, 2, figsize=(16, 18))
     plt.subplots_adjust(hspace=0.4, wspace=0.3)
@@ -715,16 +623,6 @@ elif page == "모델 적합도 및 관측자료 비교":
     axes[0, 1].set_title("Observed vs Simulated Temperature Anomaly", fontweight='bold')
     axes[0, 1].legend()
     axes[0, 1].grid(True, alpha=0.3)
-
-    err = np.where(
-        np.abs(current_obs_data) > 0.1,
-        ((best_global - current_obs_data) / np.abs(current_obs_data)) * 100,
-        0
-    )
-    avg_err = np.mean(np.abs(err))
-    rmse = np.sqrt(np.mean((best_global - current_obs_data)**2))
-    mae = np.mean(np.abs(best_global - current_obs_data))
-    bias = np.mean(best_global - current_obs_data)
 
     axes[1, 0].bar(years_axis, err, color=['#ff7675' if x > 0 else '#74b9ff' for x in err])
     axes[1, 0].set_title(
@@ -760,14 +658,14 @@ elif page == "모델 적합도 및 관측자료 비교":
     render_section_note(
         "해석",
         "모델은 전체적인 장기 온난화 추세를 비교적 잘 재현하지만, 일부 시기에는 과대예측 또는 과소예측이 나타납니다. "
-        "이는 단순화된 강제력 입력과 내부 변동성 표현의 한계에서 비롯될 수 있으며, 동시에 reduced-complexity 모델이 장기 추세 설명에는 유용하지만 단기 변동 재현에는 제한이 있음을 보여줍니다."
+        "이는 단순화된 강제력 입력과 내부 변동성 표현의 한계에서 비롯될 수 있으며, 장기 추세 설명에는 유용하지만 단기 변동 재현에는 제한이 있음을 보여줍니다."
     )
 
-    st.divider()
-    col_dl1, col_dl2 = st.columns([3, 1])
-    with col_dl1:
-        st.subheader(f"{target_year}년 일별 기온 변화")
-    with col_dl2:
+    st.markdown("<div class='section-title'>일별 상세 보기</div>", unsafe_allow_html=True)
+    c1, c2 = st.columns([3, 1])
+    with c1:
+        st.markdown(f"<div class='subsection-title'>{target_year}년 일별 기온 변화</div>", unsafe_allow_html=True)
+    with c2:
         df_export = pd.DataFrame({
             "Year": years_axis,
             "Observed": current_obs_data,
@@ -779,7 +677,7 @@ elif page == "모델 적합도 및 관측자료 비교":
 
     y_idx = int(target_year - START_YEAR)
     daily_segment = daily_all[y_idx*365 : (y_idx+1)*365]
-    fig_d, ax_d = plt.subplots(figsize=(12, 4))
+    fig_d, ax_d = plt.subplots(figsize=(12, 4.5))
     ax_d.plot(range(1, 366), daily_segment, color='darkred', lw=1.5)
     ax_d.axhline(np.mean(daily_segment), color='blue', ls='--', label='Annual Mean')
     ax_d.set_xlabel("Day of Year")
@@ -791,12 +689,10 @@ elif page == "모델 적합도 및 관측자료 비교":
 
 elif page == "모델 검증 및 불확실성 정량화":
     st.title("모델 검증 및 불확실성 정량화")
-    st.markdown("잔차 진단, 불확실성 범위, 일대일 민감도 분석을 통해 모델의 신뢰성과 구조적 특성을 검토합니다.")
-
     render_section_note(
         "분석 목적",
         "이 페이지는 모델의 잔차 구조, 파라미터 변화에 따른 예측 범위, 그리고 특정 파라미터의 민감도를 함께 확인함으로써 "
-        "모델 결과의 안정성과 해석 가능성을 점검하기 위해 구성되었습니다. 단일 값만 제시하는 것이 아니라, 결과가 얼마나 흔들릴 수 있는지도 함께 보여줍니다."
+        "모델 결과의 안정성과 해석 가능성을 점검하기 위해 구성되었습니다."
     )
 
     with st.spinner(f'{diag_obs_choice} 자료를 기준으로 검증을 수행하는 중입니다...'):
@@ -808,16 +704,19 @@ elif page == "모델 검증 및 불확실성 정량화":
     mae_diag = np.mean(np.abs(diag_best_global - diag_obs_data))
     bias_diag = np.mean(diag_best_global - diag_obs_data)
 
-    col_m1, col_m2, col_m3 = st.columns(3)
-    col_m1.metric("RMSE", f"{rmse_diag:.3f} °C")
-    col_m2.metric("MAE", f"{mae_diag:.3f} °C")
-    col_m3.metric("Bias", f"{bias_diag:.3f} °C")
+    st.markdown("<div class='section-title'>핵심 지표</div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        render_metric_card("RMSE", f"{rmse_diag:.3f} °C", "예측과 관측의 전체 오차 수준")
+    with c2:
+        render_metric_card("MAE", f"{mae_diag:.3f} °C", "평균 절대 오차")
+    with c3:
+        render_metric_card("Bias", f"{bias_diag:.3f} °C", "전반적 편향")
 
-    st.subheader("잔차 진단")
-    col_r1, col_r2 = st.columns(2)
-
-    with col_r1:
-        fig_res_line, ax_res_line = plt.subplots(figsize=(10, 4))
+    st.markdown("<div class='section-title'>잔차 진단</div>", unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        fig_res_line, ax_res_line = plt.subplots(figsize=(10, 4.5))
         ax_res_line.plot(years_axis, residuals, color='purple', lw=2)
         ax_res_line.axhline(0, color='black', lw=1)
         ax_res_line.set_title("Residual Time Series")
@@ -825,9 +724,8 @@ elif page == "모델 검증 및 불확실성 정량화":
         ax_res_line.set_ylabel("Residual")
         ax_res_line.grid(True, alpha=0.3)
         st.pyplot(fig_res_line)
-
-    with col_r2:
-        fig_res_hist, ax_res_hist = plt.subplots(figsize=(10, 4))
+    with c2:
+        fig_res_hist, ax_res_hist = plt.subplots(figsize=(10, 4.5))
         ax_res_hist.hist(residuals, bins=15, color='slateblue', edgecolor='black', alpha=0.8)
         ax_res_hist.axvline(0, color='black', lw=1)
         ax_res_hist.set_title("Residual Distribution")
@@ -836,7 +734,7 @@ elif page == "모델 검증 및 불확실성 정량화":
         ax_res_hist.grid(True, alpha=0.2)
         st.pyplot(fig_res_hist)
 
-    st.subheader("불확실성 범위")
+    st.markdown("<div class='section-title'>불확실성 범위</div>", unsafe_allow_html=True)
     rng = np.random.default_rng(42)
     samples = []
     for _ in range(20):
@@ -854,7 +752,7 @@ elif page == "모델 검증 및 불확실성 정량화":
     lower_path = mean_path - std_path
     upper_path = mean_path + std_path
 
-    fig_unc, ax_unc = plt.subplots(figsize=(12, 5))
+    fig_unc, ax_unc = plt.subplots(figsize=(12, 5.5))
     ax_unc.plot(years_axis, diag_obs_data, 'k--', label='Observed', alpha=0.7)
     ax_unc.plot(years_axis, mean_path, color='darkred', lw=2, label='Mean Prediction')
     ax_unc.fill_between(years_axis, lower_path, upper_path, color='red', alpha=0.2, label='Uncertainty Band')
@@ -871,7 +769,7 @@ elif page == "모델 검증 및 불확실성 정량화":
         "이는 장기 예측일수록 파라미터 선택에 따른 민감도가 커진다는 의미이며, 단일 경로보다 불확실성 범위를 함께 제시하는 것이 더 정직한 해석 방식임을 보여줍니다."
     )
 
-    st.subheader("민감도 분석")
+    st.markdown("<div class='section-title'>민감도 분석</div>", unsafe_allow_html=True)
     if sens_param == "기후 피드백 파라미터":
         test_range = np.linspace(0.7, 2.3, 12)
         index_to_change = 0
@@ -892,7 +790,7 @@ elif page == "모델 검증 및 불확실성 정량화":
         res_tmp, _, _, _, _ = run_model(params, diag_obs_data[0], end_year=2100, end_co2=550)
         sens_results.append(res_tmp[-1])
 
-    fig_sens, ax_sens = plt.subplots(figsize=(10, 5))
+    fig_sens, ax_sens = plt.subplots(figsize=(12, 5))
     ax_sens.plot(test_range, sens_results, marker='o', lw=2)
     ax_sens.set_title("Sensitivity of Projected 2100 Warming")
     ax_sens.set_xlabel("Parameter Value")
@@ -902,7 +800,11 @@ elif page == "모델 검증 및 불확실성 정량화":
 
 elif page == "기후 모델링 용어 및 개념 정의":
     st.title("기후 모델링 용어 및 개념 정의")
-    st.markdown("본 모델에서 사용되는 주요 기후학 개념, 물리 파라미터, 검증 지표를 정리한 참고 페이지입니다.")
+    render_section_note(
+        "페이지 안내",
+        "본 페이지는 모델에서 사용되는 주요 기후학 개념, 물리 파라미터, 검증 지표를 정리한 참고용 자료입니다. "
+        "그래프 해석 전에 필요한 개념을 빠르게 확인할 수 있도록 구성했습니다."
+    )
 
     st.subheader("기후 변화의 원인")
     with st.expander("온실가스 복사 강제력 (Greenhouse Gas Radiative Forcing)", expanded=True):
@@ -946,4 +848,67 @@ elif page == "기후 모델링 용어 및 개념 정의":
     with st.expander("인위적 요인과 자연적 요인의 상대 기여 (Forcing Dominance)"):
         st.write("온실가스, 에어로졸, 화산, 내부 변동 등 여러 강제력 요소를 비교하여 온도 변화에 어떤 요인이 더 크게 작용하는지 해석하는 개념입니다.")
 
-    st.info("용어사전의 개념을 함께 보면 그래프 해석과 발표 설명을 더 체계적으로 정리할 수 있습니다.")
+    st.info("그래프 내부 제목과 축 라벨은 글꼴 호환성을 위해 영어로 유지했고, UI와 설명문은 한국어로 정리했습니다.")
+
+elif page == "연구 요약 및 보고서":
+    st.title("연구 요약 및 보고서")
+    render_section_note(
+        "연구 목적",
+        "본 프로젝트는 관측 자료와 단순화된 물리 기반 기후 모델을 결합하여 역사적 기온 변화를 재현하고, "
+        "배출 시나리오와 주요 물리 파라미터 변화에 따라 미래 온난화 경로가 어떻게 달라지는지를 해석하는 것을 목표로 합니다."
+    )
+
+    render_section_note(
+        "모델 구조와 물리적 가정",
+        "모델은 육지, 해양 혼합층, 심해의 세 층으로 구성된 간이 에너지 균형 구조를 사용합니다. "
+        "이산화탄소 복사 강제력, 에어로졸 냉각, 비이산화탄소 인위적 강제력, 화산 강제력, 내부 변동성을 포함하며, "
+        "전지구 평균 규모에서 장기 추세와 주요 기여 요인을 해석하는 데 초점을 둡니다."
+    )
+
+    st.markdown("<div class='section-title'>연구 요약</div>", unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("""
+        <div class="paper-card">
+            <div class="paper-index">Summary</div>
+            <div class="paper-title">핵심 분석 구성</div>
+            <div class="paper-desc">
+                시나리오 기반 장기 온난화 예측, 기후 피드백 및 해양 열흡수 파라미터 실험,
+                관측자료와의 적합도 비교, 잔차와 불확실성 범위 검토, 민감도 분석을 하나의 흐름으로 통합했습니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown("""
+        <div class="paper-card">
+            <div class="paper-index">Interpretation</div>
+            <div class="paper-title">해석상의 주의점</div>
+            <div class="paper-desc">
+                본 모델은 정밀 예측 모델이 아니라 해석 중심의 교육·연구용 모델입니다.
+                지역별 차이보다 전지구 평균 경향을 다루며, 일부 강제력과 내부 변동성은 단순화된 함수로 표현됩니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div class='section-title'>연구 의의</div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="abstract-box">
+        <div class="abstract-text">
+            이 대시보드는 단순한 시각화 도구를 넘어, 기후 시스템의 핵심 강제력과 반응 변수를 하나의 흐름 안에서 탐색할 수 있도록 구성되어 있습니다.
+            특히 관측자료 비교, 파라미터 실험, 불확실성 정량화를 하나의 인터페이스에 통합함으로써 학부 수준에서 기후 모델링의 기본 구조와 검증 과정을 체계적으로 학습할 수 있도록 설계되었습니다.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='section-title'>보고서 다운로드</div>", unsafe_allow_html=True)
+    report_name, report_bytes = load_report_file()
+    if report_bytes is not None:
+        st.download_button(
+            label="분석 리포트 다운로드",
+            data=report_bytes,
+            file_name=report_name,
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True
+        )
+    else:
+        st.info("리포트 파일을 찾지 못했습니다. app.py와 같은 위치에 .docx 파일이 있는지 확인하세요.")
