@@ -1022,43 +1022,42 @@ def render_left_panel():
     
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
-    controls = {}
-        if current_page == "시나리오 기반 기후 변화 예측":
-            current_policy = st.session_state.get("main_policy", "현재정책")
-        
-            items = [
-                ("탄소중립", "netzero"),
-                ("저배출", "low"),
-                ("현재정책", "current"),
-                ("고배출", "high"),
-                ("극단배출", "extreme"),
-            ]
-        
-            html = [
-                '<div class="settings-shell">',
-                '<div class="settings-title">배출 시나리오 설정</div>',
-                '<div class="settings-subtitle">배출 시나리오</div>',
-                '<div class="scenario-seg-wrap">',
-                '<div class="scenario-seg">'
-            ]
-        
-            for label, slug in items:
-                active = " active" if current_policy == label else ""
-                html.append(
-                    f'<a class="{active}" href="?module=scenario&policy={slug}" target="_self">{label}</a>'
-                )
-        
-            html.append('</div></div>')
-            html.append(
-                f'<div class="scenario-current">현재 선택: <strong>{current_policy}</strong></div>'
-            )
-            html.append('</div>')
-        
-            st.markdown("".join(html), unsafe_allow_html=True)
-        
-            controls["policy"] = current_policy
+        controls = {}
+    if current_page == "시나리오 기반 기후 변화 예측":
+        current_policy = st.session_state.get("main_policy", "현재정책")
     
-        elif current_page == "기후 시스템 파라미터 실험":
+        items = [
+            ("탄소중립", "netzero"),
+            ("저배출", "low"),
+            ("현재정책", "current"),
+            ("고배출", "high"),
+            ("극단배출", "extreme"),
+        ]
+    
+        html = [
+            '<div class="settings-shell">',
+            '<div class="settings-title">배출 시나리오 설정</div>',
+            '<div class="settings-subtitle">배출 시나리오</div>',
+            '<div class="scenario-seg-wrap">',
+            '<div class="scenario-seg">'
+        ]
+    
+        for label, slug in items:
+            active = " active" if current_policy == label else ""
+            html.append(
+                f'<a class="{active}" href="?module=scenario&policy={slug}" target="_self">{label}</a>'
+            )
+    
+        html.append('</div></div>')
+        html.append(
+            f'<div class="scenario-current">현재 선택: <strong>{current_policy}</strong></div>'
+        )
+        html.append('</div>')
+    
+        st.markdown("".join(html), unsafe_allow_html=True)
+    
+        controls["policy"] = current_policy
+    elif current_page == "기후 시스템 파라미터 실험":
             st.markdown(
                 '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
                 unsafe_allow_html=True,
