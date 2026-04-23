@@ -567,6 +567,30 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     .hero-title { font-size: 1.6rem; }
     .block-container { padding: 1rem !important; }
 }
+/* ===== 탐색 버튼 = 모듈 카드 애니메이션 ===== */
+
+.nav-panel div[data-testid="stButton"] > button {
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+}
+
+/* hover → 카드처럼 살짝 뜸 */
+.nav-panel div[data-testid="stButton"] > button:hover {
+    transform: translateY(-3px);
+    border-color: #1a56a0 !important;
+    background: #f7fbff !important;
+    box-shadow: 0 8px 24px rgba(26,86,160,0.13);
+}
+
+/* 클릭 → 살짝 눌림 */
+.nav-panel div[data-testid="stButton"] > button:active {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(26,86,160,0.10);
+}
+
 </style>
 """,
     unsafe_allow_html=True,
