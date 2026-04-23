@@ -652,6 +652,18 @@ body, p, div { letter-spacing: -0.01em; }
     unsafe_allow_html=True,
 )
 
+.row-widget.stHorizontal {
+    gap: 1.2rem !important;
+}
+
+div[data-testid="column"] > div {
+    margin-bottom: 1.2rem !important;
+}
+
+.modcard {
+    margin: 0 !important;
+}
+
 # ── 관측 데이터 ───────────────────────────────────────────────────────────────
 START_YEAR, END_YEAR = 1925, 2025
 YEARS = END_YEAR - START_YEAR + 1
