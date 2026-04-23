@@ -975,7 +975,7 @@ def render_settings(current_page):
     controls = {}
 
     if current_page == "시나리오 기반 기후 변화 예측":
-    st.markdown(
+        st.markdown(
         '''
         <div class="settings-shell">
             <div class="settings-title">배출 시나리오 설정</div>
