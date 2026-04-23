@@ -1015,7 +1015,7 @@ def render_left_panel():
     
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
-        controls = {}
+    controls = {}
     if current_page == "시나리오 기반 기후 변화 예측":
         current_policy = st.session_state.get("main_policy", "현재정책")
     
