@@ -644,6 +644,7 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     box-shadow: 0 4px 14px rgba(26,86,160,0.12);
 }
 
+/* ── Scenario Designer Panel ───────────────────────── */
 .settings-subtitle {
     font-size: 1rem;
     font-weight: 800;
@@ -652,50 +653,203 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     letter-spacing: -0.02em;
 }
 
-.scenario-current {
-    margin-top: 1rem;
+.scenario-hero {
+    background: linear-gradient(135deg, #1f5fbf 0%, #256fcb 55%, #3a86e8 100%);
+    border-radius: 22px;
+    padding: 1.1rem 1.1rem 1rem 1.1rem;
+    color: #ffffff;
+    box-shadow: 0 10px 26px rgba(31, 95, 191, 0.18);
+    margin-bottom: 1rem;
+}
+
+.scenario-hero-top {
+    font-size: 0.76rem;
+    font-weight: 700;
+    opacity: 0.9;
+    margin-bottom: 0.45rem;
+    letter-spacing: -0.01em;
+}
+
+.scenario-hero-name {
+    font-size: 1.75rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    margin-bottom: 0.45rem;
+}
+
+.scenario-hero-desc {
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: rgba(255,255,255,0.92);
+}
+
+.scenario-scale-title {
     font-size: 0.92rem;
+    font-weight: 800;
+    color: #18365c;
+    margin: 0.85rem 0 0.7rem 0;
+    letter-spacing: -0.02em;
+}
+
+.scenario-scale {
+    position: relative;
+    margin: 0.35rem 0 1.1rem 0;
+    padding: 0.2rem 0 1.7rem 0;
+}
+
+.scenario-scale-line {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #55c58f 0%, #2b6cb0 50%, #ef4444 100%);
+    opacity: 0.28;
+}
+
+.scenario-scale-fill {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #55c58f 0%, #2b6cb0 50%, #ef4444 100%);
+}
+
+.scenario-scale-steps {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.scenario-step {
+    width: 20%;
+    text-align: center;
+    position: relative;
+}
+
+.scenario-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #c7d5e6;
+    margin: 0 auto 0.55rem auto;
+    box-shadow: 0 2px 6px rgba(43, 94, 167, 0.08);
+}
+
+.scenario-step.active .scenario-dot {
+    background: #ffffff;
+    border: 5px solid #2b5ea7;
+    box-shadow: 0 4px 12px rgba(43, 94, 167, 0.18);
+}
+
+.scenario-step-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #334155;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+}
+
+.scenario-step.active .scenario-step-label {
+    color: #1a56a0;
+}
+
+.scenario-scale-foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.55rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.scenario-scale-foot .low {
+    color: #34a853;
+}
+
+.scenario-scale-foot .mid {
     color: #64748b;
-    font-weight: 500;
+}
+
+.scenario-scale-foot .high {
+    color: #ef4444;
+}
+
+.scenario-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.scenario-card {
+    display: block;
+    text-decoration: none !important;
+    background: #ffffff;
+    border: 1.8px solid #d6e2f0;
+    border-radius: 18px;
+    padding: 1rem 0.85rem;
+    min-height: 110px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    box-shadow: 0 2px 10px rgba(26,86,160,0.05);
+}
+
+.scenario-card:hover {
+    transform: translateY(-2px);
+    border-color: #8fb3df;
+    box-shadow: 0 10px 24px rgba(26,86,160,0.10);
+    background: #f9fbff;
+}
+
+.scenario-card.active {
+    border-color: #2b5ea7;
+    background: #eef5ff;
+    box-shadow: 0 10px 26px rgba(26,86,160,0.14);
+}
+
+.scenario-card-icon {
+    font-size: 1.45rem;
+    line-height: 1;
+    margin-bottom: 0.6rem;
+}
+
+.scenario-card-title {
+    font-size: 0.98rem;
+    font-weight: 900;
+    color: #18365c;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.32rem;
+}
+
+.scenario-card.active .scenario-card-title {
+    color: #1a56a0;
+}
+
+.scenario-card-desc {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: #64748b;
+}
+
+.scenario-card.wide {
+    grid-column: 1 / -1;
+}
+
+.scenario-current {
+    margin-top: 0.9rem;
+    font-size: 0.93rem;
+    color: #64748b;
+    font-weight: 600;
     text-align: center;
 }
 
 .scenario-current strong {
     color: #1a56a0;
-    font-weight: 800;
-}
-
-/* ── 시나리오 필터칩 ───────────────────────── */
-.scenario-chip-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.4rem;
-}
-
-.scenario-chip {
-    padding: 0.4rem 0.75rem;
-    border-radius: 999px;
-    border: 1.5px solid #c9d8ea;
-    background: #ffffff;
-    color: #2b5ea7 !important;
-    font-size: 0.88rem;
-    font-weight: 700;
-    text-decoration: none !important;
-    transition: all 0.15s ease;
-}
-
-/* hover */
-.scenario-chip:hover {
-    border-color: #1a56a0;
-    background: #f4f8ff;
-}
-
-/* 선택됨 */
-.scenario-chip.active {
-    background: #1a56a0;
-    color: #ffffff !important;
-    border-color: #1a56a0;
+    font-weight: 900;
 }
 
 </style>
@@ -1019,35 +1173,112 @@ def render_settings(current_page):
     if current_page == "시나리오 기반 기후 변화 예측":
         current_policy = st.session_state.get("main_policy", "현재정책")
     
-        items = [
-            ("탄소중립", "netzero"),
-            ("저배출", "low"),
-            ("현재정책", "current"),
-            ("고배출", "high"),
-            ("극단배출", "extreme"),
-        ]
+        scenario_meta = {
+            "탄소중립": {
+                "slug": "netzero",
+                "desc": "넷제로 목표 달성 중심의 가장 낮은 배출 경로",
+                "hero_desc": "탄소 배출을 빠르게 감축해 장기 온난화 위험을 최소화하는 경로입니다.",
+                "co2": 280,
+            },
+            "저배출": {
+                "slug": "low",
+                "desc": "배출 감축 중심 정책이 시행되는 경로",
+                "hero_desc": "감축 정책이 비교적 잘 작동해 온도 상승을 완화하는 시나리오입니다.",
+                "co2": 380,
+            },
+            "현재정책": {
+                "slug": "current",
+                "desc": "현재 수준의 정책 기조가 유지되는 경로",
+                "hero_desc": "현재 정책이 크게 강화되지 않는다는 가정 아래의 기준 시나리오입니다.",
+                "co2": 550,
+            },
+            "고배출": {
+                "slug": "high",
+                "desc": "화석연료 의존이 큰 고배출 성장 경로",
+                "hero_desc": "배출 억제가 충분히 이루어지지 않아 온난화 속도가 더 커지는 경로입니다.",
+                "co2": 850,
+            },
+            "극단배출": {
+                "slug": "extreme",
+                "desc": "통제되지 않은 매우 높은 배출 경로",
+                "hero_desc": "배출이 거의 제어되지 않아 가장 큰 기후 리스크가 나타나는 경로입니다.",
+                "co2": 1500,
+            },
+        }
+    
+        order = ["탄소중립", "저배출", "현재정책", "고배출", "극단배출"]
+        current_idx = order.index(current_policy)
+        fill_pct = (current_idx / (len(order) - 1)) * 100
     
         html = [
             '<div class="settings-shell">',
             '<div class="settings-title">배출 시나리오 설정</div>',
-            '<div class="settings-subtitle">배출 시나리오</div>',
-            '<div class="scenario-chip-wrap">'
+    
+            f'''
+            <div class="scenario-hero">
+                <div class="scenario-hero-top">현재 선택 시나리오</div>
+                <div class="scenario-hero-name">
+                    {current_policy}
+                </div>
+                <div class="scenario-hero-desc">
+                    {scenario_meta[current_policy]["hero_desc"]}
+                </div>
+            </div>
+            ''',
+    
+            '<div class="scenario-scale-title">시나리오 강도</div>',
+            '<div class="scenario-scale">',
+            '<div class="scenario-scale-line"></div>',
+            f'<div class="scenario-scale-fill" style="width: calc({fill_pct}% - 8px);"></div>',
+            '<div class="scenario-scale-steps">'
         ]
     
-        for label, slug in items:
-            active = " active" if current_policy == label else ""
+        for label in order:
+            active = " active" if label == current_policy else ""
             html.append(
-                f'<a class="scenario-chip{active}" href="?module=scenario&policy={slug}">{label}</a>'
+                f'''
+                <div class="scenario-step{active}">
+                    <div class="scenario-dot"></div>
+                    <div class="scenario-step-label">{label}</div>
+                </div>
+                '''
             )
     
-        html.append('</div>')
-        html.append(
-            f'<div class="scenario-current">현재 선택: <strong>{current_policy}</strong></div>'
-        )
-        html.append('</div>')
+        html.extend([
+            '</div>',
+            '<div class="scenario-scale-foot">',
+            '<span class="low">낮음</span>',
+            '<span class="mid">현재 수준</span>',
+            '<span class="high">높음</span>',
+            '</div>',
+            '</div>',
+    
+            '<div class="settings-subtitle">시나리오 선택</div>',
+            '<div class="scenario-card-grid">'
+        ])
+    
+        for label in order:
+            meta = scenario_meta[label]
+            active = " active" if label == current_policy else ""
+            wide = " wide" if label == "극단배출" else ""
+            html.append(
+                f'''
+                <a class="scenario-card{active}{wide}" href="?module=scenario&policy={meta["slug"]}" target="_self">
+                    <div class="scenario-card-title">{label}</div>
+                    <div class="scenario-card-desc">{meta["desc"]}</div>
+                </a>
+                '''
+            )
+    
+        html.extend([
+            '</div>',
+            f'<div class="scenario-current">현재 선택: <strong>{current_policy}</strong> · 2100년 CO₂ {scenario_meta[current_policy]["co2"]} ppm</div>',
+            '</div>'
+        ])
     
         st.markdown("".join(html), unsafe_allow_html=True)
-        controls["policy"] = current_policy    
+        controls["policy"] = current_policy
+    
     elif current_page == "기후 시스템 파라미터 실험":
         st.markdown(
             '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
