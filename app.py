@@ -1015,7 +1015,7 @@ if page == "시작 페이지":
 
     row_gap = "1.2rem"
 
-    r1c1, r1c2 = st.columns(2, gap="large")
+    r1c1, r1c2 = st.columns(2, gap="small")
     with r1c1:
         modcard(
             1,
@@ -1033,7 +1033,7 @@ if page == "시작 페이지":
 
     grid_gap(row_gap)
 
-    r2c1, r2c2 = st.columns(2, gap="large")
+    r2c1, r2c2 = st.columns(2, gap="small")
     with r2c1:
         modcard(
             3,
@@ -1051,7 +1051,7 @@ if page == "시작 페이지":
 
     grid_gap(row_gap)
 
-    r3c1, r3c2 = st.columns(2, gap="large")
+    r3c1, r3c2 = st.columns(2, gap="small")
     with r3c1:
         modcard(
             5,
