@@ -1594,11 +1594,14 @@ elif page == "시나리오 기반 기후 변화 예측":
             showgrid=True,
         )
         
+        y_min = min(-0.4, float(np.min(obs_vals)) - 0.2)
+        y_max = max(2.3, float(np.max(future_vals)) + 0.25)
+        
         fig.update_yaxes(
+            range=[y_min, y_max],
             gridcolor="#d6e2f0",
             showgrid=True,
-        )
-        
+        )        
         plotly_html = fig.to_html(
             full_html=False,
             include_plotlyjs="cdn",
