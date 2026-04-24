@@ -2257,83 +2257,83 @@ with st.container(border=True, key="param_panel"):
     st.markdown(cond_html, unsafe_allow_html=True)
 
     sec("핵심 결과")
-        c1, c2, c3 = st.columns(3)
+    c1, c2, c3 = st.columns(3)
 
-        with c1:
-            render_metric(
-                "2100년 육지 온도 상승",
-                f"+{tl_exp[-1]:.2f}",
-                "°C",
-                "육지는 상대적으로 빠르게 반응",
-            )
-
-        with c2:
-            render_metric(
-                "2100년 해양 표층 온도 상승",
-                f"+{tm_exp[-1]:.2f}",
-                "°C",
-                "표층 해양의 완충 효과 반영",
-            )
-
-        with c3:
-            render_metric(
-                "2100년 심해 온도 상승",
-                f"+{td_exp[-1]:.2f}",
-                "°C",
-                "심해는 가장 느리게 반응",
-            )
-
-        sec("실험 결과 시계열")
-
-        fig, ax = _styled_fig(figsize=(12, 5.2))
-
-        obs_vals = np.interp(
-            years_axis,
-            list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
-            list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
+    with c1:
+        render_metric(
+            "2100년 육지 온도 상승",
+            f"+{tl_exp[-1]:.2f}",
+            "°C",
+            "육지는 상대적으로 빠르게 반응",
         )
 
-        years_exp = np.arange(1925, 2101)
-
-        ax.plot(
-            years_axis,
-            obs_vals,
-            color="#0f2744",
-            lw=1.8,
-            label="Observed Temperature",
+    with c2:
+        render_metric(
+            "2100년 해양 표층 온도 상승",
+            f"+{tm_exp[-1]:.2f}",
+            "°C",
+            "표층 해양의 완충 효과 반영",
         )
 
-        ax.fill_between(years_exp, res_exp, alpha=0.1, color="#1a56a0")
-
-        ax.plot(
-            years_exp,
-            res_exp,
-            color="#1a56a0",
-            lw=2.4,
-            label="Experimental Simulation",
+    with c3:
+        render_metric(
+            "2100년 심해 온도 상승",
+            f"+{td_exp[-1]:.2f}",
+            "°C",
+            "심해는 가장 느리게 반응",
         )
 
-        ax.axhline(0, color="#94a3b8", lw=0.8, ls="--")
-        ax.axhline(1.5, color="#f59e0b", ls=":", lw=1.6, label="1.5°C Threshold")
-        ax.axvline(2025, color="#94a3b8", ls="--", lw=1, alpha=0.6)
+    sec("실험 결과 시계열")
 
-        _apply_chart_style(
-            ax,
-            title=f"Projected Warming — User-Defined Parameters | 2100: +{res_exp[-1]:.2f}°C",
-            xlabel="Year",
-            ylabel="Temperature Anomaly (°C)",
-        )
+    fig, ax = _styled_fig(figsize=(12, 5.2))
 
-        ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
-        plt.tight_layout()
-        st.pyplot(fig)
+    obs_vals = np.interp(
+        years_axis,
+        list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
+        list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
+    )
 
-        render_infobox(
-            "해석",
-            "같은 배출 조건에서도 파라미터 선택에 따라 최종 온도 상승폭과 경로가 달라질 수 있습니다. "
-            "특히 해양은 열용량이 크기 때문에 육지보다 더 느리게 반응하며, "
-            "이 반응 속도 차이는 장기 기후 변화 해석에서 중요한 의미를 가집니다.",
-        )
+    years_exp = np.arange(1925, 2101)
+
+    ax.plot(
+        years_axis,
+        obs_vals,
+        color="#0f2744",
+        lw=1.8,
+        label="Observed Temperature",
+    )
+
+    ax.fill_between(years_exp, res_exp, alpha=0.1, color="#1a56a0")
+
+    ax.plot(
+        years_exp,
+        res_exp,
+        color="#1a56a0",
+        lw=2.4,
+        label="Experimental Simulation",
+    )
+
+    ax.axhline(0, color="#94a3b8", lw=0.8, ls="--")
+    ax.axhline(1.5, color="#f59e0b", ls=":", lw=1.6, label="1.5°C Threshold")
+    ax.axvline(2025, color="#94a3b8", ls="--", lw=1, alpha=0.6)
+
+    _apply_chart_style(
+        ax,
+        title=f"Projected Warming — User-Defined Parameters | 2100: +{res_exp[-1]:.2f}°C",
+        xlabel="Year",
+        ylabel="Temperature Anomaly (°C)",
+    )
+
+    ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
+    plt.tight_layout()
+    st.pyplot(fig)
+
+    render_infobox(
+        "해석",
+        "같은 배출 조건에서도 파라미터 선택에 따라 최종 온도 상승폭과 경로가 달라질 수 있습니다. "
+        "특히 해양은 열용량이 크기 때문에 육지보다 더 느리게 반응하며, "
+        "이 반응 속도 차이는 장기 기후 변화 해석에서 중요한 의미를 가집니다.",
+    )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 모델 적합도 및 관측자료 비교
