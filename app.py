@@ -2256,7 +2256,7 @@ with st.container(border=True, key="param_panel"):
     
     st.markdown(cond_html, unsafe_allow_html=True)
 
-        sec("핵심 결과")
+    sec("핵심 결과")
         c1, c2, c3 = st.columns(3)
 
         with c1:
