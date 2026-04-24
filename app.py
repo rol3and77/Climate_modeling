@@ -929,7 +929,6 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 st.markdown(
     """
     
-/* ══ Parameter Panel v2 ═════════════════════════════════════ */
 .param-shell {
     background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
     border: 2px solid #c9d8ea;
