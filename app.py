@@ -1092,6 +1092,63 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-size: 1rem !important;
     font-weight: 900 !important;
 }
+/* Parameter panel final */
+.st-key-param_panel {
+    background: #ffffff;
+    border: 1px solid #d6e2f0;
+    border-radius: 24px;
+    padding: 1.35rem 1.45rem 1.1rem 1.45rem;
+    box-shadow: 0 8px 22px rgba(26,86,160,0.08);
+    margin: 1.2rem 0 1.5rem 0;
+}
+
+.st-key-param_panel div[data-testid="stVerticalBlockBorderWrapper"] {
+    border: none !important;
+    padding: 0 !important;
+}
+
+.st-key-param_reset_btn button {
+    min-height: 2.35rem !important;
+    height: 2.35rem !important;
+    border-radius: 999px !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    padding: 0 0.9rem !important;
+    border: 1.5px solid #b9cfea !important;
+    color: #2b5ea7 !important;
+    background: #f8fbff !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] label p {
+    font-size: 0.95rem !important;
+    font-weight: 900 !important;
+    color: #0f2744 !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+    height: 12px !important;
+    border-radius: 999px !important;
+    background: #dce8f6 !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
+    background: linear-gradient(90deg, #ff4b4b 0%, #2b6cb0 100%) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [role="slider"] {
+    width: 28px !important;
+    height: 28px !important;
+    background: #ffffff !important;
+    border: 5px solid #2b6cb0 !important;
+    box-shadow: 0 5px 14px rgba(43,108,176,0.28) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
+    font-size: 0.88rem !important;
+    font-weight: 900 !important;
+    color: #2b6cb0 !important;
+    top: -30px !important;
+}
 
 </style>
 """,
@@ -2108,24 +2165,31 @@ elif page == "기후 시스템 파라미터 실험":
             margin:1.2rem 0 1.4rem 0;
         ">
           <div style="font-size:1.15rem;font-weight:900;color:#0f2744;">
-            파라미터 조정
-          </div>
-          <div style="font-size:0.82rem;font-weight:600;color:#7a8da8;margin-top:0.3rem;">
-            입력값을 조절하면 아래 결과와 그래프가 즉시 갱신됩니다.
-          </div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-        
-        if st.button("↻ 초기화", use_container_width=True, key="main_reset_experiment"):
-            st.session_state["main_exp_co2"] = 550
-            st.session_state["main_exp_lambda"] = 1.5
-            st.session_state["main_exp_aer"] = 1.0
-            st.rerun()
-        
-        p1, p2, p3 = st.columns(3, gap="medium")
-        
+with st.container(border=True, key="param_panel"):
+    h1, h2 = st.columns([5, 1])
+
+    with h1:
+        st.markdown(
+            """
+<div style="font-size:1.18rem;font-weight:900;color:#0f2744;letter-spacing:-0.03em;">
+    파라미터 조정
+    </div>
+    <div style="font-size:0.82rem;font-weight:650;color:#7a8da8;margin-top:0.25rem;margin-bottom:1.1rem;">
+    입력값을 조절하면 아래 결과와 그래프가 즉시 갱신됩니다.
+    </div>
+    """,
+                unsafe_allow_html=True,
+            )
+    
+        with h2:
+            if st.button("↻ 초기화", use_container_width=True, key="param_reset_btn"):
+                st.session_state["main_exp_co2"] = 550
+                st.session_state["main_exp_lambda"] = 1.5
+                st.session_state["main_exp_aer"] = 1.0
+                st.rerun()
+    
+        p1, p2, p3 = st.columns(3, gap="large")
+    
         with p1:
             co2 = st.slider(
                 "2100년 CO₂ 농도 (ppm)",
@@ -2134,7 +2198,7 @@ elif page == "기후 시스템 파라미터 실험":
                 step=10,
                 key="main_exp_co2",
             )
-        
+    
         with p2:
             lam = st.slider(
                 "기후 피드백 파라미터 (λ)",
@@ -2143,7 +2207,7 @@ elif page == "기후 시스템 파라미터 실험":
                 step=0.1,
                 key="main_exp_lambda",
             )
-        
+    
         with p3:
             aer = st.slider(
                 "에어로졸 강도",
