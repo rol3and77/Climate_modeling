@@ -1565,9 +1565,9 @@ elif page == "시나리오 기반 기후 변화 예측":
                             args=[
                                 None,
                                 {
-                                    "frame": {"duration": 10, "redraw": False},
+                                    "frame": {"duration": 14, "redraw": False},
                                     "fromcurrent": True,
-                                    "transition": {"duration": 0},
+                                    "transition": {"duration": 8},
                                 },
                             ],
                         ),
