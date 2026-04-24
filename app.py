@@ -1230,45 +1230,25 @@ def render_left_panel():
 
     st.markdown("".join(nav_html), unsafe_allow_html=True)
 
-    st.markdown("""<div class="source-card">
-    <details class="source-details" open>
-    <summary onclick="this.closest('.source-details').classList.remove('replay'); void this.closest('.source-details').offsetWidth; this.closest('.source-details').classList.add('replay');">
-    <span class="source-arrow">›</span>
-    <span class="source-title">자료 출처</span>
-    </summary>
-    
-    <div class="source-content">
-    <div class="source-note">본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.</div>
-    
-    <a class="source-item" href="https://data.giss.nasa.gov/gistemp/" target="_blank">
-    <span class="source-name">NASA GISS GISTEMP v4</span>
-    <span class="source-desc">역사적 전지구 평균기온 데이터</span>
-    </a>
-    
-    <a class="source-item" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">
-    <span class="source-name">IPCC AR6</span>
-    <span class="source-desc">기후 변화 과학적 기준</span>
-    </a>
-    
-    <a class="source-item" href="https://gml.noaa.gov/ccgg/trends/" target="_blank">
-    <span class="source-name">NOAA CO₂</span>
-    <span class="source-desc">대기 중 CO₂ 농도 추세</span>
-    </a>
-    
-    <a class="source-item" href="https://volcano.si.edu/" target="_blank">
-    <span class="source-name">Smithsonian Volcano</span>
-    <span class="source-desc">화산 강제력 데이터</span>
-    </a>
-    
-    <a class="source-item" href="https://sealevel.nasa.gov/" target="_blank">
-    <span class="source-name">NASA Sea Level</span>
-    <span class="source-desc">해수면 상승 데이터</span>
-    </a>
-    
-    </div>
-    </details>
-    </div>""", unsafe_allow_html=True)
-
+    source_html = (
+        '<div class="source-card">'
+        '<details class="source-details" open>'
+        '<summary onclick="this.closest(\'.source-details\').classList.remove(\'replay\'); void this.closest(\'.source-details\').offsetWidth; this.closest(\'.source-details\').classList.add(\'replay\');">'
+        '<span class="source-arrow">›</span>'
+        '<span class="source-title">자료 출처</span>'
+        '</summary>'
+        '<div class="source-content">'
+        '<div class="source-note">본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.</div>'
+        '<a class="source-item" href="https://data.giss.nasa.gov/gistemp/" target="_blank"><span class="source-name">NASA GISS GISTEMP v4</span><span class="source-desc">역사적 전지구 평균기온 데이터</span></a>'
+        '<a class="source-item" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank"><span class="source-name">IPCC AR6</span><span class="source-desc">기후 변화 과학적 기준</span></a>'
+        '<a class="source-item" href="https://gml.noaa.gov/ccgg/trends/" target="_blank"><span class="source-name">NOAA CO₂</span><span class="source-desc">대기 중 CO₂ 농도 추세</span></a>'
+        '<a class="source-item" href="https://volcano.si.edu/" target="_blank"><span class="source-name">Smithsonian Volcano</span><span class="source-desc">화산 강제력 데이터</span></a>'
+        '<a class="source-item" href="https://sealevel.nasa.gov/" target="_blank"><span class="source-name">NASA Sea Level</span><span class="source-desc">해수면 상승 데이터</span></a>'
+        '</div>'
+        '</details>'
+        '</div>'
+    )
+    st.markdown(source_html, unsafe_allow_html=True)
     
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
