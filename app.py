@@ -891,25 +891,23 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     transform: rotate(90deg);
 }
 
-.source-details.replay[open] .source-item {
-    animation: sourceFadeUp 0.32s ease both;
+.source-content {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-8px);
+    overflow: hidden;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    padding: 0 1rem;
+    transition: max-height 0.35s ease, opacity 0.25s ease, transform 0.25s ease, padding 0.25s ease;
 }
 
-.source-details.replay[open] .source-item:nth-of-type(1) { animation-delay: 0.03s; }
-.source-details.replay[open] .source-item:nth-of-type(2) { animation-delay: 0.07s; }
-.source-details.replay[open] .source-item:nth-of-type(3) { animation-delay: 0.11s; }
-.source-details.replay[open] .source-item:nth-of-type(4) { animation-delay: 0.15s; }
-.source-details.replay[open] .source-item:nth-of-type(5) { animation-delay: 0.19s; }
-
-@keyframes sourceFadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.source-details[open] .source-content {
+    max-height: 900px;
+    opacity: 1;
+    transform: translateY(0);
+    padding: 0.9rem 1rem;
 }
 
 .source-details[open] .source-item:nth-of-type(1) { animation-delay: 0.03s; }
@@ -1232,7 +1230,7 @@ def render_left_panel():
 
     source_html = (
         '<div class="source-card">'
-        '<details class="source-details replay" open ontoggle="if(this.open){this.classList.remove(\'replay\'); void this.offsetWidth; this.classList.add(\'replay\');}">'
+        '<details class="source-details">'
         '<summary>'
         '<span class="source-arrow">›</span>'
         '<span class="source-title">자료 출처</span>'
