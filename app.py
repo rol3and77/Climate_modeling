@@ -1157,27 +1157,26 @@ def render_left_panel():
     st.markdown("".join(nav_html), unsafe_allow_html=True)
 
     st.markdown(
-        """
-    <div class="source-card">
-      <details class="source-details">
-        <summary>
-          <span class="source-arrow">›</span>
-          <span class="source-title">자료 출처</span>
-        </summary>
+    """<div class="source-card">
+    <details class="source-details">
+    <summary>
+    <span class="source-arrow">›</span>
+    <span class="source-title">자료 출처</span>
+    </summary>
     
-        <div class="source-content">
-      <div class="source-note">본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.</div>
+    <div class="source-content">
+    <div class="source-note">본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.</div>
     
-      <a href="https://data.giss.nasa.gov/gistemp/" target="_blank">NASA GISS GISTEMP v4</a>
-      <a href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">IPCC AR6</a>
-      <a href="https://gml.noaa.gov/ccgg/trends/" target="_blank">NOAA GML CO₂</a>
-      <a href="https://volcano.si.edu/" target="_blank">화산 강제력</a>
-      <a href="https://sealevel.nasa.gov/" target="_blank">NASA Sea Level</a>
+    <a href="https://data.giss.nasa.gov/gistemp/" target="_blank">NASA GISS GISTEMP v4</a>
+    <a href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">IPCC AR6</a>
+    <a href="https://gml.noaa.gov/ccgg/trends/" target="_blank">NOAA GML CO₂</a>
+    <a href="https://volcano.si.edu/" target="_blank">화산 강제력</a>
+    <a href="https://sealevel.nasa.gov/" target="_blank">NASA Sea Level</a>
     </div>
-    """,
+    </details>
+    </div>""",
         unsafe_allow_html=True,
-    )    
-
+    )
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
     controls = {}
