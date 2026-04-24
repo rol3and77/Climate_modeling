@@ -838,19 +838,11 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 }
 
 .source-content {
-    max-height: 0;
     overflow: hidden;
-    opacity: 0;
-    transform: translateY(-8px);
-    transition:
-        max-height 0.35s ease,
-        opacity 0.25s ease,
-        transform 0.25s ease;
-
     background: #f8fafc;
     border-radius: 12px;
     margin-top: 0.5rem;
-    padding: 0 1rem;
+    padding: 0.9rem 1rem;
 }
 
 /* 링크 카드 스타일 */
@@ -897,6 +889,27 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 
 .source-details[open] .source-arrow {
     transform: rotate(90deg);
+}
+
+.source-details[open] .source-item {
+    animation: sourceFadeUp 0.32s ease both;
+}
+
+.source-details[open] .source-item:nth-of-type(1) { animation-delay: 0.03s; }
+.source-details[open] .source-item:nth-of-type(2) { animation-delay: 0.07s; }
+.source-details[open] .source-item:nth-of-type(3) { animation-delay: 0.11s; }
+.source-details[open] .source-item:nth-of-type(4) { animation-delay: 0.15s; }
+.source-details[open] .source-item:nth-of-type(5) { animation-delay: 0.19s; }
+
+@keyframes sourceFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 </style>
