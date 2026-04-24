@@ -1782,7 +1782,6 @@ elif page == "시나리오 기반 기후 변화 예측":
 
     with left_col:
         render_left_panel()
-        controls = render_settings(page)
 
     with main_col:
         policy = controls["policy"]
@@ -1805,7 +1804,57 @@ elif page == "시나리오 기반 기후 변화 예측":
             "분석 목적",
             "서로 다른 배출 시나리오에 따라 장기 온난화 경로가 어떻게 달라지는지 비교합니다. "
             "1.5°C · 2.0°C 임계선과의 관계를 함께 제시하여 각 시나리오의 상대적 기후 위험 수준을 해석할 수 있도록 구성했습니다.",
-        )
+            )
+            
+    st.markdown("""
+    <div style="
+        background:#ffffff;
+        border:1px solid #d6e2f0;
+        border-radius:20px;
+        padding:1.3rem 1.4rem;
+        box-shadow:0 4px 14px rgba(26,86,160,0.08);
+        margin-bottom:1.3rem;
+    ">
+    <div style="font-size:1.05rem;font-weight:800;color:#0f2744;margin-bottom:0.9rem;">
+    파라미터 조정
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # 초기화 버튼
+    if st.button("초기화", use_container_width=True):
+        st.session_state["main_exp_co2"] = 550
+        st.session_state["main_exp_lambda"] = 1.5
+        st.session_state["main_exp_aer"] = 1.0
+        st.rerun()
+    
+    # CO2
+    co2 = st.slider(
+        "2100년 CO₂ 농도 (ppm)",
+        250, 1500,
+        int(st.session_state.get("main_exp_co2", 550)),
+        step=10,
+        key="main_exp_co2",
+    )
+    
+    # lambda
+    lam = st.slider(
+        "기후 피드백 파라미터 (λ)",
+        0.5, 3.0,
+        float(st.session_state.get("main_exp_lambda", 1.5)),
+        step=0.1,
+        key="main_exp_lambda",
+    )
+    
+    # aerosol
+    aer = st.slider(
+        "에어로졸 강도",
+        0.0, 3.0,
+        float(st.session_state.get("main_exp_aer", 1.0)),
+        step=0.1,
+        key="main_exp_aer",
+    )
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
         target_co2 = emission_map[policy]
         st.markdown(
@@ -2063,9 +2112,9 @@ elif page == "기후 시스템 파라미터 실험":
         controls = render_settings(page)
 
     with main_col:
-        exp_co2 = controls["exp_co2"]
-        exp_lambda = controls["exp_lambda"]
-        exp_aer = controls["exp_aer"]
+        exp_co2 = co2
+        exp_lambda = lam
+        exp_aer = aer
         exp_klo = 2.0
         exp_enso = 0.12
 
