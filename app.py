@@ -836,11 +836,17 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-weight: 800;
     color: #1e293b;
 }
-/* 내용 */
+
 .source-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.25s ease;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+        max-height 0.35s ease,
+        opacity 0.25s ease,
+        transform 0.25s ease;
+
     background: #f8fafc;
     border-radius: 12px;
     margin-top: 0.5rem;
@@ -883,7 +889,14 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 }
 
 .source-details[open] .source-content {
-    max-height: 500px;
+    max-height: 800px;
+    opacity: 1;
+    transform: translateY(0);
+    padding: 0.9rem 1rem;
+}
+
+.source-details[open] .source-arrow {
+    transform: rotate(90deg);
 }
 
 </style>
