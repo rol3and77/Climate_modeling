@@ -1908,17 +1908,17 @@ elif page == "시나리오 기반 기후 변화 예측":
             unsafe_allow_html=True,
         )
 
-    sec("핵심 결과")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        render_metric("2100년 예상 온난화", f"+{p_2100:.2f}", "°C",
-                      "선택한 시나리오 기준 장기 예측값")
-    with c2:
-        render_metric("2100년 예상 해수면 상승", f"+{p_2100*35:.1f}", "cm",
-                      "단순 비례 가정에 따른 참고 지표")
-    with c3:
-        render_metric("평균 온난화 속도", f"{trend_21c:.3f}", "°C/yr",
-                      "1925–2100 전체 구간 평균 추세")
+sec("핵심 결과")
+c1, c2, c3 = st.columns(3)
+with c1:
+render_metric("2100년 예상 온난화", f"+{p_2100:.2f}", "°C",
+              "선택한 시나리오 기준 장기 예측값")
+with c2:
+render_metric("2100년 예상 해수면 상승", f"+{p_2100*35:.1f}", "cm",
+              "단순 비례 가정에 따른 참고 지표")
+with c3:
+render_metric("평균 온난화 속도", f"{trend_21c:.3f}", "°C/yr",
+              "1925–2100 전체 구간 평균 추세")
 
     sec("장기 기온 궤적")
 
