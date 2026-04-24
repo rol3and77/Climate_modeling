@@ -2154,17 +2154,7 @@ elif page == "기후 시스템 파라미터 실험":
             "장기 온난화 결과에 어떤 영향을 주는지 탐색하기 위해 구성되었습니다.",
         )
 
-        st.markdown(
-            """
-        <div style="
-            background:#ffffff;
-            border:1px solid #d6e2f0;
-            border-radius:22px;
-            padding:1.25rem 1.35rem;
-            box-shadow:0 6px 18px rgba(26,86,160,0.07);
-            margin:1.2rem 0 1.4rem 0;
-        ">
-          <div style="font-size:1.15rem;font-weight:900;color:#0f2744;">
+
 with st.container(border=True, key="param_panel"):
     h1, h2 = st.columns([5, 1])
 
