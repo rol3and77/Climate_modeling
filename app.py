@@ -2234,7 +2234,7 @@ with st.container(border=True, key="param_panel"):
             f"""
 <div class="cond-bar">
   <div class="cond-item">
-    <div class="cond-label">CO₂ (2100)</div>
+    <div class="cond-label">CO2 (2100)</div>
     <div class="cond-val">{exp_co2} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">ppm</span></div>
     <div class="cond-base">기준: 550 ppm</div>
   </div>
