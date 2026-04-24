@@ -1443,7 +1443,7 @@ elif page == "시나리오 기반 기후 변화 예측":
         
         frames = []
         
-        for i in range(1, len(future_years) + 1, 3):
+        for i in range(1, len(future_years) + 1, 8):
             frames.append(
                 go.Frame(
                     data=[
@@ -1559,7 +1559,7 @@ elif page == "시나리오 기반 기후 변화 예측":
                             args=[
                                 None,
                                 {
-                                    "frame": {"duration": 10, "redraw": True},
+                                    "frame": {"duration": 3, "redraw": True},
                                     "fromcurrent": True,
                                     "transition": {"duration": 0},
                                 },
