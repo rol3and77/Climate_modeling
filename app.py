@@ -2155,7 +2155,9 @@ elif page == "기후 시스템 파라미터 실험":
         
         st.markdown("</div>", unsafe_allow_html=True)
 
-        
+        exp_co2 = co2
+        exp_lambda = lam
+        exp_aer = aer
         exp_klo = 2.0
         exp_enso = 0.12
 
