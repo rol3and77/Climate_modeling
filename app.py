@@ -2182,12 +2182,6 @@ elif page == "기후 시스템 파라미터 실험":
         exp_lambda = lam
         exp_aer = aer
         
-        if st.button("초기화", use_container_width=True, key="main_reset_experiment"):
-            st.session_state["main_exp_co2"] = 550
-            st.session_state["main_exp_lambda"] = 1.5
-            st.session_state["main_exp_aer"] = 1.0
-            st.rerun()
-
         co2 = st.slider(
             "2100년 CO₂ 농도 (ppm)",
             250, 1500,
