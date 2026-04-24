@@ -2156,105 +2156,105 @@ elif page == "기후 시스템 파라미터 실험":
 
 
 with st.container(border=True, key="param_panel"):
-    h1, h2 = st.columns([5, 1])
+h1, h2 = st.columns([5, 1])
 
-    with h1:
-        st.markdown(
-            """
+with h1:
+    st.markdown(
+        """
 <div style="font-size:1.18rem;font-weight:900;color:#0f2744;letter-spacing:-0.03em;">
-    파라미터 조정
-    </div>
-    <div style="font-size:0.82rem;font-weight:650;color:#7a8da8;margin-top:0.25rem;margin-bottom:1.1rem;">
-    입력값을 조절하면 아래 결과와 그래프가 즉시 갱신됩니다.
-    </div>
-    """,
-                unsafe_allow_html=True,
-            )
-    
-        with h2:
-            if st.button("↻ 초기화", use_container_width=True, key="param_reset_btn"):
-                st.session_state["main_exp_co2"] = 550
-                st.session_state["main_exp_lambda"] = 1.5
-                st.session_state["main_exp_aer"] = 1.0
-                st.rerun()
-    
-        p1, p2, p3 = st.columns(3, gap="large")
-    
-        with p1:
-            co2 = st.slider(
-                "2100년 CO₂ 농도 (ppm)",
-                250, 1500,
-                int(st.session_state.get("main_exp_co2", 550)),
-                step=10,
-                key="main_exp_co2",
-            )
-    
-        with p2:
-            lam = st.slider(
-                "기후 피드백 파라미터 (λ)",
-                0.5, 3.0,
-                float(st.session_state.get("main_exp_lambda", 1.5)),
-                step=0.1,
-                key="main_exp_lambda",
-            )
-    
-        with p3:
-            aer = st.slider(
-                "에어로졸 강도",
-                0.0, 3.0,
-                float(st.session_state.get("main_exp_aer", 1.0)),
-                step=0.1,
-                key="main_exp_aer",
-            )
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        exp_co2 = co2
-        exp_lambda = lam
-        exp_aer = aer
-        exp_klo = 2.0
-        exp_enso = 0.12
-
-        custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso]
-        res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
-            custom_params, -0.22, end_year=2100, end_co2=exp_co2
+파라미터 조정
+</div>
+<div style="font-size:0.82rem;font-weight:650;color:#7a8da8;margin-top:0.25rem;margin-bottom:1.1rem;">
+입력값을 조절하면 아래 결과와 그래프가 즉시 갱신됩니다.
+</div>
+""",
+            unsafe_allow_html=True,
         )
-            
-    cond_html = "\n".join([
-        '<div class="cond-bar">',
-        '  <div class="cond-item">',
-        '    <div class="cond-label">CO2 (2100)</div>',
-        f'    <div class="cond-val">{exp_co2} <span style="font-size:0.8rem;color:#94a3b8">ppm</span></div>',
-        '    <div class="cond-base">기준: 550 ppm</div>',
-        '  </div>',
+
+    with h2:
+        if st.button("↻ 초기화", use_container_width=True, key="param_reset_btn"):
+            st.session_state["main_exp_co2"] = 550
+            st.session_state["main_exp_lambda"] = 1.5
+            st.session_state["main_exp_aer"] = 1.0
+            st.rerun()
+
+    p1, p2, p3 = st.columns(3, gap="large")
+
+    with p1:
+        co2 = st.slider(
+            "2100년 CO₂ 농도 (ppm)",
+            250, 1500,
+            int(st.session_state.get("main_exp_co2", 550)),
+            step=10,
+            key="main_exp_co2",
+        )
+
+    with p2:
+        lam = st.slider(
+            "기후 피드백 파라미터 (λ)",
+            0.5, 3.0,
+            float(st.session_state.get("main_exp_lambda", 1.5)),
+            step=0.1,
+            key="main_exp_lambda",
+        )
+
+    with p3:
+        aer = st.slider(
+            "에어로졸 강도",
+            0.0, 3.0,
+            float(st.session_state.get("main_exp_aer", 1.0)),
+            step=0.1,
+            key="main_exp_aer",
+        )
     
-        '  <div class="cond-item">',
-        '    <div class="cond-label">Aerosol</div>',
-        f'    <div class="cond-val">{exp_aer:.2f} <span style="font-size:0.8rem;color:#94a3b8">배율</span></div>',
-        '    <div class="cond-base">기준: 1.00</div>',
-        '  </div>',
-    
-        '  <div class="cond-item">',
-        '    <div class="cond-label">Feedback</div>',
-        f'    <div class="cond-val">{exp_lambda:.2f}</div>',
-        '    <div class="cond-base">기준: 1.50</div>',
-        '  </div>',
-    
-        '  <div class="cond-item">',
-        '    <div class="cond-label">Ocean Heat</div>',
-        f'    <div class="cond-val">{exp_klo:.2f}</div>',
-        '    <div class="cond-base">고정값</div>',
-        '  </div>',
-    
-        '  <div class="cond-item">',
-        '    <div class="cond-label">ENSO</div>',
-        f'    <div class="cond-val">{exp_enso:.2f}</div>',
-        '    <div class="cond-base">고정값</div>',
-        '  </div>',
-        '</div>',
-    ])
-    
-    st.markdown(cond_html, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    exp_co2 = co2
+    exp_lambda = lam
+    exp_aer = aer
+    exp_klo = 2.0
+    exp_enso = 0.12
+
+    custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso]
+    res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
+        custom_params, -0.22, end_year=2100, end_co2=exp_co2
+    )
+        
+cond_html = "\n".join([
+    '<div class="cond-bar">',
+    '  <div class="cond-item">',
+    '    <div class="cond-label">CO2 (2100)</div>',
+    f'    <div class="cond-val">{exp_co2} <span style="font-size:0.8rem;color:#94a3b8">ppm</span></div>',
+    '    <div class="cond-base">기준: 550 ppm</div>',
+    '  </div>',
+
+    '  <div class="cond-item">',
+    '    <div class="cond-label">Aerosol</div>',
+    f'    <div class="cond-val">{exp_aer:.2f} <span style="font-size:0.8rem;color:#94a3b8">배율</span></div>',
+    '    <div class="cond-base">기준: 1.00</div>',
+    '  </div>',
+
+    '  <div class="cond-item">',
+    '    <div class="cond-label">Feedback</div>',
+    f'    <div class="cond-val">{exp_lambda:.2f}</div>',
+    '    <div class="cond-base">기준: 1.50</div>',
+    '  </div>',
+
+    '  <div class="cond-item">',
+    '    <div class="cond-label">Ocean Heat</div>',
+    f'    <div class="cond-val">{exp_klo:.2f}</div>',
+    '    <div class="cond-base">고정값</div>',
+    '  </div>',
+
+    '  <div class="cond-item">',
+    '    <div class="cond-label">ENSO</div>',
+    f'    <div class="cond-val">{exp_enso:.2f}</div>',
+    '    <div class="cond-base">고정값</div>',
+    '  </div>',
+    '</div>',
+])
+
+st.markdown(cond_html, unsafe_allow_html=True)
 
     sec("핵심 결과")
     c1, c2, c3 = st.columns(3)
