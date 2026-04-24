@@ -2472,15 +2472,14 @@ elif page == "모델 적합도 및 관측자료 비교":
         )
 
         sec("일별 상세 보기")
+
         st.markdown(
             """
-st.markdown(
-    """
 <div style="background:#ffffff; border:1px solid #d0dff0; border-radius:14px; padding:1rem 1.2rem 0.9rem 1.2rem; box-shadow:0 2px 10px rgba(26,86,160,0.06); margin-bottom:1rem;">
-<div style="font-size:0.8rem;font-weight:700;color:#64748b";
-    text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">
+  <div style="font-size:0.8rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.6rem;">
     일별 상세 분석 연도 선택
-</div>""",
+  </div>
+""",
             unsafe_allow_html=True,
         )
         sl_col, btn_col = st.columns([4, 1], gap="medium")
