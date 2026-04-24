@@ -1533,15 +1533,6 @@ def render_settings(current_page):
             unsafe_allow_html=True,
         )
     
-        controls["exp_co2"] = st.slider(
-            "2100년 CO₂ 농도 (ppm)",
-            250, 1500,
-            current_co2,
-            step=10,
-            key="main_exp_co2",
-            label_visibility="collapsed",
-        )
-    
         st.markdown(
             """
       <div class="param-range">
@@ -1573,14 +1564,6 @@ def render_settings(current_page):
             unsafe_allow_html=True,
         )
     
-        controls["exp_lambda"] = st.slider(
-            "기후 피드백 파라미터 (λ)",
-            0.5, 3.0,
-            current_lambda,
-            step=0.1,
-            key="main_exp_lambda",
-            label_visibility="collapsed",
-        )
     
         st.markdown(
             """
@@ -1613,14 +1596,6 @@ def render_settings(current_page):
             unsafe_allow_html=True,
         )
     
-        controls["exp_aer"] = st.slider(
-            "에어로졸 강도",
-            0.0, 3.0,
-            current_aer,
-            step=0.1,
-            key="main_exp_aer",
-            label_visibility="collapsed",
-        )
     
         st.markdown(
             """
