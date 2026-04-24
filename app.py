@@ -1268,6 +1268,7 @@ def render_left_panel():
     </div>
     </details>
     </div>""", unsafe_allow_html=True)
+
     
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
