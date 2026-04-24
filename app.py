@@ -1441,9 +1441,15 @@ elif page == "시나리오 기반 기후 변화 예측":
         future_years = years_full[len(years_axis) - 1:]
         future_vals = res_full[len(years_axis) - 1:]
         
+        step_size = 4
+        
+        frame_indices = list(range(1, len(future_years) + 1, step_size))
+        if frame_indices[-1] != len(future_years):
+            frame_indices.append(len(future_years))
+        
         frames = []
         
-        for i in range(1, len(future_years) + 1, 8):
+        for i in frame_indices:
             frames.append(
                 go.Frame(
                     data=[
@@ -1474,7 +1480,7 @@ elif page == "시나리오 기반 기후 변화 예측":
                     name=str(i),
                 )
             )
-        
+    
         fig = go.Figure(
             data=[
                 go.Scatter(
@@ -1559,7 +1565,7 @@ elif page == "시나리오 기반 기후 변화 예측":
                             args=[
                                 None,
                                 {
-                                    "frame": {"duration": 3, "redraw": True},
+                                    "frame": {"duration": 10, "redraw": False},
                                     "fromcurrent": True,
                                     "transition": {"duration": 0},
                                 },
@@ -1594,17 +1600,33 @@ elif page == "시나리오 기반 기후 변화 예측":
         )
         
         plotly_html = fig.to_html(
-        full_html=False,
-        include_plotlyjs="cdn",
-        config={
-            "displayModeBar": False,
-            "scrollZoom": False,
-        },
-        auto_play=True,
+            full_html=False,
+            include_plotlyjs="cdn",
+            config={
+                "displayModeBar": False,
+                "scrollZoom": False,
+            },
+            auto_play=False,
         )
         
+        auto_play_script = """
+        <script>
+        setTimeout(() => {
+            const graph = document.querySelector('.plotly-graph-div');
+            if (graph) {
+                Plotly.animate(graph, null, {
+                    frame: {duration: 10, redraw: false},
+                    transition: {duration: 6},
+                    fromcurrent: true,
+                    mode: 'immediate'
+                });
+            }
+        }, 300);
+        </script>
+        """
+        
         components.html(
-            plotly_html,
+            plotly_html + auto_play_script,
             height=560,
             scrolling=False,
         )
