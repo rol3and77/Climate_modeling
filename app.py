@@ -1149,6 +1149,61 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     color: #2b6cb0 !important;
     top: -30px !important;
 }
+/* Parameter slider premium */
+.st-key-param_panel {
+    background: #ffffff;
+    border: 1px solid #d6e2f0;
+    border-radius: 24px;
+    padding: 1.35rem 1.5rem 1.2rem 1.5rem;
+    box-shadow: 0 8px 24px rgba(26,86,160,0.08);
+    margin: 1.2rem 0 1.5rem 0;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] label p {
+    font-size: 1rem !important;
+    font-weight: 900 !important;
+    color: #0f2744 !important;
+    text-align: center !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+    height: 14px !important;
+    border-radius: 999px !important;
+    background: #dce8f6 !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
+    height: 14px !important;
+    border-radius: 999px !important;
+    background: linear-gradient(90deg, #ff4b4b 0%, #8b6f9f 50%, #2b6cb0 100%) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [role="slider"] {
+    width: 34px !important;
+    height: 34px !important;
+    background: #ffffff !important;
+    border: 8px solid #2b6cb0 !important;
+    box-shadow: 0 10px 22px rgba(43,108,176,0.22) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
+    font-size: 0.95rem !important;
+    font-weight: 950 !important;
+    color: #2b6cb0 !important;
+    top: -34px !important;
+}
+
+.st-key-param_reset_btn button {
+    min-height: 2.35rem !important;
+    height: 2.35rem !important;
+    border-radius: 999px !important;
+    font-size: 0.82rem !important;
+    font-weight: 900 !important;
+    padding: 0 0.9rem !important;
+    border: 1.5px solid #b9cfea !important;
+    color: #2b5ea7 !important;
+    background: #f8fbff !important;
+}
 
 </style>
 """,
@@ -2136,10 +2191,10 @@ elif page == "기후 시스템 파라미터 실험":
             with h1:
                 st.markdown(
                     """
-<div style="font-size:1.18rem;font-weight:900;color:#0f2744;letter-spacing:-0.03em;">
+<div style="font-size:1.2rem;font-weight:950;color:#0f2744;letter-spacing:-0.035em;">
 파라미터 조정
 </div>
-<div style="font-size:0.82rem;font-weight:650;color:#7a8da8;margin-top:0.25rem;margin-bottom:1.1rem;">
+<div style="font-size:0.84rem;font-weight:650;color:#7a8da8;margin-top:0.3rem;margin-bottom:1.15rem;">
 입력값을 조절하면 아래 결과와 그래프가 즉시 갱신됩니다.
 </div>
 """,
@@ -2158,8 +2213,7 @@ elif page == "기후 시스템 파라미터 실험":
             with p1:
                 co2 = st.slider(
                     "2100년 CO2 농도 (ppm)",
-                    250,
-                    1500,
+                    250, 1500,
                     int(st.session_state.get("main_exp_co2", 550)),
                     step=10,
                     key="main_exp_co2",
@@ -2168,8 +2222,7 @@ elif page == "기후 시스템 파라미터 실험":
             with p2:
                 lam = st.slider(
                     "기후 피드백 파라미터 (λ)",
-                    0.5,
-                    3.0,
+                    0.5, 3.0,
                     float(st.session_state.get("main_exp_lambda", 1.5)),
                     step=0.1,
                     key="main_exp_lambda",
@@ -2178,13 +2231,12 @@ elif page == "기후 시스템 파라미터 실험":
             with p3:
                 aer = st.slider(
                     "에어로졸 강도",
-                    0.0,
-                    3.0,
+                    0.0, 3.0,
                     float(st.session_state.get("main_exp_aer", 1.0)),
                     step=0.1,
                     key="main_exp_aer",
                 )
-
+                
         exp_co2 = co2
         exp_lambda = lam
         exp_aer = aer
