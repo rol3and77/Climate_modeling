@@ -2124,21 +2124,64 @@ elif page == "기후 시스템 파라미터 실험":
 
         st.markdown(
             """
-<div style="
-    background:#ffffff;
-    border:1px solid #d6e2f0;
-    border-radius:20px;
-    padding:1.3rem 1.4rem;
-    box-shadow:0 4px 14px rgba(26,86,160,0.08);
-    margin-bottom:1.3rem;
-">
-<div style="font-size:1.05rem;font-weight:800;color:#0f2744;margin-bottom:0.9rem;">
-파라미터 조정
-</div>
-""",
+        <div style="
+            background:#ffffff;
+            border:1px solid #d6e2f0;
+            border-radius:22px;
+            padding:1.25rem 1.35rem;
+            box-shadow:0 6px 18px rgba(26,86,160,0.07);
+            margin:1.2rem 0 1.4rem 0;
+        ">
+          <div style="font-size:1.15rem;font-weight:900;color:#0f2744;">
+            파라미터 조정
+          </div>
+          <div style="font-size:0.82rem;font-weight:600;color:#7a8da8;margin-top:0.3rem;">
+            입력값을 조절하면 아래 결과와 그래프가 즉시 갱신됩니다.
+          </div>
+        </div>
+        """,
             unsafe_allow_html=True,
         )
-
+        
+        if st.button("↻ 초기화", use_container_width=True, key="main_reset_experiment"):
+            st.session_state["main_exp_co2"] = 550
+            st.session_state["main_exp_lambda"] = 1.5
+            st.session_state["main_exp_aer"] = 1.0
+            st.rerun()
+        
+        p1, p2, p3 = st.columns(3, gap="medium")
+        
+        with p1:
+            co2 = st.slider(
+                "2100년 CO₂ 농도 (ppm)",
+                250, 1500,
+                int(st.session_state.get("main_exp_co2", 550)),
+                step=10,
+                key="main_exp_co2",
+            )
+        
+        with p2:
+            lam = st.slider(
+                "기후 피드백 파라미터 (λ)",
+                0.5, 3.0,
+                float(st.session_state.get("main_exp_lambda", 1.5)),
+                step=0.1,
+                key="main_exp_lambda",
+            )
+        
+        with p3:
+            aer = st.slider(
+                "에어로졸 강도",
+                0.0, 3.0,
+                float(st.session_state.get("main_exp_aer", 1.0)),
+                step=0.1,
+                key="main_exp_aer",
+            )
+        
+        exp_co2 = co2
+        exp_lambda = lam
+        exp_aer = aer
+        
         if st.button("초기화", use_container_width=True, key="main_reset_experiment"):
             st.session_state["main_exp_co2"] = 550
             st.session_state["main_exp_lambda"] = 1.5
@@ -2171,9 +2214,7 @@ elif page == "기후 시스템 파라미터 실험":
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        exp_co2 = co2
-        exp_lambda = lam
-        exp_aer = aer
+        
         exp_klo = 2.0
         exp_enso = 0.12
 
