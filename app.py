@@ -2047,57 +2047,57 @@ elif page == "시나리오 기반 기후 변화 예측":
         ],
     )
         
-        fig.update_xaxes(
-            range=[1925, 2100],
-            gridcolor="#d6e2f0",
-            showgrid=True,
-        )
-        
-        y_min = min(-0.4, float(np.min(obs_vals)) - 0.2)
-        y_max = max(2.3, float(np.max(future_vals)) + 0.25)
-        
-        fig.update_yaxes(
-            range=[y_min, y_max],
-            gridcolor="#d6e2f0",
-            showgrid=True,
-        )        
-        plotly_html = fig.to_html(
-            full_html=False,
-            include_plotlyjs="cdn",
-            config={
-                "displayModeBar": False,
-                "scrollZoom": False,
-            },
-            auto_play=False,
-        )
-        
-        auto_play_script = """
-        <script>
-        setTimeout(() => {
-            const graph = document.querySelector('.plotly-graph-div');
-            if (graph) {
-                Plotly.animate(graph, null, {
-                    frame: {duration: 10, redraw: false},
-                    transition: {duration: 6},
-                    fromcurrent: true,
-                    mode: 'immediate'
-                });
-            }
-        }, 300);
-        </script>
-        """
-        
-        components.html(
-            plotly_html + auto_play_script,
-            height=560,
-            scrolling=False,
-        )
-        render_infobox(
-            "해석",
-            "고배출에 가까운 경로일수록 온도 상승 속도가 빠르게 커지며, 임계 온도 도달 시점도 앞당겨집니다. "
-            "본 결과는 전지구 평균 기반 단순화 모델에서 도출된 것으로, "
-            "정밀 예측보다 시나리오 간 상대적 차이와 장기 경향 비교용으로 해석하는 것이 적절합니다.",
-        )
+    fig.update_xaxes(
+        range=[1925, 2100],
+        gridcolor="#d6e2f0",
+        showgrid=True,
+    )
+    
+    y_min = min(-0.4, float(np.min(obs_vals)) - 0.2)
+    y_max = max(2.3, float(np.max(future_vals)) + 0.25)
+    
+    fig.update_yaxes(
+        range=[y_min, y_max],
+        gridcolor="#d6e2f0",
+        showgrid=True,
+    )        
+    plotly_html = fig.to_html(
+        full_html=False,
+        include_plotlyjs="cdn",
+        config={
+            "displayModeBar": False,
+            "scrollZoom": False,
+        },
+        auto_play=False,
+    )
+    
+    auto_play_script = """
+    <script>
+    setTimeout(() => {
+        const graph = document.querySelector('.plotly-graph-div');
+        if (graph) {
+            Plotly.animate(graph, null, {
+                frame: {duration: 10, redraw: false},
+                transition: {duration: 6},
+                fromcurrent: true,
+                mode: 'immediate'
+            });
+        }
+    }, 300);
+    </script>
+    """
+    
+    components.html(
+        plotly_html + auto_play_script,
+        height=560,
+        scrolling=False,
+    )
+    render_infobox(
+        "해석",
+        "고배출에 가까운 경로일수록 온도 상승 속도가 빠르게 커지며, 임계 온도 도달 시점도 앞당겨집니다. "
+        "본 결과는 전지구 평균 기반 단순화 모델에서 도출된 것으로, "
+        "정밀 예측보다 시나리오 간 상대적 차이와 장기 경향 비교용으로 해석하는 것이 적절합니다.",
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
