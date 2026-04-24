@@ -1092,6 +1092,7 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-size: 1rem !important;
     font-weight: 900 !important;
 }
+
 /* Parameter panel final */
 .st-key-param_panel {
     background: #ffffff;
@@ -1149,60 +1150,59 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     color: #2b6cb0 !important;
     top: -30px !important;
 }
-/* Parameter slider premium */
+/* Parameter slider minimal */
 .st-key-param_panel {
     background: #ffffff;
-    border: 1px solid #d6e2f0;
-    border-radius: 24px;
-    padding: 1.35rem 1.5rem 1.2rem 1.5rem;
-    box-shadow: 0 8px 24px rgba(26,86,160,0.08);
-    margin: 1.2rem 0 1.5rem 0;
+    border: 1px solid #dbe7f5;
+    border-radius: 20px;
+    padding: 1.25rem 1.4rem 1rem 1.4rem;
+    box-shadow: 0 4px 14px rgba(26,86,160,0.05);
+    margin: 1.1rem 0 1.4rem 0;
 }
 
 .st-key-param_panel div[data-testid="stSlider"] label p {
-    font-size: 1rem !important;
-    font-weight: 900 !important;
+    font-size: 0.92rem !important;
+    font-weight: 800 !important;
     color: #0f2744 !important;
-    text-align: center !important;
 }
 
 .st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
-    height: 14px !important;
+    height: 6px !important;
     border-radius: 999px !important;
-    background: #dce8f6 !important;
+    background: #e3edf8 !important;
 }
 
 .st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
-    height: 14px !important;
+    height: 6px !important;
     border-radius: 999px !important;
-    background: linear-gradient(90deg, #ff4b4b 0%, #8b6f9f 50%, #2b6cb0 100%) !important;
+    background: #2b6cb0 !important;
 }
 
 .st-key-param_panel div[data-testid="stSlider"] [role="slider"] {
-    width: 34px !important;
-    height: 34px !important;
+    width: 18px !important;
+    height: 18px !important;
     background: #ffffff !important;
-    border: 8px solid #2b6cb0 !important;
-    box-shadow: 0 10px 22px rgba(43,108,176,0.22) !important;
+    border: 3px solid #2b6cb0 !important;
+    box-shadow: 0 2px 6px rgba(43,108,176,0.16) !important;
 }
 
 .st-key-param_panel div[data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
-    font-size: 0.95rem !important;
-    font-weight: 950 !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
     color: #2b6cb0 !important;
-    top: -34px !important;
+    top: -25px !important;
 }
 
 .st-key-param_reset_btn button {
-    min-height: 2.35rem !important;
-    height: 2.35rem !important;
+    min-height: 2rem !important;
+    height: 2rem !important;
     border-radius: 999px !important;
-    font-size: 0.82rem !important;
-    font-weight: 900 !important;
-    padding: 0 0.9rem !important;
-    border: 1.5px solid #b9cfea !important;
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    padding: 0 0.75rem !important;
+    border: 1px solid #c9d8ea !important;
     color: #2b5ea7 !important;
-    background: #f8fbff !important;
+    background: #ffffff !important;
 }
 
 </style>
