@@ -1172,10 +1172,11 @@ def render_left_panel():
     <a href="https://volcano.si.edu/" target="_blank">화산 강제력</a>
     <a href="https://sealevel.nasa.gov/" target="_blank">NASA Sea Level</a>
     </div>
+    
     </details>
     </div>""",
-        unsafe_allow_html=True,
-    )
+    unsafe_allow_html=True)
+
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
     controls = {}
