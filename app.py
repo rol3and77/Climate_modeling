@@ -855,6 +855,10 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-size: 0.85rem;
 }
 
+.source-details[open] .source-content {
+    max-height: 500px;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
