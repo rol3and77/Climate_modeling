@@ -1856,8 +1856,8 @@ elif page == "시나리오 기반 기후 변화 예측":
     
     st.markdown("</div>", unsafe_allow_html=True)
 
-        target_co2 = emission_map[policy]
-        st.markdown(
+    target_co2 = emission_map[policy]
+    st.markdown(
             f"""
 <div class="cond-bar">
   <div class="cond-item">
