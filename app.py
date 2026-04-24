@@ -2229,42 +2229,42 @@ with st.container(border=True, key="param_panel"):
         res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
             custom_params, -0.22, end_year=2100, end_co2=exp_co2
         )
-    st.markdown(
-        f"""
-    <div class="cond-bar">
-      <div class="cond-item">
-        <div class="cond-label">CO2 (2100)</div>
-        <div class="cond-val">{exp_co2} <span style="font-size:0.8rem;color:#94a3b8">ppm</span></div>
-        <div class="cond-base">기준: 550 ppm</div>
-      </div>
+            
+    cond_html = "\n".join([
+        '<div class="cond-bar">',
+        '  <div class="cond-item">',
+        '    <div class="cond-label">CO2 (2100)</div>',
+        f'    <div class="cond-val">{exp_co2} <span style="font-size:0.8rem;color:#94a3b8">ppm</span></div>',
+        '    <div class="cond-base">기준: 550 ppm</div>',
+        '  </div>',
     
-      <div class="cond-item">
-        <div class="cond-label">Aerosol</div>
-        <div class="cond-val">{exp_aer:.2f} <span style="font-size:0.8rem;color:#94a3b8">배율</span></div>
-        <div class="cond-base">기준: 1.00</div>
-      </div>
+        '  <div class="cond-item">',
+        '    <div class="cond-label">Aerosol</div>',
+        f'    <div class="cond-val">{exp_aer:.2f} <span style="font-size:0.8rem;color:#94a3b8">배율</span></div>',
+        '    <div class="cond-base">기준: 1.00</div>',
+        '  </div>',
     
-      <div class="cond-item">
-        <div class="cond-label">Feedback</div>
-        <div class="cond-val">{exp_lambda:.2f}</div>
-        <div class="cond-base">기준: 1.50</div>
-      </div>
+        '  <div class="cond-item">',
+        '    <div class="cond-label">Feedback</div>',
+        f'    <div class="cond-val">{exp_lambda:.2f}</div>',
+        '    <div class="cond-base">기준: 1.50</div>',
+        '  </div>',
     
-      <div class="cond-item">
-        <div class="cond-label">Ocean Heat</div>
-        <div class="cond-val">{exp_klo:.2f}</div>
-        <div class="cond-base">고정값</div>
-      </div>
+        '  <div class="cond-item">',
+        '    <div class="cond-label">Ocean Heat</div>',
+        f'    <div class="cond-val">{exp_klo:.2f}</div>',
+        '    <div class="cond-base">고정값</div>',
+        '  </div>',
     
-      <div class="cond-item">
-        <div class="cond-label">ENSO</div>
-        <div class="cond-val">{exp_enso:.2f}</div>
-        <div class="cond-base">고정값</div>
-      </div>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+        '  <div class="cond-item">',
+        '    <div class="cond-label">ENSO</div>',
+        f'    <div class="cond-val">{exp_enso:.2f}</div>',
+        '    <div class="cond-base">고정값</div>',
+        '  </div>',
+        '</div>',
+    ])
+    
+    st.markdown(cond_html, unsafe_allow_html=True)
 
         sec("핵심 결과")
         c1, c2, c3 = st.columns(3)
