@@ -926,6 +926,175 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
         transform: translateY(0);
     }
 }
+st.markdown(
+    """
+    
+/* ══ Parameter Panel v2 ═════════════════════════════════════ */
+.param-shell {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 2px solid #c9d8ea;
+    border-radius: 28px;
+    padding: 1.15rem;
+    box-shadow: 0 8px 24px rgba(26, 86, 160, 0.08);
+    margin-top: 0.2rem;
+    margin-bottom: 0.9rem;
+}
+
+.param-head {
+    padding: 0.25rem 0.2rem 0.95rem 0.2rem;
+    border-bottom: 3px solid #e0ebf7;
+    margin-bottom: 1rem;
+}
+
+.param-title {
+    font-size: 1.28rem;
+    font-weight: 900;
+    color: #2b5ea7;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+}
+
+.param-subtitle {
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: #7a8da8;
+    line-height: 1.5;
+}
+
+.param-reset-wrap {
+    margin-bottom: 1rem;
+}
+
+.param-card {
+    background: #ffffff;
+    border: 1px solid #dbe7f5;
+    border-radius: 22px;
+    padding: 1rem 1rem 0.8rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 5px 16px rgba(26, 86, 160, 0.07);
+}
+
+.param-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 0.75rem;
+}
+
+.param-label {
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: #14365f;
+    line-height: 1.3;
+    letter-spacing: -0.03em;
+}
+
+.param-desc {
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 650;
+    color: #7a8da8;
+    line-height: 1.45;
+}
+
+.param-value {
+    min-width: 4.2rem;
+    text-align: right;
+}
+
+.param-value-main {
+    font-size: 1.15rem;
+    font-weight: 950;
+    color: #2768bf;
+    line-height: 1.05;
+}
+
+.param-value-unit {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #8da0b8;
+    margin-top: 0.15rem;
+}
+
+.param-range {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: -0.25rem;
+    padding: 0 0.05rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #8da0b8;
+}
+
+.param-pill {
+    background: #eef5ff;
+    color: #2b6cb0;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 900;
+}
+
+/* Streamlit slider inside parameter cards */
+.param-card div[data-testid="stSlider"] {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.param-card div[data-testid="stSlider"] label {
+    display: none !important;
+}
+
+.param-card div[data-testid="stSlider"] [data-baseweb="slider"] {
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+}
+
+.param-card div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+    height: 9px !important;
+    border-radius: 999px !important;
+    background: #dce8f6 !important;
+}
+
+.param-card div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div {
+    height: 9px !important;
+    border-radius: 999px !important;
+}
+
+.param-card div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
+    background: linear-gradient(90deg, #ff4b4b 0%, #2b6cb0 100%) !important;
+}
+
+.param-card div[data-testid="stSlider"] [data-baseweb="slider"] [role="slider"] {
+    width: 26px !important;
+    height: 26px !important;
+    background: #ffffff !important;
+    border: 5px solid #2b6cb0 !important;
+    box-shadow: 0 5px 14px rgba(43, 108, 176, 0.26) !important;
+}
+
+.param-card div[data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
+    display: none !important;
+}
+
+.param-card div[data-testid="stTickBarMin"],
+.param-card div[data-testid="stTickBarMax"] {
+    display: none !important;
+}
+
+/* reset button smaller inside param panel */
+.param-reset-wrap div[data-testid="stButton"] > button {
+    min-height: 3.5rem !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    border: 2px solid #b9cfea !important;
+    color: #2b5ea7 !important;
+    font-size: 1rem !important;
+    font-weight: 900 !important;
+}
 
 </style>
 """,
@@ -1323,41 +1492,152 @@ def render_settings(current_page):
     
         st.markdown("".join(html), unsafe_allow_html=True)
         controls["policy"] = current_policy
+        
     elif current_page == "기후 시스템 파라미터 실험":
         st.markdown(
-            '<div class="settings-shell"><div class="settings-title">파라미터 설정</div>',
+            """
+    <div class="param-shell">
+      <div class="param-head">
+        <div class="param-title">파라미터 설정</div>
+        <div class="param-subtitle">기후 시스템 입력값을 조정해 장기 온난화 반응을 실험합니다.</div>
+      </div>
+      <div class="param-reset-wrap">
+            """,
             unsafe_allow_html=True,
         )
-        if st.button("초기화", use_container_width=True, key="main_reset_experiment"):
+    
+        if st.button("↻ 초기화", use_container_width=True, key="main_reset_experiment"):
             for k, v in {
                 "main_exp_co2": 550,
                 "main_exp_lambda": 1.5,
                 "main_exp_aer": 1.0,
             }.items():
                 st.session_state[k] = v
-
-        st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
-
-        controls["exp_co2"] = st.slider(
-            "2100년 CO₂ 농도 (ppm)", 250, 1500,
-            int(st.session_state.get("main_exp_co2", 550)),
-            step=10, key="main_exp_co2",
-        )
-
-        controls["exp_lambda"] = st.slider(
-            "기후 피드백 파라미터 (λ)", 0.5, 3.0,
-            float(st.session_state.get("main_exp_lambda", 1.5)),
-            step=0.1, key="main_exp_lambda",
-        )
-
-        controls["exp_aer"] = st.slider(
-            "에어로졸 강도", 0.0, 3.0,
-            float(st.session_state.get("main_exp_aer", 1.0)),
-            step=0.1, key="main_exp_aer",
-        )
-
+            st.rerun()
+    
         st.markdown("</div>", unsafe_allow_html=True)
-
+    
+        # CO2
+        current_co2 = int(st.session_state.get("main_exp_co2", 550))
+        st.markdown(
+            f"""
+    <div class="param-card">
+      <div class="param-card-top">
+        <div>
+          <div class="param-label">2100년 CO₂ 농도</div>
+          <div class="param-desc">높을수록 복사강제력이 커져 온난화가 증가합니다.</div>
+        </div>
+        <div class="param-value">
+          <div class="param-value-main">{current_co2}</div>
+          <div class="param-value-unit">ppm</div>
+        </div>
+      </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+        controls["exp_co2"] = st.slider(
+            "2100년 CO₂ 농도 (ppm)",
+            250, 1500,
+            current_co2,
+            step=10,
+            key="main_exp_co2",
+            label_visibility="collapsed",
+        )
+    
+        st.markdown(
+            """
+      <div class="param-range">
+        <span>250</span>
+        <span class="param-pill">권장 400–1000 ppm</span>
+        <span>1500</span>
+      </div>
+    </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+        # Lambda
+        current_lambda = float(st.session_state.get("main_exp_lambda", 1.5))
+        st.markdown(
+            f"""
+    <div class="param-card">
+      <div class="param-card-top">
+        <div>
+          <div class="param-label">기후 피드백 파라미터 (λ)</div>
+          <div class="param-desc">값이 클수록 기후 시스템의 복원력이 강해집니다.</div>
+        </div>
+        <div class="param-value">
+          <div class="param-value-main">{current_lambda:.2f}</div>
+          <div class="param-value-unit">W/m²/°C</div>
+        </div>
+      </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+        controls["exp_lambda"] = st.slider(
+            "기후 피드백 파라미터 (λ)",
+            0.5, 3.0,
+            current_lambda,
+            step=0.1,
+            key="main_exp_lambda",
+            label_visibility="collapsed",
+        )
+    
+        st.markdown(
+            """
+      <div class="param-range">
+        <span>0.5</span>
+        <span class="param-pill">기준 1.50</span>
+        <span>3.0</span>
+      </div>
+    </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+        # Aerosol
+        current_aer = float(st.session_state.get("main_exp_aer", 1.0))
+        st.markdown(
+            f"""
+    <div class="param-card">
+      <div class="param-card-top">
+        <div>
+          <div class="param-label">에어로졸 강도</div>
+          <div class="param-desc">값이 클수록 에어로졸 냉각 효과가 강해집니다.</div>
+        </div>
+        <div class="param-value">
+          <div class="param-value-main">{current_aer:.2f}</div>
+          <div class="param-value-unit">배율</div>
+        </div>
+      </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+        controls["exp_aer"] = st.slider(
+            "에어로졸 강도",
+            0.0, 3.0,
+            current_aer,
+            step=0.1,
+            key="main_exp_aer",
+            label_visibility="collapsed",
+        )
+    
+        st.markdown(
+            """
+      <div class="param-range">
+        <span>0.0</span>
+        <span class="param-pill">기준 1.00</span>
+        <span>3.0</span>
+      </div>
+    </div>
+    </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
     elif current_page == "모델 적합도 및 관측자료 비교":
         st.markdown(
             '<div class="settings-shell"><div class="settings-title">데이터셋 선택</div>',
