@@ -847,12 +847,39 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     padding: 0 1rem;
 }
 
-/* 펼쳐졌을 때 여백 */
-.source-content ul {
-    margin: 0.7rem 0;
-    padding-left: 1rem;
-    color: #475569;
-    font-size: 0.85rem;
+/* 링크 카드 스타일 */
+.source-item {
+    display: block;
+    padding: 0.75rem 0.8rem;
+    margin-bottom: 0.55rem;
+    border-radius: 13px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    text-decoration: none !important;
+    transition: all 0.16s ease;
+}
+
+.source-item:hover {
+    background: #eef5ff;
+    border-color: #b9cfea;
+    transform: translateX(3px);
+}
+
+/* 링크 제목 */
+.source-name {
+    display: block;
+    font-size: 0.83rem;
+    font-weight: 900;
+    color: #1a56a0;
+    margin-bottom: 0.25rem;
+}
+
+/* 설명 */
+.source-desc {
+    display: block;
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: #64748b;
 }
 
 .source-details[open] .source-content {
@@ -1162,24 +1189,45 @@ def render_left_panel():
 
     st.markdown(
         '<div class="source-card">'
-        '<details class="source-details">'
+        '<details class="source-details" open>'
         '<summary>'
         '<span class="source-arrow">›</span>'
         '<span class="source-title">자료 출처</span>'
         '</summary>'
         '<div class="source-content">'
-        '<div class="source-note">본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.</div>'
-        '<a href="https://data.giss.nasa.gov/gistemp/" target="_blank">NASA GISS GISTEMP v4</a>'
-        '<a href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">IPCC AR6</a>'
-        '<a href="https://gml.noaa.gov/ccgg/trends/" target="_blank">NOAA GML CO₂</a>'
-        '<a href="https://volcano.si.edu/" target="_blank">화산 강제력</a>'
-        '<a href="https://sealevel.nasa.gov/" target="_blank">NASA Sea Level</a>'
+        '<div class="source-note">본 모델은 아래 공인 자료를 바탕으로 구성되었습니다.</div>'
+    
+        '<a class="source-item" href="https://data.giss.nasa.gov/gistemp/" target="_blank">'
+        '<span class="source-name">NASA GISS GISTEMP v4</span>'
+        '<span class="source-desc">역사적 전지구 평균기온 관측값</span>'
+        '</a>'
+    
+        '<a class="source-item" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">'
+        '<span class="source-name">IPCC AR6 WG1</span>'
+        '<span class="source-desc">기후 변화 해석 기준, 임계 온도, 과학적 배경</span>'
+        '</a>'
+    
+        '<a class="source-item" href="https://gml.noaa.gov/ccgg/trends/" target="_blank">'
+        '<span class="source-name">NOAA GML CO₂</span>'
+        '<span class="source-desc">대기 중 이산화탄소 농도 추세</span>'
+        '</a>'
+    
+        '<a class="source-item" href="https://volcano.si.edu/" target="_blank">'
+        '<span class="source-name">Smithsonian GVP</span>'
+        '<span class="source-desc">화산 분출 시기 및 화산 강제력 참고</span>'
+        '</a>'
+    
+        '<a class="source-item" href="https://sealevel.nasa.gov/" target="_blank">'
+        '<span class="source-name">NASA Sea Level</span>'
+        '<span class="source-desc">해수면 상승 해석 및 참고 지표</span>'
+        '</a>'
+    
         '</div>'
         '</details>'
         '</div>',
         unsafe_allow_html=True,
     )
-    
+
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
     controls = {}
