@@ -1441,7 +1441,7 @@ elif page == "시나리오 기반 기후 변화 예측":
         future_years = years_full[len(years_axis) - 1:]
         future_vals = res_full[len(years_axis) - 1:]
         
-        step_size = 4
+        step_size = 1
         
         frame_indices = list(range(1, len(future_years) + 1, step_size))
         if frame_indices[-1] != len(future_years):
