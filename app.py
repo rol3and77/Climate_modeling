@@ -1094,16 +1094,16 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 }
 
 .st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
-    height: 6px !important;
+    height: 8px !important;
     border-radius: 999px !important;
-    background: #e3edf8 !important;
-    overflow: hidden !important;   /* ✅ 추가 */
+    background: #edf3fa !important;
+    overflow: hidden !important;
 }
 
 .st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
-    height: 100% !important;       /* ✅ 6px → 100% */
+    height: 100% !important;
     border-radius: 999px !important;
-    background: #2b6cb0 !important;
+    background: #c7d9ee !important;
 }
 
 .st-key-param_reset_btn button {
@@ -1135,11 +1135,11 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 }
 
 .st-key-param_panel div[data-testid="stSlider"] [role="slider"] {
-    width: 28px !important;
-    height: 28px !important;
+    width: 22px !important;
+    height: 22px !important;
     background: #ffffff !important;
-    border: 5px solid #2b6cb0 !important;
-    box-shadow: 0 5px 14px rgba(43,108,176,0.28) !important;
+    border: 3px solid #2b6cb0 !important;
+    box-shadow: 0 3px 8px rgba(43,108,176,0.18) !important;
 }
 
 .st-key-param_panel div[data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
