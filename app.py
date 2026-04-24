@@ -1093,19 +1093,17 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-weight: 900 !important;
 }
 
-/* Parameter panel final */
-.st-key-param_panel {
-    background: #ffffff;
-    border: 1px solid #d6e2f0;
-    border-radius: 24px;
-    padding: 1.35rem 1.45rem 1.1rem 1.45rem;
-    box-shadow: 0 8px 22px rgba(26,86,160,0.08);
-    margin: 1.2rem 0 1.5rem 0;
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+    height: 6px !important;
+    border-radius: 999px !important;
+    background: #e3edf8 !important;
+    overflow: hidden !important;   /* ✅ 추가 */
 }
 
-.st-key-param_panel div[data-testid="stVerticalBlockBorderWrapper"] {
-    border: none !important;
-    padding: 0 !important;
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
+    height: 100% !important;       /* ✅ 6px → 100% */
+    border-radius: 999px !important;
+    background: #2b6cb0 !important;
 }
 
 .st-key-param_reset_btn button {
