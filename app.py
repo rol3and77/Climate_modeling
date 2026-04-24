@@ -2156,7 +2156,7 @@ elif page == "기후 시스템 파라미터 실험":
 
 
 with st.container(border=True, key="param_panel"):
-h1, h2 = st.columns([5, 1])
+    h1, h2 = st.columns([5, 1])
 
 with h1:
     st.markdown(
