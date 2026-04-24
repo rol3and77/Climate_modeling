@@ -799,6 +799,61 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     opacity: 0.95;
     line-height: 1.6;
 }
+/* 카드 */
+.source-card {
+    border-radius: 16px;
+    padding: 0.9rem 1.1rem;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(30, 64, 175, 0.08);
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* hover */
+.source-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(30, 64, 175, 0.15);
+}
+
+/* 헤더 */
+.source-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 화살표 */
+.source-arrow {
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+    color: #1e40af;
+}
+
+/* 제목 */
+.source-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+/* 내용 */
+.source-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    padding: 0 1rem;
+}
+
+/* 펼쳐졌을 때 여백 */
+.source-content ul {
+    margin: 0.7rem 0;
+    padding-left: 1rem;
+    color: #475569;
+    font-size: 0.85rem;
+}
 
 </style>
 """,
@@ -1101,20 +1156,30 @@ def render_left_panel():
 
     st.markdown("".join(nav_html), unsafe_allow_html=True)
 
-    st.markdown('<div class="src-box">', unsafe_allow_html=True)
-    with st.expander("자료 출처", expanded=False):
-        st.caption("본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.")
-        st.markdown(
-            """
-- **NASA GISS GISTEMP v4**: [링크](https://data.giss.nasa.gov/gistemp/)
-- **IPCC AR6**: [링크](https://www.ipcc.ch/report/ar6/wg1/)
-- **NOAA GML CO2**: [링크](https://gml.noaa.gov/ccgg/trends/)
-- **화산 강제력**: [링크](https://volcano.si.edu/)
-- **NASA Sea Level**: [링크](https://sealevel.nasa.gov/)
-"""
-        )
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown(
+        """
+    <div class="source-card">
+      <details class="source-details">
+        <summary>
+          <span class="source-arrow">›</span>
+          <span class="source-title">자료 출처</span>
+        </summary>
     
+        <div class="source-body">
+          <div class="source-note">본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.</div>
+    
+          <a href="https://data.giss.nasa.gov/gistemp/" target="_blank">NASA GISS GISTEMP v4</a>
+          <a href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">IPCC AR6</a>
+          <a href="https://gml.noaa.gov/ccgg/trends/" target="_blank">NOAA GML CO₂</a>
+          <a href="https://volcano.si.edu/" target="_blank">화산 강제력</a>
+          <a href="https://sealevel.nasa.gov/" target="_blank">NASA Sea Level</a>
+        </div>
+      </details>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )    
+
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
 def render_settings(current_page):
     controls = {}
