@@ -1,4 +1,4 @@
-
+import plotly.graph_objects as go
 import streamlit as st
 import numpy as np
 import matplotlib
@@ -1429,37 +1429,170 @@ elif page == "시나리오 기반 기후 변화 예측":
                           "1925–2100 전체 구간 평균 추세")
 
         sec("장기 기온 궤적")
-        fig, ax = _styled_fig(figsize=(12, 5.2))
-        obs_vals = np.interp(
-            years_axis,
-            list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
-            list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
+
+    obs_vals = np.interp(
+        years_axis,
+        list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
+        list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
+    )
+    
+    years_full = np.arange(1925, 2101)
+    future_years = years_full[len(years_axis) - 1:]
+    future_vals = res_full[len(years_axis) - 1:]
+    
+    frames = []
+    
+    for i in range(1, len(future_years) + 1):
+        frames.append(
+            go.Frame(
+                data=[
+                    go.Scatter(
+                        x=years_axis,
+                        y=obs_vals,
+                        mode="lines",
+                        name="Historical Observation",
+                        line=dict(width=3, color="#0f2744"),
+                    ),
+                    go.Scatter(
+                        x=future_years[:i],
+                        y=future_vals[:i],
+                        mode="lines",
+                        name="Projected Response",
+                        line=dict(width=3, color="#1a56a0", dash="dash"),
+                    ),
+                    go.Scatter(
+                        x=list(future_years[:i]) + list(future_years[:i][::-1]),
+                        y=list(future_vals[:i]) + [0] * i,
+                        fill="toself",
+                        fillcolor="rgba(26, 86, 160, 0.14)",
+                        line=dict(color="rgba(255,255,255,0)"),
+                        hoverinfo="skip",
+                        showlegend=False,
+                    ),
+                ],
+                name=str(i),
+            )
         )
-        years_full = np.arange(1925, 2101)
-        ax.fill_between(
-            years_full[len(years_axis) - 1:],
-            res_full[len(years_axis) - 1:],
-            alpha=0.12, color="#1a56a0",
-        )
-        ax.plot(years_axis, obs_vals, color="#0f2744", lw=1.8, label="Historical Observation")
-        ax.plot(
-            years_full[len(years_axis) - 1:],
-            res_full[len(years_axis) - 1:],
-            color="#1a56a0", lw=2.2, ls="--", label="Projected Response",
-        )
-        ax.axhline(1.5, color="#f59e0b", ls=":", lw=1.6, label="1.5°C Threshold")
-        ax.axhline(2.0, color="#ef4444", ls=":", lw=1.6, label="2.0°C Threshold")
-        ax.axvline(2025, color="#94a3b8", ls="--", lw=1, alpha=0.6)
-        ax.text(2026, ax.get_ylim()[0] + 0.05, "2025", fontsize=8, color="#94a3b8")
-        _apply_chart_style(
-            ax,
-            title="Projected Global Temperature Trajectory",
-            xlabel="Year",
-            ylabel="Temperature Anomaly (°C)",
-        )
-        ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
-        plt.tight_layout()
-        st.pyplot(fig)
+    
+    fig = go.Figure(
+        data=[
+            go.Scatter(
+                x=years_axis,
+                y=obs_vals,
+                mode="lines",
+                name="Historical Observation",
+                line=dict(width=3, color="#0f2744"),
+            ),
+            go.Scatter(
+                x=[future_years[0]],
+                y=[future_vals[0]],
+                mode="lines",
+                name="Projected Response",
+                line=dict(width=3, color="#1a56a0", dash="dash"),
+            ),
+            go.Scatter(
+                x=[future_years[0], future_years[0]],
+                y=[future_vals[0], 0],
+                fill="toself",
+                fillcolor="rgba(26, 86, 160, 0.14)",
+                line=dict(color="rgba(255,255,255,0)"),
+                hoverinfo="skip",
+                showlegend=False,
+            ),
+        ],
+        frames=frames,
+    )
+    
+    fig.add_hline(
+        y=1.5,
+        line_dash="dot",
+        line_color="#f59e0b",
+        annotation_text="1.5°C Threshold",
+        annotation_position="top left",
+    )
+    
+    fig.add_hline(
+        y=2.0,
+        line_dash="dot",
+        line_color="#ef4444",
+        annotation_text="2.0°C Threshold",
+        annotation_position="top left",
+    )
+    
+    fig.add_vline(
+        x=2025,
+        line_dash="dash",
+        line_color="#94a3b8",
+        annotation_text="2025",
+        annotation_position="bottom right",
+    )
+    
+    fig.update_layout(
+        title=dict(
+            text="Projected Global Temperature Trajectory",
+            x=0.5,
+            font=dict(size=18, color="#0f2744"),
+        ),
+        xaxis_title="Year",
+        yaxis_title="Temperature Anomaly (°C)",
+        plot_bgcolor="#f8fafc",
+        paper_bgcolor="#f8fafc",
+        font=dict(color="#64748b"),
+        height=520,
+        margin=dict(l=40, r=30, t=70, b=50),
+        legend=dict(
+            bgcolor="rgba(255,255,255,0.85)",
+            bordercolor="#d6e2f0",
+            borderwidth=1,
+        ),
+        updatemenus=[
+            dict(
+                type="buttons",
+                showactive=False,
+                x=0.02,
+                y=1.12,
+                buttons=[
+                    dict(
+                        label="▶ 예측 애니메이션",
+                        method="animate",
+                        args=[
+                            None,
+                            {
+                                "frame": {"duration": 45, "redraw": True},
+                                "fromcurrent": True,
+                                "transition": {"duration": 20},
+                            },
+                        ],
+                    ),
+                    dict(
+                        label="⏸ 정지",
+                        method="animate",
+                        args=[
+                            [None],
+                            {
+                                "frame": {"duration": 0, "redraw": False},
+                                "mode": "immediate",
+                                "transition": {"duration": 0},
+                            },
+                        ],
+                    ),
+                ],
+            )
+        ],
+    )
+    
+    fig.update_xaxes(
+        range=[1925, 2100],
+        gridcolor="#d6e2f0",
+        showgrid=True,
+    )
+    
+    fig.update_yaxes(
+        gridcolor="#d6e2f0",
+        showgrid=True,
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
 
         render_infobox(
             "해석",
