@@ -1804,7 +1804,6 @@ if page == "시작 페이지":
 
     st.caption("모듈 카드를 클릭하면 해당 분석 페이지로 바로 이동합니다.")
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 시나리오 기반 기후 변화 예측
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1814,11 +1813,16 @@ elif page == "시나리오 기반 기후 변화 예측":
 
     with left_col:
         render_left_panel()
+        controls = render_settings(page)
 
     with main_col:
         policy = controls["policy"]
-        page_header("시나리오 기반 기후 변화 예측",
-                    "배출 경로별 장기 온난화 궤적 비교 · 1.5 / 2.0°C 임계선 관계 분석")
+
+        page_header(
+            "시나리오 기반 기후 변화 예측",
+            "배출 경로별 장기 온난화 궤적 비교 · 1.5 / 2.0°C 임계선 관계 분석",
+        )
+
         emission_map = {
             "탄소중립": 280,
             "저배출": 380,
@@ -1826,9 +1830,14 @@ elif page == "시나리오 기반 기후 변화 예측":
             "고배출": 850,
             "극단배출": 1500,
         }
+
         res_full, _, _, _, _ = run_model(
-            [1.5, 1.0, 2.0, 0.12], -0.22, end_year=2100, end_co2=emission_map[policy]
+            [1.5, 1.0, 2.0, 0.12],
+            -0.22,
+            end_year=2100,
+            end_co2=emission_map[policy],
         )
+
         p_2100 = res_full[-1]
         trend_21c = np.polyfit(np.arange(1925, 2101), res_full, 1)[0]
 
@@ -1836,60 +1845,11 @@ elif page == "시나리오 기반 기후 변화 예측":
             "분석 목적",
             "서로 다른 배출 시나리오에 따라 장기 온난화 경로가 어떻게 달라지는지 비교합니다. "
             "1.5°C · 2.0°C 임계선과의 관계를 함께 제시하여 각 시나리오의 상대적 기후 위험 수준을 해석할 수 있도록 구성했습니다.",
-            )
-            
-    st.markdown("""
-    <div style="
-        background:#ffffff;
-        border:1px solid #d6e2f0;
-        border-radius:20px;
-        padding:1.3rem 1.4rem;
-        box-shadow:0 4px 14px rgba(26,86,160,0.08);
-        margin-bottom:1.3rem;
-    ">
-    <div style="font-size:1.05rem;font-weight:800;color:#0f2744;margin-bottom:0.9rem;">
-    파라미터 조정
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # 초기화 버튼
-    if st.button("초기화", use_container_width=True):
-        st.session_state["main_exp_co2"] = 550
-        st.session_state["main_exp_lambda"] = 1.5
-        st.session_state["main_exp_aer"] = 1.0
-        st.rerun()
-    
-    # CO2
-    co2 = st.slider(
-        "2100년 CO₂ 농도 (ppm)",
-        250, 1500,
-        int(st.session_state.get("main_exp_co2", 550)),
-        step=10,
-        key="main_exp_co2",
-    )
-    
-    # lambda
-    lam = st.slider(
-        "기후 피드백 파라미터 (λ)",
-        0.5, 3.0,
-        float(st.session_state.get("main_exp_lambda", 1.5)),
-        step=0.1,
-        key="main_exp_lambda",
-    )
-    
-    # aerosol
-    aer = st.slider(
-        "에어로졸 강도",
-        0.0, 3.0,
-        float(st.session_state.get("main_exp_aer", 1.0)),
-        step=0.1,
-        key="main_exp_aer",
-    )
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+        )
 
-    target_co2 = emission_map[policy]
-    st.markdown(
+        target_co2 = emission_map[policy]
+
+        st.markdown(
             f"""
 <div class="cond-bar">
   <div class="cond-item">
@@ -1897,239 +1857,255 @@ elif page == "시나리오 기반 기후 변화 예측":
     <div class="cond-val" style="font-size:0.93rem">{policy}</div>
   </div>
   <div class="cond-item">
-    <div class="cond-label">2100년 목표 CO₂</div>
+    <div class="cond-label">2100년 목표 CO2</div>
     <div class="cond-val">{target_co2} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">ppm</span></div>
   </div>
   <div class="cond-item">
     <div class="cond-label">2100년 예상 온도</div>
     <div class="cond-val">+{p_2100:.2f} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">°C</span></div>
   </div>
-</div>""",
+</div>
+""",
             unsafe_allow_html=True,
         )
 
-sec("핵심 결과")
-c1, c2, c3 = st.columns(3)
-with c1:
-    render_metric("2100년 예상 온난화", f"+{p_2100:.2f}", "°C",
-                  "선택한 시나리오 기준 장기 예측값")
-with c2:
-    render_metric("2100년 예상 해수면 상승", f"+{p_2100*35:.1f}", "cm",
-                  "단순 비례 가정에 따른 참고 지표")
-with c3:
-    render_metric("평균 온난화 속도", f"{trend_21c:.3f}", "°C/yr",
-                  "1925–2100 전체 구간 평균 추세")
+        sec("핵심 결과")
+        c1, c2, c3 = st.columns(3)
 
-    sec("장기 기온 궤적")
-
-    obs_vals = np.interp(
-        years_axis,
-        list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
-        list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
-    )
-    
-    years_full = np.arange(1925, 2101)
-    future_years = years_full[len(years_axis) - 1:]
-    future_vals = res_full[len(years_axis) - 1:]
-    
-    step_size = 1
-    
-    frame_indices = list(range(1, len(future_years) + 1, step_size))
-    if frame_indices[-1] != len(future_years):
-        frame_indices.append(len(future_years))
-    
-    frames = []
-    
-    for i in frame_indices:
-        frames.append(
-            go.Frame(
-                data=[
-                    go.Scatter(
-                        x=years_axis,
-                        y=obs_vals,
-                        mode="lines",
-                        name="Historical Observation",
-                        line=dict(width=3, color="#0f2744"),
-                    ),
-                    go.Scatter(
-                        x=future_years[:i],
-                        y=future_vals[:i],
-                        mode="lines",
-                        name="Projected Response",
-                        line=dict(width=3, color="#1a56a0", dash="dash"),
-                    ),
-                    go.Scatter(
-                        x=list(future_years[:i]) + list(future_years[:i][::-1]),
-                        y=list(future_vals[:i]) + [0] * i,
-                        fill="toself",
-                        fillcolor="rgba(26, 86, 160, 0.14)",
-                        line=dict(color="rgba(255,255,255,0)"),
-                        hoverinfo="skip",
-                        showlegend=False,
-                    ),
-                ],
-                name=str(i),
+        with c1:
+            render_metric(
+                "2100년 예상 온난화",
+                f"+{p_2100:.2f}",
+                "°C",
+                "선택한 시나리오 기준 장기 예측값",
             )
+
+        with c2:
+            render_metric(
+                "2100년 예상 해수면 상승",
+                f"+{p_2100 * 35:.1f}",
+                "cm",
+                "단순 비례 가정에 따른 참고 지표",
+            )
+
+        with c3:
+            render_metric(
+                "평균 온난화 속도",
+                f"{trend_21c:.3f}",
+                "°C/yr",
+                "1925–2100 전체 구간 평균 추세",
+            )
+
+        sec("장기 기온 궤적")
+
+        obs_vals = np.interp(
+            years_axis,
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
         )
 
-    fig = go.Figure(
-        data=[
-            go.Scatter(
-                x=years_axis,
-                y=obs_vals,
-                mode="lines",
-                name="Historical Observation",
-                line=dict(width=3, color="#0f2744"),
-            ),
-            go.Scatter(
-                x=[future_years[0]],
-                y=[future_vals[0]],
-                mode="lines",
-                name="Projected Response",
-                line=dict(width=3, color="#1a56a0", dash="dash"),
-            ),
-            go.Scatter(
-                x=[future_years[0], future_years[0]],
-                y=[future_vals[0], 0],
-                fill="toself",
-                fillcolor="rgba(26, 86, 160, 0.14)",
-                line=dict(color="rgba(255,255,255,0)"),
-                hoverinfo="skip",
-                showlegend=False,
-            ),
-        ],
-        frames=frames,
-    )
-    
-    fig.add_hline(
-        y=1.5,
-        line_dash="dot",
-        line_color="#f59e0b",
-        annotation_text="1.5°C Threshold",
-        annotation_position="top left",
-    )
-    
-    fig.add_hline(
-        y=2.0,
-        line_dash="dot",
-        line_color="#ef4444",
-        annotation_text="2.0°C Threshold",
-        annotation_position="top left",
-    )
-    
-    fig.add_vline(
-        x=2025,
-        line_dash="dash",
-        line_color="#94a3b8",
-        annotation_text="2025",
-        annotation_position="bottom right",
-    )
-    
-    fig.update_layout(
-        title=dict(
-            text="Projected Global Temperature Trajectory",
-            x=0.5,
-            font=dict(size=18, color="#0f2744"),
-        ),
-        xaxis_title="Year",
-        yaxis_title="Temperature Anomaly (°C)",
-        plot_bgcolor="#f8fafc",
-        paper_bgcolor="#f8fafc",
-        font=dict(color="#64748b"),
-        height=520,
-        margin=dict(l=40, r=30, t=70, b=50),
-        legend=dict(
-            bgcolor="rgba(255,255,255,0.85)",
-            bordercolor="#d6e2f0",
-            borderwidth=1,
-        ),
-        updatemenus=[
-            dict(
-                type="buttons",
-                showactive=False,
-                x=0.02,
-                y=1.12,
-                buttons=[
-                    dict(
-                        label="▶ 예측 애니메이션",
-                        method="animate",
-                        args=[
-                            None,
-                            {
-                                "frame": {"duration": 22, "redraw": False},
-                                "fromcurrent": True,
-                                "transition": {"duration": 12},
-                            },
-                        ],
-                    ),
-                    dict(
-                        label="⏸ 정지",
-                        method="animate",
-                        args=[
-                            [None],
-                            {
-                                "frame": {"duration": 0, "redraw": False},
-                                "mode": "immediate",
-                                "transition": {"duration": 0},
-                            },
-                        ],
-                    ),
-                ],
+        years_full = np.arange(1925, 2101)
+        future_years = years_full[len(years_axis) - 1:]
+        future_vals = res_full[len(years_axis) - 1:]
+
+        frame_indices = list(range(1, len(future_years) + 1, 1))
+        if frame_indices[-1] != len(future_years):
+            frame_indices.append(len(future_years))
+
+        frames = []
+
+        for i in frame_indices:
+            frames.append(
+                go.Frame(
+                    data=[
+                        go.Scatter(
+                            x=years_axis,
+                            y=obs_vals,
+                            mode="lines",
+                            name="Historical Observation",
+                            line=dict(width=3, color="#0f2744"),
+                        ),
+                        go.Scatter(
+                            x=future_years[:i],
+                            y=future_vals[:i],
+                            mode="lines",
+                            name="Projected Response",
+                            line=dict(width=3, color="#1a56a0", dash="dash"),
+                        ),
+                        go.Scatter(
+                            x=list(future_years[:i]) + list(future_years[:i][::-1]),
+                            y=list(future_vals[:i]) + [0] * i,
+                            fill="toself",
+                            fillcolor="rgba(26, 86, 160, 0.14)",
+                            line=dict(color="rgba(255,255,255,0)"),
+                            hoverinfo="skip",
+                            showlegend=False,
+                        ),
+                    ],
+                    name=str(i),
+                )
             )
-        ],
-    )
-        
-    fig.update_xaxes(
-        range=[1925, 2100],
-        gridcolor="#d6e2f0",
-        showgrid=True,
-    )
-    
-    y_min = min(-0.4, float(np.min(obs_vals)) - 0.2)
-    y_max = max(2.3, float(np.max(future_vals)) + 0.25)
-    
-    fig.update_yaxes(
-        range=[y_min, y_max],
-        gridcolor="#d6e2f0",
-        showgrid=True,
-    )        
-    plotly_html = fig.to_html(
-        full_html=False,
-        include_plotlyjs="cdn",
-        config={
-            "displayModeBar": False,
-            "scrollZoom": False,
-        },
-        auto_play=False,
-    )
-    
-    auto_play_script = """
-    <script>
-    setTimeout(() => {
-        const graph = document.querySelector('.plotly-graph-div');
-        if (graph) {
-            Plotly.animate(graph, null, {
-                frame: {duration: 10, redraw: false},
-                transition: {duration: 6},
-                fromcurrent: true,
-                mode: 'immediate'
-            });
-        }
-    }, 300);
-    </script>
-    """
-    
-    components.html(
-        plotly_html + auto_play_script,
-        height=560,
-        scrolling=False,
-    )
-    render_infobox(
-        "해석",
-        "고배출에 가까운 경로일수록 온도 상승 속도가 빠르게 커지며, 임계 온도 도달 시점도 앞당겨집니다. "
-        "본 결과는 전지구 평균 기반 단순화 모델에서 도출된 것으로, "
-        "정밀 예측보다 시나리오 간 상대적 차이와 장기 경향 비교용으로 해석하는 것이 적절합니다.",
-    )
+
+        fig = go.Figure(
+            data=[
+                go.Scatter(
+                    x=years_axis,
+                    y=obs_vals,
+                    mode="lines",
+                    name="Historical Observation",
+                    line=dict(width=3, color="#0f2744"),
+                ),
+                go.Scatter(
+                    x=[future_years[0]],
+                    y=[future_vals[0]],
+                    mode="lines",
+                    name="Projected Response",
+                    line=dict(width=3, color="#1a56a0", dash="dash"),
+                ),
+                go.Scatter(
+                    x=[future_years[0], future_years[0]],
+                    y=[future_vals[0], 0],
+                    fill="toself",
+                    fillcolor="rgba(26, 86, 160, 0.14)",
+                    line=dict(color="rgba(255,255,255,0)"),
+                    hoverinfo="skip",
+                    showlegend=False,
+                ),
+            ],
+            frames=frames,
+        )
+
+        fig.add_hline(
+            y=1.5,
+            line_dash="dot",
+            line_color="#f59e0b",
+            annotation_text="1.5°C Threshold",
+            annotation_position="top left",
+        )
+
+        fig.add_hline(
+            y=2.0,
+            line_dash="dot",
+            line_color="#ef4444",
+            annotation_text="2.0°C Threshold",
+            annotation_position="top left",
+        )
+
+        fig.add_vline(
+            x=2025,
+            line_dash="dash",
+            line_color="#94a3b8",
+            annotation_text="2025",
+            annotation_position="bottom right",
+        )
+
+        fig.update_layout(
+            title=dict(
+                text="Projected Global Temperature Trajectory",
+                x=0.5,
+                font=dict(size=18, color="#0f2744"),
+            ),
+            xaxis_title="Year",
+            yaxis_title="Temperature Anomaly (°C)",
+            plot_bgcolor="#f8fafc",
+            paper_bgcolor="#f8fafc",
+            font=dict(color="#64748b"),
+            height=520,
+            margin=dict(l=40, r=30, t=70, b=50),
+            legend=dict(
+                bgcolor="rgba(255,255,255,0.85)",
+                bordercolor="#d6e2f0",
+                borderwidth=1,
+            ),
+            updatemenus=[
+                dict(
+                    type="buttons",
+                    showactive=False,
+                    x=0.02,
+                    y=1.12,
+                    buttons=[
+                        dict(
+                            label="▶ 예측 애니메이션",
+                            method="animate",
+                            args=[
+                                None,
+                                {
+                                    "frame": {"duration": 22, "redraw": False},
+                                    "fromcurrent": True,
+                                    "transition": {"duration": 12},
+                                },
+                            ],
+                        ),
+                        dict(
+                            label="⏸ 정지",
+                            method="animate",
+                            args=[
+                                [None],
+                                {
+                                    "frame": {"duration": 0, "redraw": False},
+                                    "mode": "immediate",
+                                    "transition": {"duration": 0},
+                                },
+                            ],
+                        ),
+                    ],
+                )
+            ],
+        )
+
+        fig.update_xaxes(
+            range=[1925, 2100],
+            gridcolor="#d6e2f0",
+            showgrid=True,
+        )
+
+        y_min = min(-0.4, float(np.min(obs_vals)) - 0.2)
+        y_max = max(2.3, float(np.max(future_vals)) + 0.25)
+
+        fig.update_yaxes(
+            range=[y_min, y_max],
+            gridcolor="#d6e2f0",
+            showgrid=True,
+        )
+
+        plotly_html = fig.to_html(
+            full_html=False,
+            include_plotlyjs="cdn",
+            config={
+                "displayModeBar": False,
+                "scrollZoom": False,
+            },
+            auto_play=False,
+        )
+
+        auto_play_script = """
+<script>
+setTimeout(() => {
+    const graph = document.querySelector('.plotly-graph-div');
+    if (graph) {
+        Plotly.animate(graph, null, {
+            frame: {duration: 10, redraw: false},
+            transition: {duration: 6},
+            fromcurrent: true,
+            mode: 'immediate'
+        });
+    }
+}, 300);
+</script>
+"""
+
+        components.html(
+            plotly_html + auto_play_script,
+            height=560,
+            scrolling=False,
+        )
+
+        render_infobox(
+            "해석",
+            "고배출에 가까운 경로일수록 온도 상승 속도가 빠르게 커지며, 임계 온도 도달 시점도 앞당겨집니다. "
+            "본 결과는 전지구 평균 기반 단순화 모델에서 도출된 것으로, "
+            "정밀 예측보다 시나리오 간 상대적 차이와 장기 경향 비교용으로 해석하는 것이 적절합니다.",
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2145,7 +2121,7 @@ elif page == "기후 시스템 파라미터 실험":
     with main_col:
         page_header(
             "기후 시스템 파라미터 실험",
-            "핵심 기후 파라미터를 직접 조정하여 장기 온난화 경로 변화를 탐색합니다"
+            "핵심 기후 파라미터를 직접 조정하여 장기 온난화 경로 변화를 탐색합니다",
         )
 
         render_infobox(
@@ -2154,13 +2130,12 @@ elif page == "기후 시스템 파라미터 실험":
             "장기 온난화 결과에 어떤 영향을 주는지 탐색하기 위해 구성되었습니다.",
         )
 
+        with st.container(border=True, key="param_panel"):
+            h1, h2 = st.columns([5, 1])
 
-with st.container(border=True, key="param_panel"):
-    h1, h2 = st.columns([5, 1])
-
-with h1:
-    st.markdown(
-        """
+            with h1:
+                st.markdown(
+                    """
 <div style="font-size:1.18rem;font-weight:900;color:#0f2744;letter-spacing:-0.03em;">
 파라미터 조정
 </div>
@@ -2168,172 +2143,174 @@ with h1:
 입력값을 조절하면 아래 결과와 그래프가 즉시 갱신됩니다.
 </div>
 """,
-            unsafe_allow_html=True,
+                    unsafe_allow_html=True,
+                )
+
+            with h2:
+                if st.button("↻ 초기화", use_container_width=True, key="param_reset_btn"):
+                    st.session_state["main_exp_co2"] = 550
+                    st.session_state["main_exp_lambda"] = 1.5
+                    st.session_state["main_exp_aer"] = 1.0
+                    st.rerun()
+
+            p1, p2, p3 = st.columns(3, gap="large")
+
+            with p1:
+                co2 = st.slider(
+                    "2100년 CO2 농도 (ppm)",
+                    250,
+                    1500,
+                    int(st.session_state.get("main_exp_co2", 550)),
+                    step=10,
+                    key="main_exp_co2",
+                )
+
+            with p2:
+                lam = st.slider(
+                    "기후 피드백 파라미터 (λ)",
+                    0.5,
+                    3.0,
+                    float(st.session_state.get("main_exp_lambda", 1.5)),
+                    step=0.1,
+                    key="main_exp_lambda",
+                )
+
+            with p3:
+                aer = st.slider(
+                    "에어로졸 강도",
+                    0.0,
+                    3.0,
+                    float(st.session_state.get("main_exp_aer", 1.0)),
+                    step=0.1,
+                    key="main_exp_aer",
+                )
+
+        exp_co2 = co2
+        exp_lambda = lam
+        exp_aer = aer
+        exp_klo = 2.0
+        exp_enso = 0.12
+
+        custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso]
+        res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
+            custom_params,
+            -0.22,
+            end_year=2100,
+            end_co2=exp_co2,
         )
 
-    with h2:
-        if st.button("↻ 초기화", use_container_width=True, key="param_reset_btn"):
-            st.session_state["main_exp_co2"] = 550
-            st.session_state["main_exp_lambda"] = 1.5
-            st.session_state["main_exp_aer"] = 1.0
-            st.rerun()
-
-    p1, p2, p3 = st.columns(3, gap="large")
-
-    with p1:
-        co2 = st.slider(
-            "2100년 CO₂ 농도 (ppm)",
-            250, 1500,
-            int(st.session_state.get("main_exp_co2", 550)),
-            step=10,
-            key="main_exp_co2",
+        cond_html = "\n".join(
+            [
+                '<div class="cond-bar">',
+                '  <div class="cond-item">',
+                '    <div class="cond-label">CO2 (2100)</div>',
+                f'    <div class="cond-val">{exp_co2} <span style="font-size:0.8rem;color:#94a3b8">ppm</span></div>',
+                '    <div class="cond-base">기준: 550 ppm</div>',
+                "  </div>",
+                '  <div class="cond-item">',
+                '    <div class="cond-label">Aerosol</div>',
+                f'    <div class="cond-val">{exp_aer:.2f} <span style="font-size:0.8rem;color:#94a3b8">배율</span></div>',
+                '    <div class="cond-base">기준: 1.00</div>',
+                "  </div>",
+                '  <div class="cond-item">',
+                '    <div class="cond-label">Feedback</div>',
+                f'    <div class="cond-val">{exp_lambda:.2f}</div>',
+                '    <div class="cond-base">기준: 1.50</div>',
+                "  </div>",
+                '  <div class="cond-item">',
+                '    <div class="cond-label">Ocean Heat</div>',
+                f'    <div class="cond-val">{exp_klo:.2f}</div>',
+                '    <div class="cond-base">고정값</div>',
+                "  </div>",
+                '  <div class="cond-item">',
+                '    <div class="cond-label">ENSO</div>',
+                f'    <div class="cond-val">{exp_enso:.2f}</div>',
+                '    <div class="cond-base">고정값</div>',
+                "  </div>",
+                "</div>",
+            ]
         )
 
-    with p2:
-        lam = st.slider(
-            "기후 피드백 파라미터 (λ)",
-            0.5, 3.0,
-            float(st.session_state.get("main_exp_lambda", 1.5)),
-            step=0.1,
-            key="main_exp_lambda",
+        st.markdown(cond_html, unsafe_allow_html=True)
+
+        sec("핵심 결과")
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            render_metric(
+                "2100년 육지 온도 상승",
+                f"+{tl_exp[-1]:.2f}",
+                "°C",
+                "육지는 상대적으로 빠르게 반응",
+            )
+
+        with c2:
+            render_metric(
+                "2100년 해양 표층 온도 상승",
+                f"+{tm_exp[-1]:.2f}",
+                "°C",
+                "표층 해양의 완충 효과 반영",
+            )
+
+        with c3:
+            render_metric(
+                "2100년 심해 온도 상승",
+                f"+{td_exp[-1]:.2f}",
+                "°C",
+                "심해는 가장 느리게 반응",
+            )
+
+        sec("실험 결과 시계열")
+
+        fig, ax = _styled_fig(figsize=(12, 5.2))
+
+        obs_vals = np.interp(
+            years_axis,
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
         )
 
-    with p3:
-        aer = st.slider(
-            "에어로졸 강도",
-            0.0, 3.0,
-            float(st.session_state.get("main_exp_aer", 1.0)),
-            step=0.1,
-            key="main_exp_aer",
-        )
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+        years_exp = np.arange(1925, 2101)
 
-    exp_co2 = co2
-    exp_lambda = lam
-    exp_aer = aer
-    exp_klo = 2.0
-    exp_enso = 0.12
-
-    custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso]
-    res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
-        custom_params, -0.22, end_year=2100, end_co2=exp_co2
-    )
-        
-cond_html = "\n".join([
-    '<div class="cond-bar">',
-    '  <div class="cond-item">',
-    '    <div class="cond-label">CO2 (2100)</div>',
-    f'    <div class="cond-val">{exp_co2} <span style="font-size:0.8rem;color:#94a3b8">ppm</span></div>',
-    '    <div class="cond-base">기준: 550 ppm</div>',
-    '  </div>',
-
-    '  <div class="cond-item">',
-    '    <div class="cond-label">Aerosol</div>',
-    f'    <div class="cond-val">{exp_aer:.2f} <span style="font-size:0.8rem;color:#94a3b8">배율</span></div>',
-    '    <div class="cond-base">기준: 1.00</div>',
-    '  </div>',
-
-    '  <div class="cond-item">',
-    '    <div class="cond-label">Feedback</div>',
-    f'    <div class="cond-val">{exp_lambda:.2f}</div>',
-    '    <div class="cond-base">기준: 1.50</div>',
-    '  </div>',
-
-    '  <div class="cond-item">',
-    '    <div class="cond-label">Ocean Heat</div>',
-    f'    <div class="cond-val">{exp_klo:.2f}</div>',
-    '    <div class="cond-base">고정값</div>',
-    '  </div>',
-
-    '  <div class="cond-item">',
-    '    <div class="cond-label">ENSO</div>',
-    f'    <div class="cond-val">{exp_enso:.2f}</div>',
-    '    <div class="cond-base">고정값</div>',
-    '  </div>',
-    '</div>',
-])
-
-st.markdown(cond_html, unsafe_allow_html=True)
-
-    sec("핵심 결과")
-    c1, c2, c3 = st.columns(3)
-
-    with c1:
-        render_metric(
-            "2100년 육지 온도 상승",
-            f"+{tl_exp[-1]:.2f}",
-            "°C",
-            "육지는 상대적으로 빠르게 반응",
+        ax.plot(
+            years_axis,
+            obs_vals,
+            color="#0f2744",
+            lw=1.8,
+            label="Observed Temperature",
         )
 
-    with c2:
-        render_metric(
-            "2100년 해양 표층 온도 상승",
-            f"+{tm_exp[-1]:.2f}",
-            "°C",
-            "표층 해양의 완충 효과 반영",
+        ax.fill_between(years_exp, res_exp, alpha=0.1, color="#1a56a0")
+
+        ax.plot(
+            years_exp,
+            res_exp,
+            color="#1a56a0",
+            lw=2.4,
+            label="Experimental Simulation",
         )
 
-    with c3:
-        render_metric(
-            "2100년 심해 온도 상승",
-            f"+{td_exp[-1]:.2f}",
-            "°C",
-            "심해는 가장 느리게 반응",
+        ax.axhline(0, color="#94a3b8", lw=0.8, ls="--")
+        ax.axhline(1.5, color="#f59e0b", ls=":", lw=1.6, label="1.5°C Threshold")
+        ax.axvline(2025, color="#94a3b8", ls="--", lw=1, alpha=0.6)
+
+        _apply_chart_style(
+            ax,
+            title=f"Projected Warming — User-Defined Parameters | 2100: +{res_exp[-1]:.2f}°C",
+            xlabel="Year",
+            ylabel="Temperature Anomaly (°C)",
         )
 
-    sec("실험 결과 시계열")
+        ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()
+        st.pyplot(fig)
 
-    fig, ax = _styled_fig(figsize=(12, 5.2))
-
-    obs_vals = np.interp(
-        years_axis,
-        list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
-        list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
-    )
-
-    years_exp = np.arange(1925, 2101)
-
-    ax.plot(
-        years_axis,
-        obs_vals,
-        color="#0f2744",
-        lw=1.8,
-        label="Observed Temperature",
-    )
-
-    ax.fill_between(years_exp, res_exp, alpha=0.1, color="#1a56a0")
-
-    ax.plot(
-        years_exp,
-        res_exp,
-        color="#1a56a0",
-        lw=2.4,
-        label="Experimental Simulation",
-    )
-
-    ax.axhline(0, color="#94a3b8", lw=0.8, ls="--")
-    ax.axhline(1.5, color="#f59e0b", ls=":", lw=1.6, label="1.5°C Threshold")
-    ax.axvline(2025, color="#94a3b8", ls="--", lw=1, alpha=0.6)
-
-    _apply_chart_style(
-        ax,
-        title=f"Projected Warming — User-Defined Parameters | 2100: +{res_exp[-1]:.2f}°C",
-        xlabel="Year",
-        ylabel="Temperature Anomaly (°C)",
-    )
-
-    ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
-    plt.tight_layout()
-    st.pyplot(fig)
-
-    render_infobox(
-        "해석",
-        "같은 배출 조건에서도 파라미터 선택에 따라 최종 온도 상승폭과 경로가 달라질 수 있습니다. "
-        "특히 해양은 열용량이 크기 때문에 육지보다 더 느리게 반응하며, "
-        "이 반응 속도 차이는 장기 기후 변화 해석에서 중요한 의미를 가집니다.",
-    )
+        render_infobox(
+            "해석",
+            "같은 배출 조건에서도 파라미터 선택에 따라 최종 온도 상승폭과 경로가 달라질 수 있습니다. "
+            "특히 해양은 열용량이 크기 때문에 육지보다 더 느리게 반응하며, "
+            "이 반응 속도 차이는 장기 기후 변화 해석에서 중요한 의미를 가집니다.",
+        )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 모델 적합도 및 관측자료 비교
