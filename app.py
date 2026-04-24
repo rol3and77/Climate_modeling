@@ -1156,8 +1156,7 @@ def render_left_panel():
 
     st.markdown("".join(nav_html), unsafe_allow_html=True)
 
-    st.markdown(
-    """<div class="source-card">
+    st.markdown("""<div class="source-card">
     <details class="source-details">
     <summary>
     <span class="source-arrow">›</span>
