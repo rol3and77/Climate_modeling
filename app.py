@@ -1592,7 +1592,16 @@ elif page == "시나리오 기반 기후 변화 예측":
             showgrid=True,
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={
+            "displayModeBar": False,
+            "scrollZoom": False,
+        },
+        auto_play=True,
+        key=f"scenario_animation_{policy}",
+        )
     
         render_infobox(
             "해석",
