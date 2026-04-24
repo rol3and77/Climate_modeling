@@ -1,3 +1,4 @@
+import streamlit.components.v1 as components
 import plotly.graph_objects as go
 import streamlit as st
 import numpy as np
@@ -1592,17 +1593,21 @@ elif page == "시나리오 기반 기후 변화 예측":
             showgrid=True,
         )
         
-        st.plotly_chart(
-        fig,
-        use_container_width=True,
+        plotly_html = fig.to_html(
+        full_html=False,
+        include_plotlyjs="cdn",
         config={
             "displayModeBar": False,
             "scrollZoom": False,
         },
         auto_play=True,
-        key=f"scenario_animation_{policy}",
         )
-    
+        
+        components.html(
+            plotly_html,
+            height=560,
+            scrolling=False,
+        )
         render_infobox(
             "해석",
             "고배출에 가까운 경로일수록 온도 상승 속도가 빠르게 커지며, 임계 온도 도달 시점도 앞당겨집니다. "
