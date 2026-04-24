@@ -926,8 +926,7 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
         transform: translateY(0);
     }
 }
-st.markdown(
-    """
+
     
 .param-shell {
     background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
@@ -1084,7 +1083,6 @@ st.markdown(
     display: none !important;
 }
 
-/* reset button smaller inside param panel */
 .param-reset-wrap div[data-testid="stButton"] > button {
     min-height: 3.5rem !important;
     border-radius: 18px !important;
