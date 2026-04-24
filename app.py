@@ -2109,23 +2109,73 @@ elif page == "기후 시스템 파라미터 실험":
 
     with left_col:
         render_left_panel()
-        controls = render_settings(page)
 
     with main_col:
-        exp_co2 = co2
-        exp_lambda = lam
-        exp_aer = aer
-        exp_klo = 2.0
-        exp_enso = 0.12
-
-        page_header("기후 시스템 파라미터 실험",
-                    "핵심 기후 파라미터를 직접 조정하여 장기 온난화 경로 변화를 탐색합니다")
+        page_header(
+            "기후 시스템 파라미터 실험",
+            "핵심 기후 파라미터를 직접 조정하여 장기 온난화 경로 변화를 탐색합니다"
+        )
 
         render_infobox(
             "분석 목적",
             "기후 피드백 강도, 에어로졸 냉각, 해양 열흡수, 내부 변동성과 같은 핵심 파라미터가 "
             "장기 온난화 결과에 어떤 영향을 주는지 탐색하기 위해 구성되었습니다.",
         )
+
+        st.markdown(
+            """
+<div style="
+    background:#ffffff;
+    border:1px solid #d6e2f0;
+    border-radius:20px;
+    padding:1.3rem 1.4rem;
+    box-shadow:0 4px 14px rgba(26,86,160,0.08);
+    margin-bottom:1.3rem;
+">
+<div style="font-size:1.05rem;font-weight:800;color:#0f2744;margin-bottom:0.9rem;">
+파라미터 조정
+</div>
+""",
+            unsafe_allow_html=True,
+        )
+
+        if st.button("초기화", use_container_width=True, key="main_reset_experiment"):
+            st.session_state["main_exp_co2"] = 550
+            st.session_state["main_exp_lambda"] = 1.5
+            st.session_state["main_exp_aer"] = 1.0
+            st.rerun()
+
+        co2 = st.slider(
+            "2100년 CO₂ 농도 (ppm)",
+            250, 1500,
+            int(st.session_state.get("main_exp_co2", 550)),
+            step=10,
+            key="main_exp_co2",
+        )
+
+        lam = st.slider(
+            "기후 피드백 파라미터 (λ)",
+            0.5, 3.0,
+            float(st.session_state.get("main_exp_lambda", 1.5)),
+            step=0.1,
+            key="main_exp_lambda",
+        )
+
+        aer = st.slider(
+            "에어로졸 강도",
+            0.0, 3.0,
+            float(st.session_state.get("main_exp_aer", 1.0)),
+            step=0.1,
+            key="main_exp_aer",
+        )
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        exp_co2 = co2
+        exp_lambda = lam
+        exp_aer = aer
+        exp_klo = 2.0
+        exp_enso = 0.12
 
         custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso]
         res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
@@ -2160,42 +2210,79 @@ elif page == "기후 시스템 파라미터 실험":
     <div class="cond-val">{exp_enso:.2f}</div>
     <div class="cond-base">고정값</div>
   </div>
-</div>""",
+</div>
+""",
             unsafe_allow_html=True,
         )
 
         sec("핵심 결과")
         c1, c2, c3 = st.columns(3)
+
         with c1:
-            render_metric("2100년 육지 온도 상승", f"+{tl_exp[-1]:.2f}", "°C",
-                          "육지는 상대적으로 빠르게 반응")
+            render_metric(
+                "2100년 육지 온도 상승",
+                f"+{tl_exp[-1]:.2f}",
+                "°C",
+                "육지는 상대적으로 빠르게 반응",
+            )
+
         with c2:
-            render_metric("2100년 해양 표층 온도 상승", f"+{tm_exp[-1]:.2f}", "°C",
-                          "표층 해양의 완충 효과 반영")
+            render_metric(
+                "2100년 해양 표층 온도 상승",
+                f"+{tm_exp[-1]:.2f}",
+                "°C",
+                "표층 해양의 완충 효과 반영",
+            )
+
         with c3:
-            render_metric("2100년 심해 온도 상승", f"+{td_exp[-1]:.2f}", "°C",
-                          "심해는 가장 느리게 반응")
+            render_metric(
+                "2100년 심해 온도 상승",
+                f"+{td_exp[-1]:.2f}",
+                "°C",
+                "심해는 가장 느리게 반응",
+            )
 
         sec("실험 결과 시계열")
+
         fig, ax = _styled_fig(figsize=(12, 5.2))
+
         obs_vals = np.interp(
             years_axis,
             list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
             list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
         )
+
         years_exp = np.arange(1925, 2101)
-        ax.plot(years_axis, obs_vals, color="#0f2744", lw=1.8, label="Observed Temperature")
+
+        ax.plot(
+            years_axis,
+            obs_vals,
+            color="#0f2744",
+            lw=1.8,
+            label="Observed Temperature",
+        )
+
         ax.fill_between(years_exp, res_exp, alpha=0.1, color="#1a56a0")
-        ax.plot(years_exp, res_exp, color="#1a56a0", lw=2.4, label="Experimental Simulation")
+
+        ax.plot(
+            years_exp,
+            res_exp,
+            color="#1a56a0",
+            lw=2.4,
+            label="Experimental Simulation",
+        )
+
         ax.axhline(0, color="#94a3b8", lw=0.8, ls="--")
         ax.axhline(1.5, color="#f59e0b", ls=":", lw=1.6, label="1.5°C Threshold")
         ax.axvline(2025, color="#94a3b8", ls="--", lw=1, alpha=0.6)
+
         _apply_chart_style(
             ax,
             title=f"Projected Warming — User-Defined Parameters | 2100: +{res_exp[-1]:.2f}°C",
             xlabel="Year",
             ylabel="Temperature Anomaly (°C)",
         )
+
         ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
         plt.tight_layout()
         st.pyplot(fig)
@@ -2206,7 +2293,6 @@ elif page == "기후 시스템 파라미터 실험":
             "특히 해양은 열용량이 크기 때문에 육지보다 더 느리게 반응하며, "
             "이 반응 속도 차이는 장기 기후 변화 해석에서 중요한 의미를 가집니다.",
         )
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 모델 적합도 및 관측자료 비교
