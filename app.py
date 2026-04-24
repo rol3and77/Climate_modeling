@@ -1232,8 +1232,8 @@ def render_left_panel():
 
     source_html = (
         '<div class="source-card">'
-        '<details class="source-details" open>'
-        '<summary onclick="this.closest(\'.source-details\').classList.remove(\'replay\'); void this.closest(\'.source-details\').offsetWidth; this.closest(\'.source-details\').classList.add(\'replay\');">'
+        '<details class="source-details replay" open ontoggle="if(this.open){this.classList.remove(\'replay\'); void this.offsetWidth; this.classList.add(\'replay\');}">'
+        '<summary>'
         '<span class="source-arrow">›</span>'
         '<span class="source-title">자료 출처</span>'
         '</summary>'
