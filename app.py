@@ -2153,34 +2153,6 @@ elif page == "기후 시스템 파라미터 실험":
                 key="main_exp_aer",
             )
         
-        exp_co2 = co2
-        exp_lambda = lam
-        exp_aer = aer
-        
-        co2 = st.slider(
-            "2100년 CO₂ 농도 (ppm)",
-            250, 1500,
-            int(st.session_state.get("main_exp_co2", 550)),
-            step=10,
-            key="main_exp_co2",
-        )
-
-        lam = st.slider(
-            "기후 피드백 파라미터 (λ)",
-            0.5, 3.0,
-            float(st.session_state.get("main_exp_lambda", 1.5)),
-            step=0.1,
-            key="main_exp_lambda",
-        )
-
-        aer = st.slider(
-            "에어로졸 강도",
-            0.0, 3.0,
-            float(st.session_state.get("main_exp_aer", 1.0)),
-            step=0.1,
-            key="main_exp_aer",
-        )
-
         st.markdown("</div>", unsafe_allow_html=True)
 
         
