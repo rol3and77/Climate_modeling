@@ -2381,8 +2381,11 @@ elif page == "모델 적합도 및 관측자료 비교":
                 best_params, current_obs_data[0]
             )
 
-        err = ((best_global - current_obs_data) / np.maximum(np.abs(current_obs_data), 0.2)) * 100
-        avg_err = np.mean(np.abs(err))
+        err = 2 * (best_global - current_obs_data) / (
+            np.abs(best_global) + np.abs(current_obs_data) + 0.2
+        ) * 100
+        
+        avg_err = np.mean(np.abs(err))  
         
         avg_err = np.mean(np.abs(err))
         rmse = np.sqrt(np.mean((best_global - current_obs_data) ** 2))
@@ -2398,7 +2401,7 @@ elif page == "모델 적합도 및 관측자료 비교":
         with c3:
             render_metric("Bias", f"{bias:.3f}", "°C", "과대/과소 예측 경향")
         with c4:
-            render_metric("Mean % Error", f"{avg_err:.2f}", "%", "상대 오차 평균")
+            render_metric("Mean sMAPE", f"{avg_err:.2f}", "%", "대칭 상대 오차 평균")
 
         sec("상세 분석 차트")
         fig, axes = _styled_fig(nrows=3, ncols=2, figsize=(16, 18))
@@ -2424,8 +2427,8 @@ elif page == "모델 적합도 및 관측자료 비교":
         axes[1, 0].axhline(0, color="#0f2744", lw=0.8)
         _apply_chart_style(
             axes[1, 0],
-            title=f"Relative Error  |  Mean: {avg_err:.2f}%  RMSE: {rmse:.3f}°C  MAE: {mae:.3f}°C  Bias: {bias:.3f}°C",
-            xlabel="Year", ylabel="Relative Error (%)",
+            title=f"sMAPE  |  Mean: {avg_err:.2f}%  RMSE: {rmse:.3f}°C  MAE: {mae:.3f}°C  Bias: {bias:.3f}°C",
+            xlabel="Year", ylabel="sMAPE-like Error (%)",
         )
 
         f_co2 = [
