@@ -1,14 +1,22 @@
+from climate_core import (
+    run_model,
+    get_optimized_params,
+    years_axis,
+    START_YEAR,
+    END_YEAR,
+)
+
 from data_loader import load_manual_obs
-import streamlit.components.v1 as components
-import plotly.graph_objects as go
+
 import streamlit as st
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
 import pandas as pd
-from numba import njit
+
+import streamlit.components.v1 as components
+import plotly.graph_objects as go
 from pathlib import Path
 from urllib.parse import quote
 
