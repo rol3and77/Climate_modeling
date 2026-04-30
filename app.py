@@ -1330,14 +1330,29 @@ def get_optimized_params(obs_data):
         m, _, _, _, _ = run_model(params, init_temp)
         return np.mean((m - obs_data) ** 2)
 
-    res = minimize(
-        objective,
+    starts = [
         [1.5, 1.0, 2.0, 0.12],
-        bounds=[(0.7, 2.3), (0.5, 2.0), (0.5, 3.5), (0.05, 0.25)],
-        method="L-BFGS-B",
-        options={"maxiter": 15, "ftol": 1e-4},
-    )
-    return res.x
+        [1.0, 1.2, 1.5, 0.10],
+        [2.0, 0.8, 2.5, 0.15],
+        [1.3, 1.5, 3.0, 0.08],
+        [1.8, 0.7, 1.0, 0.18],
+    ]
+
+    best_res = None
+
+    for start in starts:
+        res = minimize(
+            objective,
+            start,
+            bounds=[(0.7, 2.3), (0.5, 2.0), (0.5, 3.5), (0.05, 0.25)],
+            method="L-BFGS-B",
+            options={"maxiter": 80, "ftol": 1e-7},
+        )
+
+        if best_res is None or res.fun < best_res.fun:
+            best_res = res
+
+    return best_res.x
 
 
 @st.cache_data
