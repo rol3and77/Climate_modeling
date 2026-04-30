@@ -1249,7 +1249,9 @@ def fast_core(
     aer_arr = aer_mult * (base_aer - 0.12 * np.abs(base_aer) ** 0.5)
     f_non_co2 = 0.75 * ((y_arr - 1925.0) / 100.0) ** 2.2
     f_osc_arr = enso_amp * (
-        np.sin(2 * np.pi * y_arr / 3.8) + np.sin(2 * np.pi * y_arr / 5.5)
+        np.sin(2 * np.pi * (y_arr - 1925) / 3.8)
+        + 0.7 * np.sin(2 * np.pi * (y_arr - 1925) / 5.5)
+        + 0.4 * np.sin(2 * np.pi * (y_arr - 1925) / 2.7)
     )
     f_volc_arr = np.zeros(total_steps)
     volc_data = np.array([
