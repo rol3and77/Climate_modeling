@@ -1239,7 +1239,7 @@ def aerosol_effect(y, mult):
 def fast_core(
     total_steps, START_YEAR, dt, land_frac, ocean_frac,
     C_land, C_mixed, C_deep, INITIAL_TEMP,
-    lambda_base, aer_mult, k_lo, enso_amp, volc_mult, co2_path,
+    lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult, co2_path,
 ):
     Tl = np.zeros(total_steps)
     Tm = np.zeros(total_steps)
@@ -1312,7 +1312,7 @@ def run_model(params, init_temp, end_year=2025, end_co2=427):
     Tl, Tm, Td = fast_core(
         total_steps, START_YEAR, dt, land_frac, ocean_frac,
         C_land, C_mixed, C_deep, init_temp,
-        lambda_base, aer_mult, k_lo, enso_amp, volc_mult, co2_path,
+        lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult, co2_path,
     )
     daily_res = land_frac * Tl + ocean_frac * Tm
     return (
@@ -1898,7 +1898,7 @@ elif page == "시나리오 기반 기후 변화 예측":
         }
 
         res_full, _, _, _, _ = run_model(
-            [1.5, 1.0, 2.0, 0.12],
+            [1.5, 1.0, 2.0, 0.12, 1.0, 0.75],
             -0.22,
             end_year=2100,
             end_co2=emission_map[policy],
@@ -2254,7 +2254,7 @@ elif page == "기후 시스템 파라미터 실험":
         exp_klo = 2.0
         exp_enso = 0.12
 
-        custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso]
+        custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso, 1.0, 0.75]
         res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
             custom_params,
             -0.22,
