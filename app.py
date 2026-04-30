@@ -4,6 +4,8 @@ from climate_core import (
     years_axis,
     START_YEAR,
     END_YEAR,
+    co2_forcing,
+    aerosol_effect,
 )
 
 from data_loader import load_manual_obs
@@ -57,6 +59,60 @@ def sec(title):
             {title}
         </div>
     """, unsafe_allow_html=True)
+    def render_metric(label, val, unit="", note=""):
+    st.markdown(
+        f"""
+<div class="mcard">
+  <div class="mcard-label">{label}</div>
+  <div class="mcard-val">{val}<span class="mcard-unit">{unit}</span></div>
+  <div class="mcard-note">{note}</div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def grid_gap(height="1.2rem"):
+    st.markdown(f'<div style="height:{height};"></div>', unsafe_allow_html=True)
+
+
+def _styled_fig(nrows=1, ncols=1, figsize=(12, 5)):
+    fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
+    fig.patch.set_facecolor("#ffffff")
+    return fig, axes
+
+
+def _apply_chart_style(ax, title="", xlabel="", ylabel=""):
+    ax.set_facecolor("#ffffff")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    ax.spines["left"].set_color("#dbe7f5")
+    ax.spines["bottom"].set_color("#dbe7f5")
+    ax.spines["left"].set_linewidth(1.0)
+    ax.spines["bottom"].set_linewidth(1.0)
+
+    ax.tick_params(colors="#7a8da8", labelsize=9)
+    ax.grid(True, color="#e6eef8", linewidth=0.8, linestyle="-", alpha=0.75)
+
+    if title:
+        ax.set_title(title, fontsize=12, fontweight="bold", color="#0f2744", pad=14)
+    if xlabel:
+        ax.set_xlabel(xlabel, fontsize=9, color="#7a8da8", labelpad=8)
+    if ylabel:
+        ax.set_ylabel(ylabel, fontsize=9, color="#7a8da8", labelpad=8)
+
+
+@st.cache_data
+def load_report_file():
+    report_candidates = [
+        Path("기후모델 웹사이트 분석 리포트.docx"),
+        Path("./기후모델 웹사이트 분석 리포트.docx"),
+    ]
+    for path in report_candidates:
+        if path.exists():
+            return path.name, path.read_bytes()
+    return None, None
     
 # ── 페이지 설정 ──────────────────────────────────────────────────────────────
 st.set_page_config(
