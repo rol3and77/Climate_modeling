@@ -29,7 +29,7 @@ def load_manual_obs():
     nasa_data = load_nasa_gistemp()
 
     obs_datasets = {
-        "NASA GISS (GISTEMP v4 - Real Data)": nasa_data,
+        "NASA GISS (GISTEMP v4)": nasa_data,
     }
 
     return obs_datasets
