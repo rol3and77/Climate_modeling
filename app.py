@@ -2187,13 +2187,14 @@ elif page == "기후 시스템 파라미터 실험":
     with main_col:
         page_header(
             "기후 시스템 파라미터 실험",
-            "핵심 기후 파라미터를 직접 조정하여 장기 온난화 경로 변화를 탐색합니다",
+            "CO₂·기후 피드백·에어로졸 값을 조정하여 장기 온난화 경로 변화를 탐색합니다",
         )
 
         render_infobox(
             "분석 목적",
-            "기후 피드백 강도, 에어로졸 냉각, 해양 열흡수, 내부 변동성과 같은 핵심 파라미터가 "
-            "장기 온난화 결과에 어떤 영향을 주는지 탐색하기 위해 구성되었습니다.",
+            "사용자가 직접 조정할 수 있는 CO₂ 농도, 기후 피드백 강도, 에어로졸 냉각 효과가 "
+            "장기 온난화 결과에 어떤 영향을 주는지 탐색하기 위해 구성되었습니다. "
+            "해양 열흡수, ENSO, 화산 강제력, 비CO₂ 인위적 강제력은 현재 화면에서는 기준값으로 고정되어 있습니다.",
         )
 
         with st.container(border=True, key="param_panel"):
@@ -2283,14 +2284,24 @@ elif page == "기후 시스템 파라미터 실험":
                 '  <div class="cond-item">',
                 '    <div class="cond-label">Ocean Heat</div>',
                 f'    <div class="cond-val">{exp_klo:.2f}</div>',
-                '    <div class="cond-base">고정값</div>',
+                '    <div class="cond-base">현재 UI에서는 고정</div>',
                 "  </div>",
                 '  <div class="cond-item">',
                 '    <div class="cond-label">ENSO</div>',
                 f'    <div class="cond-val">{exp_enso:.2f}</div>',
-                '    <div class="cond-base">고정값</div>',
+                '    <div class="cond-base">현재 UI에서는 고정</div>',
                 "  </div>",
-                "</div>",
+                "  </div>",
+                '  <div class="cond-item">',
+                '    <div class="cond-label">Volcanic</div>',
+                '    <div class="cond-val">1.00</div>',
+                '    <div class="cond-base">현재 UI에서는 고정</div>',
+                "  </div>",
+                '  <div class="cond-item">',
+                '    <div class="cond-label">Non-CO₂</div>',
+                '    <div class="cond-val">0.75</div>',
+                '    <div class="cond-base">현재 UI에서는 고정</div>',
+                "  </div>",
             ]
         )
 
