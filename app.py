@@ -1250,7 +1250,7 @@ def fast_core(
     fp_aer = np.array([0.0, -0.08, -0.35, -0.75, -0.95, -0.55, -0.25])
     base_aer = np.interp(y_arr, xp_aer, fp_aer)
     aer_arr = aer_mult * base_aer
-    f_non_co2 = 0.75 * ((y_arr - 1925.0) / 100.0) ** 2.2
+    f_non_co2 = nonco2_mult * ((y_arr - 1925.0) / 100.0) ** 2.2
     f_osc_arr = enso_amp * (
         np.sin(2 * np.pi * (y_arr - 1925) / 3.8)
         + 0.7 * np.sin(2 * np.pi * (y_arr - 1925) / 5.5)
@@ -1300,7 +1300,7 @@ def fast_core(
 
 @st.cache_data
 def run_model(params, init_temp, end_year=2025, end_co2=427):
-    lambda_base, aer_mult, k_lo, enso_amp, volc_mult = params
+    lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult = params
     current_years_count = int(end_year - START_YEAR + 1)
     total_steps = current_years_count * 365
     y_lin = np.linspace(START_YEAR, end_year, total_steps)
@@ -1333,11 +1333,11 @@ def get_optimized_params(obs_data):
         return np.mean((m - obs_data) ** 2)
 
     starts = [
-        [1.5, 1.0, 2.0, 0.12, 1.0],
-        [1.0, 1.2, 1.5, 0.10, 0.8],
-        [2.0, 0.8, 2.5, 0.15, 1.2],
-        [1.3, 1.5, 3.0, 0.08, 0.6],
-        [1.8, 0.7, 1.0, 0.18, 1.5],
+        [1.5, 1.0, 2.0, 0.12, 1.0, 0.75],
+        [1.0, 1.2, 1.5, 0.10, 0.8, 0.6],
+        [2.0, 0.8, 2.5, 0.15, 1.2, 0.9],
+        [1.3, 1.5, 3.0, 0.08, 0.6, 0.5],
+        [1.8, 0.7, 1.0, 0.18, 1.5, 1.0],
     ]
 
     bounds = [
@@ -1346,6 +1346,7 @@ def get_optimized_params(obs_data):
         (0.5, 3.5),   # land-ocean heat exchange
         (0.05, 0.25), # ENSO amplitude
         (0.3, 2.0),   # volcanic forcing multiplier
+        (0.3, 1.5),   # nonco2_mult
     ]
 
     best_res = None
