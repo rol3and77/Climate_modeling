@@ -1379,24 +1379,45 @@ def load_report_file():
 
 # ── Matplotlib 공통 스타일 ────────────────────────────────────────────────────
 def _apply_chart_style(ax, title="", xlabel="", ylabel=""):
-    ax.set_facecolor("#f8fafc")
+    ax.set_facecolor("#ffffff")
+
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.spines["left"].set_color("#d6e2f0")
-    ax.spines["bottom"].set_color("#d6e2f0")
-    ax.tick_params(colors="#64748b", labelsize=9)
-    ax.grid(True, color="#d6e2f0", linewidth=0.7, linestyle="--", alpha=0.6)
+
+    ax.spines["left"].set_color("#dbe7f5")
+    ax.spines["bottom"].set_color("#dbe7f5")
+    ax.spines["left"].set_linewidth(1.0)
+    ax.spines["bottom"].set_linewidth(1.0)
+
+    ax.tick_params(colors="#7a8da8", labelsize=9)
+
+    ax.grid(
+        True,
+        color="#e6eef8",
+        linewidth=0.8,
+        linestyle="-",
+        alpha=0.75,
+    )
+
     if title:
-        ax.set_title(title, fontsize=11, fontweight="bold", color="#0f2744", pad=10)
+        ax.set_title(
+            title,
+            fontsize=12,
+            fontweight="bold",
+            color="#0f2744",
+            pad=14,
+        )
+
     if xlabel:
-        ax.set_xlabel(xlabel, fontsize=9, color="#64748b")
+        ax.set_xlabel(xlabel, fontsize=9, color="#7a8da8", labelpad=8)
+
     if ylabel:
-        ax.set_ylabel(ylabel, fontsize=9, color="#64748b")
+        ax.set_ylabel(ylabel, fontsize=9, color="#7a8da8", labelpad=8)
 
 
 def _styled_fig(nrows=1, ncols=1, figsize=(12, 5)):
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
-    fig.patch.set_facecolor("#f8fafc")
+    fig.patch.set_facecolor("#ffffff")
     return fig, axes
 
 
