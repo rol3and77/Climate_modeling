@@ -2267,7 +2267,7 @@ elif page == "기후 시스템 파라미터 실험":
             '  <div class="cond-item">',
             '    <div class="cond-label">CO₂ (2100)</div>',
             f'    <div class="cond-val">{exp_co2:.0f} ppm</div>',
-            f'    <div class="cond-base">기준: {baseline_co2:.0f} ppm</div>',
+            f'    <div class="cond-base">기준: 550 ppm</div>',
             "  </div>",
         
             '  <div class="cond-item">',
