@@ -2409,9 +2409,7 @@ elif page == "모델 적합도 및 관측자료 비교":
         err = 2 * (best_global - current_obs_data) / (
             np.abs(best_global) + np.abs(current_obs_data) + 0.2
         ) * 100
-        
-        avg_err = np.mean(np.abs(err))  
-        
+                
         avg_err = np.mean(np.abs(err))
         rmse = np.sqrt(np.mean((best_global - current_obs_data) ** 2))
         mae = np.mean(np.abs(best_global - current_obs_data))
@@ -2460,7 +2458,7 @@ elif page == "모델 적합도 및 관측자료 비교":
             co2_forcing(np.interp(y, [1925, 2025], [306, 427]), best_global[int(y - 1925)])
             for y in years_axis
         ]
-        f_non_co2 = [0.75 * ((y - 1925) / 100) ** 2.2 for y in years_axis]
+        f_non_co2 = [best_params[5] * ((y - 1925) / 100) ** 2.2 for y in years_axis]
         f_aero = [aerosol_effect(y, best_params[1]) for y in years_axis]
         axes[1, 1].stackplot(
             years_axis, f_co2, f_non_co2,
@@ -2474,14 +2472,18 @@ elif page == "모델 적합도 및 관측자료 비교":
 
         f_volc = [
             sum(
-                s * np.exp(-(y - ys) / d)
+                best_params[4] * s * np.exp(-(y - ys) / d)
                 for ys, s, d in [(1963.2, -0.8, 1.2), (1982.3, -1.3, 1.5), (1991.4, -1.8, 1.8)]
                 if y >= ys
             )
             for y in years_axis
         ]
         f_osc = [
-            best_params[3] * (np.sin(2 * np.pi * y / 3.8) + np.sin(2 * np.pi * y / 5.5))
+            best_params[3] * (
+                np.sin(2 * np.pi * (y - 1925) / 3.8)
+                + 0.7 * np.sin(2 * np.pi * (y - 1925) / 5.5)
+                + 0.4 * np.sin(2 * np.pi * (y - 1925) / 2.7)
+            )
             for y in years_axis
         ]
         axes[2, 0].fill_between(years_axis, 0, f_volc, color="#64748b", alpha=0.55, label="Volcanic Forcing")
@@ -2837,9 +2839,8 @@ elif page == "연구 요약 및 보고서":
             "모델 구조와 물리적 가정",
             "모델은 육지, 해양 혼합층, 심해의 세 층으로 구성된 간이 에너지 균형 구조를 사용합니다. "
             "이산화탄소 복사 강제력, 에어로졸 냉각, 비이산화탄소 인위적 강제력, 화산 강제력, 내부 변동성을 포함하며, "
-            "전지구 평균 규모에서 장기 추세와 주요 기여 요인을 해석하는 데 초점을 둡니다.",
-            "본 모델은 단기 기상 예측 모델이 아니라, "
-            "전지구 평균 기온의 장기적 변화 경향을 설명하기 위한 단순화된 기후 모델입니다."
+            "전지구 평균 규모에서 장기 추세와 주요 기여 요인을 해석하는 데 초점을 둡니다. "
+            "본 모델은 단기 기상 예측 모델이 아니라, 전지구 평균 기온의 장기적 변화 경향을 설명하기 위한 단순화된 기후 모델입니다."
         )
 
         sec("연구 요약")
