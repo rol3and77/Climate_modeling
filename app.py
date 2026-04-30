@@ -1275,7 +1275,7 @@ def fast_core(
     base_forcing = f_non_co2 + aer_arr + f_volc_arr + f_osc_arr + F_offset
     for i in range(total_steps - 1):
         curr_T = land_frac * Tl[i] + ocean_frac * Tm[i]
-        dynamic_lambda = max(0.1, lambda_base - 0.15 * max(0.0, curr_T))
+        dynamic_lambda = max(0.8, lambda_base - 0.15 * max(0.0, curr_T))
         f_co2 = 5.35 * np.log(max(1.0, co2_path[i]) / 280.0) * (
             1.0 + 0.01 * max(0.0, curr_T)
         )
@@ -1333,18 +1333,18 @@ def get_optimized_params(obs_data):
         return np.mean((m - obs_data) ** 2)
 
     starts = [
-        [1.5, 1.0, 2.0, 0.12, 1.0, 0.75],
-        [1.0, 1.2, 1.5, 0.10, 0.8, 0.6],
-        [2.0, 0.8, 2.5, 0.15, 1.2, 0.9],
-        [1.3, 1.5, 3.0, 0.08, 0.6, 0.5],
-        [1.8, 0.7, 1.0, 0.18, 1.5, 1.0],
+        [1.5, 1.0, 2.0, 0.08, 1.0, 0.75],
+        [1.0, 1.2, 1.5, 0.06, 0.8, 0.6],
+        [2.0, 0.8, 2.5, 0.10, 1.2, 0.9],
+        [1.3, 1.5, 3.0, 0.05, 0.6, 0.5],
+        [1.8, 0.7, 1.0, 0.12, 1.5, 1.0],
     ]
 
     bounds = [
         (0.7, 2.3),   # lambda_base
         (0.5, 2.0),   # aerosol multiplier
         (0.5, 3.5),   # land-ocean heat exchange
-        (0.05, 0.25), # ENSO amplitude
+        (0.03, 0.15), # ENSO amplitude
         (0.3, 2.0),   # volcanic forcing multiplier
         (0.3, 1.5),   # nonco2_mult
     ]
