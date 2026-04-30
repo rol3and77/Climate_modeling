@@ -20,6 +20,18 @@ import plotly.graph_objects as go
 from pathlib import Path
 from urllib.parse import quote
 
+def page_header(title, subtitle=""):
+    st.markdown(f"""
+        <div style="margin-bottom: 1.5rem;">
+            <div style="font-size: 1.4rem; font-weight: 700; color: #0f2744;">
+                {title}
+            </div>
+            <div style="font-size: 0.95rem; color: #64748b; margin-top: 4px;">
+                {subtitle}
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
 # ── 페이지 설정 ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="기후 모델링 연구 대시보드",
