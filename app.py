@@ -27,6 +27,8 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+obs_datasets = load_manual_obs()
+
 # ── 페이지 / 네비게이션 상태 ───────────────────────────────────────────────────
 ALL_PAGES = [
     "시작 페이지",
