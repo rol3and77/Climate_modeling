@@ -13,12 +13,10 @@ C_land, C_mixed, C_deep = 2.0e7, 1.2e8, 2.0e9
 
 
 # ── 물리 함수 (핵심 계산 – 변경 금지) ─────────────────────────────────────────
-@st.cache_data
 def co2_forcing(C, T):
     return 5.35 * np.log(C / 280.0) * (1 + 0.01 * max(0, T))
 
 
-@st.cache_data
 def aerosol_effect(y, mult):
     base = np.interp(
         y,
@@ -90,7 +88,6 @@ def fast_core(
     return Tl, Tm, Td
 
 
-@st.cache_data
 def run_model(params, init_temp, end_year=2025, end_co2=427):
     lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult = params
     current_years_count = int(end_year - START_YEAR + 1)
@@ -116,7 +113,6 @@ def run_model(params, init_temp, end_year=2025, end_co2=427):
     )
 
 
-@st.cache_data
 def get_optimized_params(obs_data):
     init_temp = obs_data[0]
 
@@ -157,7 +153,6 @@ def get_optimized_params(obs_data):
 
     return best_res.x
 
-@st.cache_data
 def load_report_file():
     report_candidates = [
         Path("기후모델 웹사이트 분석 리포트.docx"),
