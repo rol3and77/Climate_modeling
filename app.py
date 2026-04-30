@@ -1236,7 +1236,7 @@ def aerosol_effect(y, mult):
 def fast_core(
     total_steps, START_YEAR, dt, land_frac, ocean_frac,
     C_land, C_mixed, C_deep, INITIAL_TEMP,
-    lambda_base, aer_mult, k_lo, enso_amp, co2_path,
+    lambda_base, aer_mult, k_lo, enso_amp, volc_mult, co2_path,
 ):
     Tl = np.zeros(total_steps)
     Tm = np.zeros(total_steps)
@@ -1261,7 +1261,7 @@ def fast_core(
         ys, s, d = volc_data[v, 0], volc_data[v, 1], volc_data[v, 2]
         for i in range(total_steps):
             if y_arr[i] >= ys:
-                f_volc_arr[i] += s * np.exp(-(y_arr[i] - ys) / d)
+                f_volc_arr[i] += volc_mult * s * np.exp(-(y_arr[i] - ys) / d)
     co2_init = 5.35 * np.log(max(1.0, 306.0) / 280.0) * (
         1.0 + 0.01 * max(0.0, INITIAL_TEMP)
     )
@@ -1298,7 +1298,7 @@ def fast_core(
 
 @st.cache_data
 def run_model(params, init_temp, end_year=2025, end_co2=427):
-    lambda_base, aer_mult, k_lo, enso_amp = params
+    lambda_base, aer_mult, k_lo, enso_amp, volc_mult = params
     current_years_count = int(end_year - START_YEAR + 1)
     total_steps = current_years_count * 365
     y_lin = np.linspace(START_YEAR, end_year, total_steps)
@@ -1310,7 +1310,7 @@ def run_model(params, init_temp, end_year=2025, end_co2=427):
     Tl, Tm, Td = fast_core(
         total_steps, START_YEAR, dt, land_frac, ocean_frac,
         C_land, C_mixed, C_deep, init_temp,
-        lambda_base, aer_mult, k_lo, enso_amp, co2_path,
+        lambda_base, aer_mult, k_lo, enso_amp, volc_mult, co2_path,
     )
     daily_res = land_frac * Tl + ocean_frac * Tm
     return (
@@ -1331,11 +1331,19 @@ def get_optimized_params(obs_data):
         return np.mean((m - obs_data) ** 2)
 
     starts = [
-        [1.5, 1.0, 2.0, 0.12],
-        [1.0, 1.2, 1.5, 0.10],
-        [2.0, 0.8, 2.5, 0.15],
-        [1.3, 1.5, 3.0, 0.08],
-        [1.8, 0.7, 1.0, 0.18],
+        [1.5, 1.0, 2.0, 0.12, 1.0],
+        [1.0, 1.2, 1.5, 0.10, 0.8],
+        [2.0, 0.8, 2.5, 0.15, 1.2],
+        [1.3, 1.5, 3.0, 0.08, 0.6],
+        [1.8, 0.7, 1.0, 0.18, 1.5],
+    ]
+
+    bounds = [
+        (0.7, 2.3),   # lambda_base
+        (0.5, 2.0),   # aerosol multiplier
+        (0.5, 3.5),   # land-ocean heat exchange
+        (0.05, 0.25), # ENSO amplitude
+        (0.3, 2.0),   # volcanic forcing multiplier
     ]
 
     best_res = None
@@ -1344,16 +1352,15 @@ def get_optimized_params(obs_data):
         res = minimize(
             objective,
             start,
-            bounds=[(0.7, 2.3), (0.5, 2.0), (0.5, 3.5), (0.05, 0.25)],
+            bounds=bounds,
             method="L-BFGS-B",
-            options={"maxiter": 80, "ftol": 1e-7},
+            options={"maxiter": 100, "ftol": 1e-8},
         )
 
         if best_res is None or res.fun < best_res.fun:
             best_res = res
 
     return best_res.x
-
 
 @st.cache_data
 def load_report_file():
@@ -2626,12 +2633,13 @@ elif page == "모델 검증 및 불확실성 정량화":
         samples = []
         for _ in range(20):
             noisy_params = np.array(diag_best_params) + rng.normal(
-                0, [0.08, 0.08, 0.10, 0.01], size=4
+                0, [0.08, 0.08, 0.10, 0.01, 0.10], size=5
             )
             noisy_params[0] = np.clip(noisy_params[0], 0.7, 2.3)
             noisy_params[1] = np.clip(noisy_params[1], 0.5, 2.0)
             noisy_params[2] = np.clip(noisy_params[2], 0.5, 3.5)
             noisy_params[3] = np.clip(noisy_params[3], 0.05, 0.25)
+            noisy_params[4] = np.clip(noisy_params[4], 0.3, 2.0)
             res_tmp, _, _, _, _ = run_model(noisy_params.tolist(), diag_obs_data[0])
             samples.append(res_tmp)
 
@@ -2661,7 +2669,7 @@ elif page == "모델 검증 및 불확실성 정량화":
         )
 
         sec("민감도 분석")
-        sens_options = ["기후 피드백 파라미터", "에어로졸 강도", "해양 열흡수 계수", "ENSO 진폭"]
+        sens_options = ["기후 피드백 파라미터", "에어로졸 강도", "해양 열흡수 계수", "ENSO 진폭", "화산 강제력"]
         sens_param = st.selectbox(
             "민감도 분석 파라미터",
             sens_options,
@@ -2674,6 +2682,7 @@ elif page == "모델 검증 및 불확실성 정량화":
             "에어로졸 강도": (np.linspace(0.5, 2.0, 12), 1),
             "해양 열흡수 계수": (np.linspace(0.5, 3.5, 12), 2),
             "ENSO 진폭": (np.linspace(0.05, 0.25, 12), 3),
+            "화산 강제력": (np.linspace(0.3, 2.0, 12), 4),
         }
         test_range, idx_change = param_config[sens_param]
 
