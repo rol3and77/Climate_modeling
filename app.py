@@ -2746,13 +2746,13 @@ elif page == "기후 모델링 용어 및 개념 정의":
              "본 모델은 시간에 따라 약해지는 지수 감쇠 형태로 이를 표현합니다.", False),
             ("화산 강제력 배율 (Volcanic Forcing Multiplier)",
              "화산 분출에 의한 냉각 효과의 강도를 조절하는 파라미터로, "
-             "값이 클수록 화산 영향이 더 크게 반영됩니다."),
+             "값이 클수록 화산 영향이 더 크게 반영됩니다.", False),
             ("엘니뇨-남방진동 (ENSO, El Nino-Southern Oscillation)",
              "열대 태평양의 해수면 온도와 대기 순환이 수년 주기로 변동하는 자연 내부 변동성입니다. "
              "장기 온난화 추세와 별개로 특정 연도의 기온을 높이거나 낮출 수 있습니다.", False),
             ("비이산화탄소 인위적 강제력 (Non-CO₂ Anthropogenic Forcing)",
              "메탄(CH₄), 아산화질소(N₂O) 등 CO₂ 이외의 온실가스와 기타 인위적 요인이 "
-             "기후 시스템에 미치는 추가적인 복사 강제력입니다."),
+             "기후 시스템에 미치는 추가적인 복사 강제력입니다.", False),
         ]
         for title, body, expanded in glossary_forcing:
             with st.expander(title, expanded=expanded):
