@@ -2,7 +2,7 @@
 기후 모델링 연구 대시보드  
 
 Live Demo  
-https://climatemodeling-28m9wh2qjv2p7qcajwxm8s.streamlit.app/?module=home
+(https://climatemodeling-c4rury6ybcuavrncmce2dl.streamlit.app/)
 
 ---
 
