@@ -2636,13 +2636,15 @@ elif page == "모델 검증 및 불확실성 정량화":
         samples = []
         for _ in range(20):
             noisy_params = np.array(diag_best_params) + rng.normal(
-                0, [0.08, 0.08, 0.10, 0.01, 0.10], size=5
+                0, [0.08, 0.08, 0.10, 0.01, 0.10, 0.08], size=6
             )
+            
             noisy_params[0] = np.clip(noisy_params[0], 0.7, 2.3)
             noisy_params[1] = np.clip(noisy_params[1], 0.5, 2.0)
             noisy_params[2] = np.clip(noisy_params[2], 0.5, 3.5)
             noisy_params[3] = np.clip(noisy_params[3], 0.05, 0.25)
             noisy_params[4] = np.clip(noisy_params[4], 0.3, 2.0)
+            noisy_params[5] = np.clip(noisy_params[5], 0.3, 1.5)
             res_tmp, _, _, _, _ = run_model(noisy_params.tolist(), diag_obs_data[0])
             samples.append(res_tmp)
 
