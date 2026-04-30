@@ -2263,16 +2263,18 @@ elif page == "기후 시스템 파라미터 실험":
             end_co2=exp_co2,
         )
 
-        cond_html = [
+        cond_html = "\n".join([
+            '<div class="cond-bar">',
+        
             '  <div class="cond-item">',
             '    <div class="cond-label">CO₂ (2100)</div>',
-            f'    <div class="cond-val">{exp_co2:.0f} ppm</div>',
-            f'    <div class="cond-base">기준: 550 ppm</div>',
+            f'    <div class="cond-val">{exp_co2:.0f} <span style="font-size:0.8rem;color:#94a3b8">ppm</span></div>',
+            '    <div class="cond-base">기준: 550 ppm</div>',
             "  </div>",
         
             '  <div class="cond-item">',
             '    <div class="cond-label">Aerosol</div>',
-            f'    <div class="cond-val">{exp_aer:.2f} 배율</div>',
+            f'    <div class="cond-val">{exp_aer:.2f} <span style="font-size:0.8rem;color:#94a3b8">배율</span></div>',
             '    <div class="cond-base">기준: 1.00</div>',
             "  </div>",
         
@@ -2305,8 +2307,10 @@ elif page == "기후 시스템 파라미터 실험":
             '    <div class="cond-val">0.75</div>',
             '    <div class="cond-base">현재 UI에서는 고정</div>',
             "  </div>",
-        ]
-
+        
+            '</div>',
+        ])
+        
         st.markdown(cond_html, unsafe_allow_html=True)
 
         sec("핵심 결과")
