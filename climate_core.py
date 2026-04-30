@@ -1,3 +1,8 @@
+import numpy as np
+from scipy.optimize import minimize
+from numba import njit
+
+
 # ── 관측 데이터 ───────────────────────────────────────────────────────────────
 START_YEAR, END_YEAR = 1925, 2025
 YEARS = END_YEAR - START_YEAR + 1
