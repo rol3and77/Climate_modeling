@@ -20,6 +20,8 @@ import plotly.graph_objects as go
 from pathlib import Path
 from urllib.parse import quote
 
+
+# ── UI helper 함수 ───────────────────────────────────────────────────
 def page_header(title, subtitle=""):
     st.markdown(f"""
         <div style="margin-bottom: 1.5rem;">
@@ -42,6 +44,19 @@ def render_infobox(title, body):
 """,
         unsafe_allow_html=True,
     )
+
+def sec(title):
+    st.markdown(f"""
+        <div style="
+            font-size:1.15rem;
+            font-weight:600;
+            margin-top:1.5rem;
+            margin-bottom:0.5rem;
+            color:#0f2744;
+        ">
+            {title}
+        </div>
+    """, unsafe_allow_html=True)
     
 # ── 페이지 설정 ──────────────────────────────────────────────────────────────
 st.set_page_config(
