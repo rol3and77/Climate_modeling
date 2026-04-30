@@ -1,15 +1,15 @@
-# Climate Modeling Research Dashboard
-기후 모델링 연구 대시보드
+# Climate Modeling Research Dashboard  
+기후 모델링 연구 대시보드  
 
 Live Demo  
-(https://climatemodeling-28m9wh2qjv2p7qcajwxm8s.streamlit.app/?module=home)
+https://climatemodeling-28m9wh2qjv2p7qcajwxm8s.streamlit.app/?module=home
 
 ---
 
 ## 1. Overview | 개요
 
 **EN**  
-This project is an academic-oriented interactive climate modeling dashboard that integrates a simplified physical energy-balance model with observational datasets. It enables exploration of long-term climate dynamics, emission scenarios, and prediction uncertainty.
+This project presents an academic-oriented interactive climate modeling dashboard that integrates a simplified physical energy balance model with observational datasets. It enables users to explore long-term climate dynamics, emission scenarios, and uncertainty in climate projections.
 
 **KR**  
 본 프로젝트는 단순화된 물리 기반 에너지 균형 모델과 관측 데이터를 결합하여 기후 변화의 장기 경향, 배출 시나리오, 그리고 예측 불확실성을 분석할 수 있도록 설계된 연구형 대시보드이다.
@@ -19,15 +19,15 @@ This project is an academic-oriented interactive climate modeling dashboard that
 ## 2. Objectives | 연구 목적
 
 **EN**
-- Build an interactive platform for climate system exploration  
+- Develop an interactive platform for climate system analysis  
 - Analyze long-term temperature response under emission scenarios  
-- Evaluate sensitivity of climate models to key parameters  
+- Evaluate sensitivity of the model to key physical parameters  
 - Validate model outputs using observational datasets  
 
 **KR**
 - 기후 시스템 분석을 위한 인터랙티브 플랫폼 구축  
 - 배출 시나리오에 따른 장기 기온 변화 분석  
-- 주요 파라미터에 대한 모델 민감도 평가  
+- 주요 물리 파라미터에 대한 모델 민감도 평가  
 - 관측 데이터 기반 모델 검증 수행  
 
 ---
@@ -47,7 +47,7 @@ This project is based on a simplified three-layer Energy Balance Model (EBM).
 - Volcanic forcing  
 - Internal variability (ENSO-like oscillation)  
 
-Model parameters are optimized using observational temperature datasets.
+Model parameters are calibrated using observational temperature datasets.
 
 ---
 
@@ -63,21 +63,21 @@ Model parameters are optimized using observational temperature datasets.
   - Climate feedback (λ)  
   - Aerosol forcing  
   - CO₂ concentration  
-- Real-time simulation update  
+- Real-time simulation updates  
 
 ### 4.3 Model Fit and Observation Comparison
-- Comparison with NASA GISTEMP data  
-- RMSE, MAE, Bias, sMAPE evaluation  
+- Comparison with NASA GISTEMP dataset  
+- RMSE, MAE, Bias, and sMAPE evaluation  
 - Decomposition of forcing contributions  
 
-### 4.4 Model Validation and Uncertainty
+### 4.4 Model Validation and Uncertainty Analysis
 - Residual diagnostics  
 - Monte Carlo-based uncertainty estimation  
 - Parameter sensitivity analysis  
 
 ### 4.5 Glossary
 - Explanation of key climate modeling concepts  
-- Radiative forcing, feedback, ENSO, etc.
+- Radiative forcing, feedback mechanisms, ENSO, etc.
 
 ---
 
@@ -118,7 +118,7 @@ Model parameters are optimized using observational temperature datasets.
 pip install -r requirements.txt  
 streamlit run app.py  
 
-또는 Live Demo 링크를 통해 바로 실행 가능하다.
+또는 Live Demo 링크를 통해 바로 실행할 수 있다.
 
 ---
 
@@ -126,10 +126,10 @@ streamlit run app.py
 
 This dashboard enables:
 
-- Exploration of climate response under emission scenarios  
-- Analysis of model sensitivity to parameter changes  
-- Quantitative comparison with observational data  
-- Understanding uncertainty in long-term climate projections  
+- Exploration of climate response under different emission scenarios  
+- Analysis of model sensitivity to parameter variations  
+- Quantitative comparison with observational datasets  
+- Interpretation of uncertainty in long-term climate projections  
 
 ---
 
@@ -144,11 +144,11 @@ This dashboard enables:
 
 ## 11. Future Work | 향후 연구 방향
 
-- 실제 관측 forcing 데이터 직접 연동 (CO₂, Aerosol, Volcanic)
-- 파라미터 자동 추정 알고리즘 개선 (optimization 안정성 향상)
-- ENSO 및 내부 변동성 모델 개선
-- 해양 열흡수 모델 정교화 (mixed layer → multi-layer 확장)
-- 장기 시뮬레이션 안정성 및 계산 성능 개선
+- 실제 관측 forcing 데이터 직접 연동 (CO₂, Aerosol, Volcanic)  
+- 파라미터 추정 알고리즘 개선 (optimization 안정성 향상)  
+- ENSO 및 내부 변동성 모델 개선  
+- 해양 열흡수 모델 정교화 (mixed layer → multi-layer 확장)  
+- 장기 시뮬레이션 안정성 및 계산 성능 개선  
 
 ---
 
