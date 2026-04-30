@@ -121,6 +121,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+def load_css(path="style.css"):
+    with open(path, "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+load_css()
+
 obs_datasets = load_manual_obs()
 
 # ── 페이지 / 네비게이션 상태 ───────────────────────────────────────────────────
