@@ -104,20 +104,19 @@ Model parameters are optimized using observational temperature datasets.
 
 ## 7. Project Structure | 프로젝트 구조
 
-climate_modeling/
-├── app.py # Streamlit UI
-├── climate_core.py # climate model and numerical computation
-├── data_loader.py # observational data loading
-├── style.css # UI styling
-├── requirements.txt
+    climate_modeling/
+    ├── app.py              # Streamlit UI
+    ├── climate_core.py     # climate model and numerical computation
+    ├── data_loader.py      # observational data loading
+    ├── style.css           # UI styling
+    ├── requirements.txt
 
 ---
 
 ## 8. Installation | 실행 방법
 
-```bash
-pip install -r requirements.txt
-streamlit run app.py
+pip install -r requirements.txt  
+streamlit run app.py  
 
 또는 Live Demo 링크를 통해 바로 실행 가능하다.
 
@@ -127,33 +126,35 @@ streamlit run app.py
 
 This dashboard enables:
 
-Exploration of climate response under emission scenarios
-Analysis of model sensitivity to parameter changes
-Quantitative comparison with observational data
-Understanding uncertainty in long-term climate projections
+- Exploration of climate response under emission scenarios  
+- Analysis of model sensitivity to parameter changes  
+- Quantitative comparison with observational data  
+- Understanding uncertainty in long-term climate projections  
 
 ---
 
 ## 10. Limitations | 한계
-Global mean 기반 단순 모델
-지역별 기후 변화 반영 불가
-일부 forcing은 경험적 함수 기반
-단기 변동성 재현에는 한계 존재
+
+- Global mean 기반 단순 모델  
+- 지역별 기후 변화 반영 불가  
+- 일부 forcing은 경험적 함수 기반  
+- 단기 변동성 재현에는 한계 존재  
 
 ---
 
 ## 11. Future Work | 향후 연구 방향
-고해상도 기후 모델 적용
-실제 forcing 데이터 연동
-머신러닝 기반 보정 모델 도입
-웹 애플리케이션 성능 개선
+
+- 고해상도 기후 모델 적용  
+- 실제 forcing 데이터 연동  
+- 머신러닝 기반 보정 모델 도입  
+- 웹 애플리케이션 성능 개선  
 
 ---
 
 ## 12. Author
 
-Name: 유환빈
-GitHub: https://github.com/rol3and77
+Name: 유환빈  
+GitHub: https://github.com/rol3and77  
 
 ---
 
