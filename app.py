@@ -2381,11 +2381,9 @@ elif page == "모델 적합도 및 관측자료 비교":
                 best_params, current_obs_data[0]
             )
 
-        err = np.where(
-            np.abs(current_obs_data) > 0.1,
-            ((best_global - current_obs_data) / np.abs(current_obs_data)) * 100,
-            0,
-        )
+        err = ((best_global - current_obs_data) / np.maximum(np.abs(current_obs_data), 0.2)) * 100
+        avg_err = np.mean(np.abs(err))
+        
         avg_err = np.mean(np.abs(err))
         rmse = np.sqrt(np.mean((best_global - current_obs_data) ** 2))
         mae = np.mean(np.abs(best_global - current_obs_data))
