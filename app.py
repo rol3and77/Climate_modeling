@@ -2306,7 +2306,6 @@ elif page == "기후 시스템 파라미터 실험":
             '    <div class="cond-base">현재 UI에서는 고정</div>',
             "  </div>",
         ]
-        )
 
         st.markdown(cond_html, unsafe_allow_html=True)
 
