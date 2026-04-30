@@ -59,7 +59,7 @@ def sec(title):
             {title}
         </div>
     """, unsafe_allow_html=True)
-    def render_metric(label, val, unit="", note=""):
+def render_metric(label, val, unit="", note=""):
     st.markdown(
         f"""
 <div class="mcard">
