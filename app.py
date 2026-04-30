@@ -31,6 +31,17 @@ def page_header(title, subtitle=""):
             </div>
         </div>
     """, unsafe_allow_html=True)
+
+def render_infobox(title, body):
+    st.markdown(
+        f"""
+<div class="infobox">
+  <div class="infobox-title">{title}</div>
+  <div class="infobox-body">{body}</div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
     
 # ── 페이지 설정 ──────────────────────────────────────────────────────────────
 st.set_page_config(
