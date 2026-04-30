@@ -1,3 +1,4 @@
+from data_loader import load_manual_obs
 import streamlit.components.v1 as components
 import plotly.graph_objects as go
 import streamlit as st
