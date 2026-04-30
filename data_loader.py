@@ -1,19 +1,35 @@
+import pandas as pd
+
+
+def load_nasa_gistemp():
+    url = "https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv"
+
+    df = pd.read_csv(url, skiprows=1)
+
+    # Year, J-D 컬럼만 사용
+    df = df[["Year", "J-D"]]
+
+    # 숫자가 아닌 값 제거
+    df = df[pd.to_numeric(df["Year"], errors="coerce").notna()]
+    df = df[pd.to_numeric(df["J-D"], errors="coerce").notna()]
+
+    df["Year"] = df["Year"].astype(int)
+    df["J-D"] = df["J-D"].astype(float)
+
+    # NASA 값은 보통 0.01°C 단위라서 100으로 나눔
+    df["Temp"] = df["J-D"] / 100
+
+    # 네 모델 범위에 맞게 1925년 이후만 사용
+    df = df[df["Year"] >= 1925]
+
+    return dict(zip(df["Year"], df["Temp"]))
+
+
 def load_manual_obs():
+    nasa_data = load_nasa_gistemp()
+
     obs_datasets = {
-        "NASA GISS (GISTEMP v4)": {
-            1925: -0.22, 1940: 0.10, 1950: -0.18, 1965: -0.10,
-            1980: 0.26, 1990: 0.48, 2000: 0.62,
-            2010: 0.88, 2020: 1.18, 2025: 1.38,
-        },
-        "Berkeley Earth (Land + Ocean)": {
-            1925: -0.18, 1940: 0.12, 1950: -0.15, 1965: -0.08,
-            1980: 0.28, 1990: 0.51, 2000: 0.65,
-            2010: 0.92, 2020: 1.24, 2025: 1.42,
-        },
-        "Hadley Centre (HadCRUT5)": {
-            1925: -0.25, 1940: 0.08, 1950: -0.20, 1965: -0.12,
-            1980: 0.22, 1990: 0.45, 2000: 0.60,
-            2010: 0.85, 2020: 1.15, 2025: 1.35,
-        },
+        "NASA GISS (GISTEMP v4 - Real Data)": nasa_data,
     }
+
     return obs_datasets
