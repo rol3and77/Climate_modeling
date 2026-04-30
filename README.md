@@ -144,10 +144,11 @@ This dashboard enables:
 
 ## 11. Future Work | 향후 연구 방향
 
-- 고해상도 기후 모델 적용  
-- 실제 forcing 데이터 연동  
-- 머신러닝 기반 보정 모델 도입  
-- 웹 애플리케이션 성능 개선  
+- 실제 관측 forcing 데이터 직접 연동 (CO₂, Aerosol, Volcanic)
+- 파라미터 자동 추정 알고리즘 개선 (optimization 안정성 향상)
+- ENSO 및 내부 변동성 모델 개선
+- 해양 열흡수 모델 정교화 (mixed layer → multi-layer 확장)
+- 장기 시뮬레이션 안정성 및 계산 성능 개선
 
 ---
 
