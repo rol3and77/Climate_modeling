@@ -16,8 +16,8 @@ def load_nasa_gistemp():
     df["Year"] = df["Year"].astype(int)
     df["J-D"] = df["J-D"].astype(float)
 
-    # NASA 값은 보통 0.01°C 단위라서 100으로 나눔
-    df["Temp"] = df["J-D"] / 100
+    # NASA 값
+    df["Temp"] = df["J-D"]
 
     # 네 모델 범위에 맞게 1925년 이후만 사용
     df = df[df["Year"] >= 1925]
