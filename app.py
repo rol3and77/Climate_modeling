@@ -1228,9 +1228,12 @@ def co2_forcing(C, T):
 
 @st.cache_data
 def aerosol_effect(y, mult):
-    base = np.interp(y, [1925, 1960, 1985, 2025], [0, -0.4, -0.9, -0.15])
-    return mult * (base - 0.12 * np.abs(base) ** 0.5)
-
+    base = np.interp(
+        y,
+        [1925, 1940, 1960, 1975, 1990, 2005, 2025],
+        [0.0, -0.08, -0.35, -0.75, -0.95, -0.55, -0.25],
+    )
+    return mult * base
 
 @njit
 def fast_core(
@@ -1243,10 +1246,10 @@ def fast_core(
     Td = np.zeros(total_steps)
     Tl[0] = Tm[0] = Td[0] = INITIAL_TEMP
     y_arr = START_YEAR + np.arange(total_steps) / 365.0
-    xp_aer = np.array([1925.0, 1960.0, 1985.0, 2025.0])
-    fp_aer = np.array([0.0, -0.4, -0.9, -0.15])
+    xp_aer = np.array([1925.0, 1940.0, 1960.0, 1975.0, 1990.0, 2005.0, 2025.0])
+    fp_aer = np.array([0.0, -0.08, -0.35, -0.75, -0.95, -0.55, -0.25])
     base_aer = np.interp(y_arr, xp_aer, fp_aer)
-    aer_arr = aer_mult * (base_aer - 0.12 * np.abs(base_aer) ** 0.5)
+    aer_arr = aer_mult * base_aer
     f_non_co2 = 0.75 * ((y_arr - 1925.0) / 100.0) ** 2.2
     f_osc_arr = enso_amp * (
         np.sin(2 * np.pi * (y_arr - 1925) / 3.8)
@@ -1267,10 +1270,7 @@ def fast_core(
     co2_init = 5.35 * np.log(max(1.0, 306.0) / 280.0) * (
         1.0 + 0.01 * max(0.0, INITIAL_TEMP)
     )
-    aer_init = aer_mult * (
-        np.interp(float(START_YEAR), xp_aer, fp_aer)
-        - 0.12 * np.abs(np.interp(float(START_YEAR), xp_aer, fp_aer)) ** 0.5
-    )
+    aer_init = aer_mult * np.interp(float(START_YEAR), xp_aer, fp_aer)
     F_offset = (lambda_base * INITIAL_TEMP) - (co2_init + aer_init)
     base_forcing = f_non_co2 + aer_arr + f_volc_arr + f_osc_arr + F_offset
     for i in range(total_steps - 1):
