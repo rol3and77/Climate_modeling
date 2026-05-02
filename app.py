@@ -1519,6 +1519,29 @@ elif page == "다중 관측 데이터 비교":
             "회색 영역은 자료 간 최소-최대 범위를 의미하며, 검은 점선은 관측자료 평균입니다. "
             "이 페이지는 특정 데이터셋 하나에 모델을 맞추기 전에, 관측자료 자체의 차이와 공통 경향을 확인하는 보조 분석 페이지입니다.",
         )
+    sec("데이터셋 간 편차 시계열")
+    
+    spread = max_obs - min_obs
+    
+    fig_spread, ax_spread = _styled_fig(figsize=(12, 4.5))
+    
+    ax_spread.plot(years_axis, spread, color="#ef4444", lw=2)
+    
+    _apply_chart_style(
+        ax_spread,
+        title="Spread Between Observation Datasets",
+        xlabel="Year",
+        ylabel="Max - Min (°C)",
+    )
+    
+    st.pyplot(fig_spread)
+    
+    sec("데이터셋 간 상관성")
+    
+    corr_matrix = np.corrcoef(all_obs)
+    
+    df_corr = pd.DataFrame(corr_matrix, index=obs_names, columns=obs_names)
+    st.dataframe(df_corr)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 기후 모델링 용어 및 개념 정의
