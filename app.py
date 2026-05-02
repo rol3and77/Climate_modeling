@@ -418,13 +418,11 @@ def render_settings(current_page):
         )
         
     elif current_page == "모델 적합도 및 관측자료 비교":
-        with st.container(border=True):
+        with st.container(border=True, key="dataset_box"):
             st.markdown(
                 """
-    <div style="font-size:1.45rem;font-weight:900;color:#1a56a0;margin-bottom:0.8rem;">
-    데이터셋 선택
-    </div>
-    <div style="height:4px;background:#dbe7f5;border-radius:999px;margin-bottom:1.2rem;"></div>
+    <div class="settings-title">데이터셋 선택</div>
+    <div class="settings-divider"></div>
     """,
                 unsafe_allow_html=True,
             )
