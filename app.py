@@ -1199,6 +1199,20 @@ elif page == "모델 적합도 및 관측자료 비교":
 
         plt.tight_layout()
         st.pyplot(fig)
+        
+        from io import BytesIO
+        
+        buf = BytesIO()
+        fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
+        buf.seek(0)
+        
+        st.download_button(
+            label="상세 분석 차트 다운로드 (PNG)",
+            data=buf,
+            file_name="climate_analysis_6charts.png",
+            mime="image/png",
+            use_container_width=True,
+        )
 
         render_infobox(
             "해석",
