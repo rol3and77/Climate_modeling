@@ -1423,10 +1423,23 @@ elif page == "다중 관측 데이터 비교":
             "단일 관측자료에만 의존하지 않고, 관측자료 간 범위와 평균을 함께 제시하여 모델 검증의 기준을 확장합니다.",
         )
 
+        obs_names_all = list(obs_datasets.keys())
+
+        selected_names = st.multiselect(
+            "비교할 관측 데이터셋 선택",
+            obs_names_all,
+            default=obs_names_all,
+        )
+
+        if len(selected_names) == 0:
+            st.warning("최소 1개 이상의 데이터셋을 선택하세요.")
+            st.stop()
+
         all_obs = []
         obs_names = []
 
-        for name, data in obs_datasets.items():
+        for name in selected_names:
+            data = obs_datasets[name]
             obs_vals = np.interp(
                 years_axis,
                 list(data.keys()),
@@ -1492,7 +1505,7 @@ elif page == "다중 관측 데이터 비교":
                 "데이터셋 수",
                 f"{len(obs_names)}",
                 "개",
-                "현재 불러온 관측자료 수",
+                "현재 선택된 관측자료 수",
             )
 
         with c2:
@@ -1519,30 +1532,98 @@ elif page == "다중 관측 데이터 비교":
             "회색 영역은 자료 간 최소-최대 범위를 의미하며, 검은 점선은 관측자료 평균입니다. "
             "이 페이지는 특정 데이터셋 하나에 모델을 맞추기 전에, 관측자료 자체의 차이와 공통 경향을 확인하는 보조 분석 페이지입니다.",
         )
-    sec("데이터셋 간 편차 시계열")
-    
-    spread = max_obs - min_obs
-    
-    fig_spread, ax_spread = _styled_fig(figsize=(12, 4.5))
-    
-    ax_spread.plot(years_axis, spread, color="#ef4444", lw=2)
-    
-    _apply_chart_style(
-        ax_spread,
-        title="Spread Between Observation Datasets",
-        xlabel="Year",
-        ylabel="Max - Min (°C)",
-    )
-    
-    st.pyplot(fig_spread)
-    
-    sec("데이터셋 간 상관성")
-    
-    corr_matrix = np.corrcoef(all_obs)
-    
-    df_corr = pd.DataFrame(corr_matrix, index=obs_names, columns=obs_names)
-    st.dataframe(df_corr)
 
+        sec("모델 vs 다중 관측 평균")
+
+        with st.spinner("다중 관측 평균에 맞춰 모델을 최적화하는 중입니다..."):
+            mean_best_params = get_optimized_params(mean_obs)
+            mean_model, _, _, _, _ = run_model(mean_best_params, mean_obs[0])
+
+        fig_cmp, ax_cmp = _styled_fig(figsize=(12, 5.2))
+
+        ax_cmp.fill_between(
+            years_axis,
+            min_obs,
+            max_obs,
+            color="#64748b",
+            alpha=0.14,
+            label="Observation Range",
+        )
+
+        ax_cmp.plot(
+            years_axis,
+            mean_obs,
+            color="#0f2744",
+            lw=2.4,
+            ls="--",
+            label="Mean Observation",
+        )
+
+        ax_cmp.plot(
+            years_axis,
+            mean_model,
+            color="#1a56a0",
+            lw=2.5,
+            label="Model fitted to Mean Observation",
+        )
+
+        _apply_chart_style(
+            ax_cmp,
+            title="Model vs Multi-Dataset Mean Observation",
+            xlabel="Year",
+            ylabel="Temperature Anomaly (°C)",
+        )
+
+        ax_cmp.legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()
+        st.pyplot(fig_cmp)
+
+        sec("데이터셋 간 편차 시계열")
+
+        spread = max_obs - min_obs
+
+        fig_spread, ax_spread = _styled_fig(figsize=(12, 4.8))
+
+        ax_spread.plot(
+            years_axis,
+            spread,
+            color="#ef4444",
+            lw=2.2,
+            label="Max - Min Spread",
+        )
+
+        ax_spread.fill_between(
+            years_axis,
+            0,
+            spread,
+            color="#ef4444",
+            alpha=0.12,
+        )
+
+        _apply_chart_style(
+            ax_spread,
+            title="Spread Between Observation Datasets",
+            xlabel="Year",
+            ylabel="Max - Min Difference (°C)",
+        )
+
+        ax_spread.legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()
+        st.pyplot(fig_spread)
+
+        sec("데이터셋 간 상관성")
+
+        if len(obs_names) >= 2:
+            corr_matrix = np.corrcoef(all_obs)
+            df_corr = pd.DataFrame(
+                corr_matrix,
+                index=obs_names,
+                columns=obs_names,
+            )
+            st.dataframe(df_corr, use_container_width=True)
+        else:
+            st.info("상관계수 계산을 위해서는 최소 2개 이상의 데이터셋이 필요합니다.")
+            
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 기후 모델링 용어 및 개념 정의
 # ═══════════════════════════════════════════════════════════════════════════════
