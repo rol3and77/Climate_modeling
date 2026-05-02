@@ -1207,60 +1207,6 @@ elif page == "모델 적합도 및 관측자료 비교":
             "장기 추세 설명에는 유용하나 단기 변동 재현에는 제한이 있음을 보여줍니다.",
         )
 
-        sec("일별 상세 보기")
-
-        st.markdown(
-            """
-<div style="background:#ffffff; border:1px solid #d0dff0; border-radius:14px; padding:1rem 1.2rem 0.9rem 1.2rem; box-shadow:0 2px 10px rgba(26,86,160,0.06); margin-bottom:1rem;">
-  <div style="font-size:0.8rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.6rem;">
-    일별 상세 분석 연도 선택
-  </div>
-""",
-            unsafe_allow_html=True,
-        )
-        sl_col, btn_col = st.columns([4, 1], gap="medium")
-        with sl_col:
-            target_year = st.slider(
-                "연도", 1925, 2025,
-                int(st.session_state.get("main_target_year", 2024)),
-                key="main_target_year",
-                label_visibility="collapsed",
-            )
-        with btn_col:
-            df_export = pd.DataFrame({
-                "Year": years_axis,
-                "Observed": current_obs_data,
-                "Model_Anomaly": best_global,
-                "Deep_Ocean_Temp": best_td,
-            })
-            csv = df_export.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                label="CSV 다운로드",
-                data=csv,
-                file_name="climate_data.csv",
-                mime="text/csv",
-                use_container_width=True,
-            )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        y_idx = int(target_year - START_YEAR)
-        daily_segment = daily_all[y_idx * 365:(y_idx + 1) * 365]
-        fig_d, ax_d = _styled_fig(figsize=(12, 4.5))
-        ax_d.fill_between(range(1, 366), daily_segment, np.mean(daily_segment),
-                          alpha=0.15, color="#1a56a0")
-        ax_d.plot(range(1, 366), daily_segment, color="#1a56a0", lw=1.5)
-        ax_d.axhline(np.mean(daily_segment), color="#ef4444", ls="--", lw=1.5,
-                     label=f"Annual Mean: {np.mean(daily_segment):.3f}°C")
-        _apply_chart_style(
-            ax_d,
-            title=f"{target_year} Daily Temperature Evolution",
-            xlabel="Day of Year",
-            ylabel="Temperature Anomaly (°C)",
-        )
-        ax_d.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
-        plt.tight_layout()
-        st.pyplot(fig_d)
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 모델 검증 및 불확실성 정량화
