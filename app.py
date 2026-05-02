@@ -418,38 +418,37 @@ def render_settings(current_page):
         )
         
     elif current_page == "모델 적합도 및 관측자료 비교":
-        with st.container(border=True, key="dataset_box"):
-            st.markdown(
-                """
-    <div class="settings-title">데이터셋 선택</div>
-    <div class="settings-divider"></div>
-    """,
-                unsafe_allow_html=True,
+        obs_list = list(obs_datasets.keys())
+        current_choice = st.session_state.get("main_obs_choice", obs_list[0])
+    
+        html = [
+            '<div class="nav-panel dataset-panel">',
+            '<div class="nav-panel-title">데이터셋 선택</div>',
+            '<div class="nav-links">'
+        ]
+    
+        for i, name in enumerate(obs_list):
+            active = " active" if name == current_choice else ""
+            html.append(
+                f'<a class="nav-link{active}" href="?module=fit&dataset={i}" target="_self">{name}</a>'
             )
     
-            obs_list = list(obs_datasets.keys())
-            current_choice = st.session_state.get("main_obs_choice", obs_list[0])
+        html.append('</div></div>')
+        st.markdown("".join(html), unsafe_allow_html=True)
     
-            for name in obs_list:
-                is_active = name == current_choice
-                button_type = "primary" if is_active else "secondary"
+        dataset_q = st.query_params.get("dataset")
+        if dataset_q is not None:
+            idx = int(dataset_q)
+            if 0 <= idx < len(obs_list):
+                st.session_state["main_obs_choice"] = obs_list[idx]
+                current_choice = obs_list[idx]
     
-                if st.button(
-                    name,
-                    key=f"dataset_btn_{name}",
-                    use_container_width=True,
-                    type=button_type,
-                ):
-                    st.session_state["main_obs_choice"] = name
-                    st.rerun()
-    
-            controls["obs_choice"] = st.session_state.get("main_obs_choice", obs_list[0])
-    
-            controls["current_obs_data"] = np.interp(
-                years_axis,
-                list(obs_datasets[controls["obs_choice"]].keys()),
-                list(obs_datasets[controls["obs_choice"]].values()),
-            )
+        controls["obs_choice"] = current_choice
+        controls["current_obs_data"] = np.interp(
+            years_axis,
+            list(obs_datasets[current_choice].keys()),
+            list(obs_datasets[current_choice].values()),
+        )
     
     elif current_page == "모델 검증 및 불확실성 정량화":
         with st.container(border=True, key="diag_dataset_box"):
