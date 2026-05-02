@@ -607,6 +607,7 @@ if page == "시작 페이지":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "시나리오 기반 기후 변화 예측":
     st.query_params["module"] = "scenario"
+    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -904,6 +905,7 @@ setTimeout(() => {
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "기후 시스템 파라미터 실험":
     st.query_params["module"] = "experiment"
+    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1125,6 +1127,7 @@ elif page == "기후 시스템 파라미터 실험":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "모델 적합도 및 관측자료 비교":
     st.query_params["module"] = "fit"
+    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1283,6 +1286,7 @@ elif page == "모델 적합도 및 관측자료 비교":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "모델 검증 및 불확실성 정량화":
     st.query_params["module"] = "uncertainty"
+    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1440,6 +1444,7 @@ elif page == "모델 검증 및 불확실성 정량화":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "다중 관측 데이터 비교":
     st.query_params["module"] = "multi"
+    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1667,6 +1672,7 @@ elif page == "다중 관측 데이터 비교":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "기후 모델링 용어 및 개념 정의":
     st.query_params["module"] = "glossary"
+    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1774,6 +1780,7 @@ elif page == "기후 모델링 용어 및 개념 정의":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "연구 요약 및 보고서":
     st.query_params["module"] = "summary"
+    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
