@@ -1,5 +1,3 @@
-
-/* ── Google Font: DM Sans (웹안전 fallback 포함) ── */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 
 .chart-card {
@@ -25,7 +23,6 @@
     margin-bottom: 1rem;
 }
 
-/* 공통 카드 */
 .card {
     background: #ffffff;
     border-radius: 16px;
@@ -35,7 +32,6 @@
     margin-bottom: 18px;
 }
 
-/* 카드 제목 */
 .card-title {
     font-size: 14px;
     font-weight: 700;
@@ -44,7 +40,6 @@
     letter-spacing: 0.04em;
 }
 
-/* 카드 소제목 */
 .card-subtitle {
     font-size: 18px;
     font-weight: 700;
@@ -52,7 +47,6 @@
     margin-bottom: 10px;
 }
 
-/* 카드 내용 */
 .card-text {
     font-size: 14px;
     line-height: 1.6;
@@ -97,7 +91,6 @@
     color: #475569;
 }
 
-/* ── Reset & Base ─────────────────────────────────────────── */
 html, body, [class*="css"] {
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     -webkit-font-smoothing: antialiased;
@@ -110,7 +103,6 @@ section[data-testid="stSidebar"] { display: none; }
     max-width: 1400px;
 }
 
-/* ── Hero Card ────────────────────────────────────────────── */
 .hero {
     background: linear-gradient(135deg, #1a56a0 0%, #1e6fb8 55%, #2185d0 100%);
     border-radius: 20px;
@@ -171,7 +163,6 @@ section[data-testid="stSidebar"] { display: none; }
     border-radius: 999px;
 }
 
-/* ── Section Title ────────────────────────────────────────── */
 .sec-title {
     font-size: 1.05rem;
     font-weight: 800;
@@ -191,7 +182,6 @@ section[data-testid="stSidebar"] { display: none; }
     border-radius: 2px;
 }
 
-/* ── Metric Cards ─────────────────────────────────────────── */
 .mcard {
     background: #ffffff;
     border: 1px solid #d6e2f0;
@@ -239,7 +229,6 @@ section[data-testid="stSidebar"] { display: none; }
     line-height: 1.5;
 }
 
-/* ── Module Cards (Home) ──────────────────────────────────── */
 .modcard {
     background: #ffffff;
     border: 1px solid #d6e2f0;
@@ -300,7 +289,6 @@ section[data-testid="stSidebar"] { display: none; }
     margin: 0;
 }
 
-/* ── Info / Note Box ──────────────────────────────────────── */
 .infobox {
     background: #f0f6ff;
     border: 1px solid #bdd6f5;
@@ -323,7 +311,6 @@ section[data-testid="stSidebar"] { display: none; }
     color: #334155;
 }
 
-/* ── Left Nav Panel ───────────────────────────────────────── */
 .nav-panel {
     background: #f7f7f8;
     border: 2px solid #c9d8ea;
@@ -345,7 +332,6 @@ section[data-testid="stSidebar"] { display: none; }
     border-bottom: 3px solid #dde7f2;
 }
 
-/* ── nav-link 전용 스타일 ── */
 .nav-links {
     display: flex;
     flex-direction: column;
@@ -379,7 +365,6 @@ section[data-testid="stSidebar"] { display: none; }
 }
 .nav-hint { display: none; }
 
-/* ── Settings Shell ───────────────────────────────────────── */
 .settings-shell {
     background: #f7f7f8;
     border: 2px solid #c9d8ea;
@@ -400,7 +385,6 @@ section[data-testid="stSidebar"] { display: none; }
     border-bottom: 3px solid #dde7f2;
 }
 
-/* ── Source Expander ──────────────────────────────────────── */
 .src-box {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
@@ -409,7 +393,6 @@ section[data-testid="stSidebar"] { display: none; }
     margin-top: 0.6rem;
 }
 
-/* ── Paper Card ───────────────────────────────────────────── */
 .pcard {
     background: #ffffff;
     border: 1px solid #d6e2f0;
@@ -440,7 +423,6 @@ section[data-testid="stSidebar"] { display: none; }
     color: #475569;
 }
 
-/* ── Abstract Box ─────────────────────────────────────────── */
 .abstract-box {
     background: linear-gradient(180deg, #f0f6ff 0%, #e8f2ff 100%);
     border: 1px solid #bdd6f5;
@@ -462,7 +444,6 @@ section[data-testid="stSidebar"] { display: none; }
     color: #1e3a5f;
 }
 
-/* ── Buttons ──────────────────────────────────────────────── */
 div[data-testid="stButton"] > button {
     width: 100%;
     border-radius: 20px;
@@ -500,7 +481,6 @@ div[data-testid="stButton"] > button[kind="secondary"] {
     min-height: 3.4rem !important;
 }
 
-/* ── Download button ──────────────────────────────────────── */
 div[data-testid="stDownloadButton"] > button {
     border-radius: 12px;
     border: none;
@@ -518,7 +498,6 @@ div[data-testid="stDownloadButton"] > button:hover {
     box-shadow: 0 5px 18px rgba(21,96,189,0.45);
 }
 
-/* ══ Slider — 안정적인 깔끔 버전 ════════════════════════ */
 div[data-testid="stSlider"] {
     padding: 0.15rem 0 0.9rem 0;
     margin-bottom: 0.25rem;
@@ -583,7 +562,6 @@ div[data-testid="stSlider"] [data-testid="stTickBarMax"] {
     display: none !important;
 }
 
-/* ── Select & Input ───────────────────────────────────────── */
 div[data-baseweb="select"] > div {
     min-height: 64px !important;
     border: 2px solid #c9d8ea !important;
@@ -597,7 +575,6 @@ div[data-baseweb="select"] > div:hover {
     border-color: #9dbce2 !important;
 }
 
-/* ── Expander ─────────────────────────────────────────────── */
 details[data-testid="stExpander"] {
     border: 1px solid #d6e2f0;
     border-radius: 10px;
@@ -611,7 +588,6 @@ details[data-testid="stExpander"] summary {
 }
 details[data-testid="stExpander"] summary:hover { background: #f0f6ff; }
 
-/* ── Misc ─────────────────────────────────────────────────── */
 div[data-testid="stSpinner"] { color: #1a56a0 !important; }
 div[data-testid="stInfo"] {
     background: #f0f6ff;
@@ -623,7 +599,6 @@ div[data-testid="stCaptionContainer"] { color: #94a3b8; font-size: 0.8rem; }
 div[data-testid="stImage"] img,
 div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 
-/* ── Page Title ───────────────────────────────────────────── */
 .page-title {
     font-size: 1.7rem;
     font-weight: 800;
@@ -639,7 +614,6 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     margin-bottom: 1.1rem;
 }
 
-/* ── Condition Bar ────────────────────────────────────────── */
 .cond-bar {
     background: #ffffff;
     border: 1px solid #d6e2f0;
@@ -668,13 +642,11 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
 }
 .cond-base { font-size: 0.75rem; color: #94a3b8; }
 
-/* ── Responsive tweak ─────────────────────────────────────── */
 @media (max-width: 900px) {
     .hero-title { font-size: 1.6rem; }
     .block-container { padding: 1rem !important; }
 }
 
-/* ── Left Nav Links ───────────────────────────────────────── */
 .nav-links {
     display: flex;
     flex-direction: column;
@@ -775,13 +747,11 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     transition: all 0.2s ease;
 }
 
-/* hover */
 .scenario-step:hover .scenario-dot {
     transform: scale(1.15);
     border-color: #5b8fd6;
 }
 
-/* active */
 .scenario-step.active .scenario-dot {
     border: 7px solid #2b5ea7;
     transform: scale(1.2);
@@ -871,7 +841,7 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     opacity: 0.95;
     line-height: 1.6;
 }
-/* 카드 */
+
 .source-card {
     border-radius: 16px;
     padding: 0.9rem 1.1rem;
@@ -882,27 +852,23 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     transition: all 0.2s ease;
 }
 
-/* hover */
 .source-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 24px rgba(30, 64, 175, 0.15);
 }
 
-/* 헤더 */
 .source-header {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* 화살표 */
 .source-arrow {
     font-size: 0.9rem;
     transition: transform 0.2s ease;
     color: #1e40af;
 }
 
-/* 제목 */
 .source-title {
     font-size: 0.95rem;
     font-weight: 800;
@@ -917,7 +883,6 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     padding: 0.9rem 1rem;
 }
 
-/* 링크 카드 스타일 */
 .source-item {
     display: block;
     padding: 0.75rem 0.8rem;
@@ -935,7 +900,6 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     transform: translateX(3px);
 }
 
-/* 링크 제목 */
 .source-name {
     display: block;
     font-size: 0.83rem;
@@ -944,7 +908,6 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     margin-bottom: 0.25rem;
 }
 
-/* 설명 */
 .source-desc {
     display: block;
     font-size: 0.73rem;
@@ -1108,7 +1071,6 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     font-weight: 900;
 }
 
-/* Streamlit slider inside parameter cards */
 .param-card div[data-testid="stSlider"] {
     padding: 0 !important;
     margin: 0 !important;
@@ -1220,7 +1182,7 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     color: #2b6cb0 !important;
     top: -30px !important;
 }
-/* Parameter slider minimal */
+
 .st-key-param_panel {
     background: #ffffff;
     border: 1px solid #dbe7f5;
@@ -1342,11 +1304,43 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     top: 1rem;
     z-index: 20;
 }
-/* 왼쪽 column 전체를 스크롤 고정 */
+
 [data-testid="stHorizontalBlock"] > div:first-child {
     position: sticky !important;
     top: 1rem !important;
     align-self: flex-start !important;
     height: fit-content !important;
     z-index: 50 !important;
+}
+
+@media (min-width: 900px) {
+    div[data-testid="stElementContainer"]:has(.split-scroll-page) + div[data-testid="stHorizontalBlock"] {
+        height: calc(100vh - 5.5rem);
+        overflow: hidden;
+        align-items: stretch;
+    }
+
+    div[data-testid="stElementContainer"]:has(.split-scroll-page) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        height: calc(100vh - 5.5rem);
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 0.55rem;
+        scrollbar-width: thin;
+        position: static !important;
+        top: auto !important;
+        align-self: stretch !important;
+    }
+
+    div[data-testid="stElementContainer"]:has(.split-scroll-page) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]::-webkit-scrollbar {
+        width: 7px;
+    }
+
+    div[data-testid="stElementContainer"]:has(.split-scroll-page) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 999px;
+    }
+
+    div[data-testid="stElementContainer"]:has(.split-scroll-page) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]::-webkit-scrollbar-track {
+        background: transparent;
+    }
 }
