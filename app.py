@@ -207,88 +207,36 @@ def render_left_panel():
 def render_source_panel():
     source_html = (
         '<div class="source-card">'
+        '<details class="source-details">'
+        '<summary>'
+        '<span class="source-arrow">›</span>'
+        '<span class="source-title">자료 출처</span>'
+        '</summary>'
 
-        # =========================
-        # 제목
-        # =========================
-        '<div class="source-header">자료 출처</div>'
+        '<div class="source-content">'
+        '<div class="source-note">본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.</div>'
 
-        # =========================
-        # Observational Data
-        # =========================
-        '<div class="source-group">'
         '<div class="source-group-title">Observational Data</div>'
+        '<a class="source-item" href="https://data.giss.nasa.gov/gistemp/" target="_blank"><span class="source-name">NASA GISS (GISTEMP v4)</span><span class="source-desc">Global surface temperature dataset</span></a>'
+        '<a class="source-item" href="https://www.metoffice.gov.uk/hadobs/hadcrut5/" target="_blank"><span class="source-name">HadCRUT5</span><span class="source-desc">Met Office global temperature dataset</span></a>'
+        '<a class="source-item" href="https://berkeleyearth.org/data/" target="_blank"><span class="source-name">Berkeley Earth</span><span class="source-desc">Independent temperature reconstruction</span></a>'
+        '<a class="source-item" href="https://www.ncei.noaa.gov/access/monitoring/global-temperature-anomalies" target="_blank"><span class="source-name">NOAA Global Temperature</span><span class="source-desc">Alternative global temperature dataset</span></a>'
 
-        '<a class="source-item" href="https://data.giss.nasa.gov/gistemp/" target="_blank">'
-        '<span class="source-name">NASA GISS (GISTEMP v4)</span>'
-        '<span class="source-desc">Global surface temperature dataset</span>'
-        '</a>'
-
-        '<a class="source-item" href="https://www.metoffice.gov.uk/hadobs/hadcrut5/" target="_blank">'
-        '<span class="source-name">HadCRUT5</span>'
-        '<span class="source-desc">Met Office global temperature dataset</span>'
-        '</a>'
-
-        '<a class="source-item" href="https://berkeleyearth.org/data/" target="_blank">'
-        '<span class="source-name">Berkeley Earth</span>'
-        '<span class="source-desc">Independent global temperature reconstruction</span>'
-        '</a>'
-
-        '<a class="source-item" href="https://www.ncei.noaa.gov/access/monitoring/global-temperature-anomalies" target="_blank">'
-        '<span class="source-name">NOAA Global Temperature</span>'
-        '<span class="source-desc">Alternative global temperature dataset</span>'
-        '</a>'
-        '</div>'
-
-        # =========================
-        # Climate Reports
-        # =========================
-        '<div class="source-group">'
         '<div class="source-group-title">Climate Reports & Models</div>'
+        '<a class="source-item" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank"><span class="source-name">IPCC AR6</span><span class="source-desc">Scientific assessment report</span></a>'
+        '<a class="source-item" href="https://esgf-node.llnl.gov/projects/cmip6/" target="_blank"><span class="source-name">CMIP6</span><span class="source-desc">Climate model intercomparison</span></a>'
 
-        '<a class="source-item" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">'
-        '<span class="source-name">IPCC AR6</span>'
-        '<span class="source-desc">Climate change scientific assessment</span>'
-        '</a>'
-
-        '<a class="source-item" href="https://esgf-node.llnl.gov/projects/cmip6/" target="_blank">'
-        '<span class="source-name">CMIP6</span>'
-        '<span class="source-desc">Global climate model intercomparison</span>'
-        '</a>'
-        '</div>'
-
-        # =========================
-        # Atmospheric Data
-        # =========================
-        '<div class="source-group">'
         '<div class="source-group-title">Atmospheric Data</div>'
+        '<a class="source-item" href="https://gml.noaa.gov/ccgg/trends/" target="_blank"><span class="source-name">NOAA CO₂</span><span class="source-desc">Atmospheric CO₂ concentration</span></a>'
 
-        '<a class="source-item" href="https://gml.noaa.gov/ccgg/trends/" target="_blank">'
-        '<span class="source-name">NOAA CO₂</span>'
-        '<span class="source-desc">Atmospheric CO₂ concentration</span>'
-        '</a>'
-        '</div>'
-
-        # =========================
-        # Ocean & Forcing
-        # =========================
-        '<div class="source-group">'
         '<div class="source-group-title">Ocean & Forcing</div>'
+        '<a class="source-item" href="https://www.ncei.noaa.gov/access/global-ocean-heat-content/" target="_blank"><span class="source-name">NOAA Ocean Heat Content</span><span class="source-desc">Ocean heat storage dataset</span></a>'
+        '<a class="source-item" href="https://volcano.si.edu/" target="_blank"><span class="source-name">Smithsonian Volcano</span><span class="source-desc">Volcanic activity database</span></a>'
 
-        '<a class="source-item" href="https://www.ncei.noaa.gov/access/global-ocean-heat-content/" target="_blank">'
-        '<span class="source-name">NOAA Ocean Heat Content</span>'
-        '<span class="source-desc">Ocean heat storage dataset</span>'
-        '</a>'
-
-        '<a class="source-item" href="https://volcano.si.edu/" target="_blank">'
-        '<span class="source-name">Smithsonian Volcano</span>'
-        '<span class="source-desc">Volcanic forcing data</span>'
-        '</a>'
         '</div>'
-
+        '</details>'
         '</div>'
     )
-
     st.markdown(source_html, unsafe_allow_html=True)
     
 # ── Settings Panel (per page) ─────────────────────────────────────────────────
