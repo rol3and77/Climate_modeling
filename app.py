@@ -974,31 +974,81 @@ elif page == "기후 시스템 파라미터 실험":
             p1, p2, p3 = st.columns(3, gap="large")
 
             with p1:
-                co2 = st.slider(
-                    "2100년 CO2 농도 (ppm)",
-                    250, 1500,
-                    int(st.session_state.get("main_exp_co2", 550)),
-                    step=10,
-                    key="main_exp_co2",
-                )
+                with st.container(key="param_card_co2"):
+                    st.markdown(
+                        """
+<div class="param-control-head">
+  <div>
+    <div class="param-control-title">2100년 CO₂ 농도</div>
+    <div class="param-control-desc">대기 중 이산화탄소 농도 조건</div>
+  </div>
+  <div class="param-control-unit">ppm</div>
+</div>
+""",
+                        unsafe_allow_html=True,
+                    )
+                    co2 = st.number_input(
+                        "2100년 CO2 농도 (ppm)",
+                        min_value=250,
+                        max_value=1500,
+                        value=int(st.session_state.get("main_exp_co2", 550)),
+                        step=10,
+                        key="main_exp_co2",
+                        label_visibility="collapsed",
+                    )
+                    st.markdown('<div class="param-control-range">범위 250–1500 ppm · 기준 550 ppm</div>', unsafe_allow_html=True)
 
             with p2:
-                lam = st.slider(
-                    "기후 피드백 파라미터 (λ)",
-                    0.5, 3.0,
-                    float(st.session_state.get("main_exp_lambda", 1.5)),
-                    step=0.1,
-                    key="main_exp_lambda",
-                )
+                with st.container(key="param_card_lambda"):
+                    st.markdown(
+                        """
+<div class="param-control-head">
+  <div>
+    <div class="param-control-title">기후 피드백 파라미터</div>
+    <div class="param-control-desc">복사 되먹임에 의한 안정화 강도</div>
+  </div>
+  <div class="param-control-unit">λ</div>
+</div>
+""",
+                        unsafe_allow_html=True,
+                    )
+                    lam = st.number_input(
+                        "기후 피드백 파라미터 (λ)",
+                        min_value=0.5,
+                        max_value=3.0,
+                        value=float(st.session_state.get("main_exp_lambda", 1.5)),
+                        step=0.1,
+                        format="%.2f",
+                        key="main_exp_lambda",
+                        label_visibility="collapsed",
+                    )
+                    st.markdown('<div class="param-control-range">범위 0.50–3.00 W/m²/°C · 기준 1.50</div>', unsafe_allow_html=True)
 
             with p3:
-                aer = st.slider(
-                    "에어로졸 강도",
-                    0.0, 3.0,
-                    float(st.session_state.get("main_exp_aer", 1.0)),
-                    step=0.1,
-                    key="main_exp_aer",
-                )
+                with st.container(key="param_card_aer"):
+                    st.markdown(
+                        """
+<div class="param-control-head">
+  <div>
+    <div class="param-control-title">에어로졸 강도</div>
+    <div class="param-control-desc">에어로졸 냉각 효과의 상대 배율</div>
+  </div>
+  <div class="param-control-unit">×</div>
+</div>
+""",
+                        unsafe_allow_html=True,
+                    )
+                    aer = st.number_input(
+                        "에어로졸 강도",
+                        min_value=0.0,
+                        max_value=3.0,
+                        value=float(st.session_state.get("main_exp_aer", 1.0)),
+                        step=0.1,
+                        format="%.2f",
+                        key="main_exp_aer",
+                        label_visibility="collapsed",
+                    )
+                    st.markdown('<div class="param-control-range">범위 0.00–3.00 배율 · 기준 1.00</div>', unsafe_allow_html=True)
                 
         exp_co2 = co2
         exp_lambda = lam
