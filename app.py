@@ -1042,7 +1042,9 @@ elif page == "기후 시스템 파라미터 실험":
                 "°C",
                 "심해는 가장 느리게 반응",
             )
-
+            
+        sec("실험 결과 시계열")
+        
         fig, ax = _styled_fig(figsize=(12, 5.2))
 
         obs_vals = np.interp(
@@ -1083,15 +1085,8 @@ elif page == "기후 시스템 파라미터 실험":
         )
 
         ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
-        plt.tight_layout()
-        
-        open_chart_card(
-            "실험 결과 시계열",
-            "사용자가 설정한 파라미터에 따른 온도 변화 경로입니다."
-        )
+        plt.tight_layout()   
         st.pyplot(fig)
-
-        close_chart_card()
         
         render_infobox(
             "해석",
