@@ -1124,3 +1124,158 @@ div[data-testid="stPyplotRootElement"] {
 .st-key-param_panel div[data-testid="stTickBarMax"] {
     display: none !important;
 }
+
+/* Parameter panel: title + reset button + slider redesign */
+.st-key-param_panel {
+    background: #ffffff !important;
+    border: 1px solid #d8e5f3 !important;
+    border-radius: 24px !important;
+    padding: 1.35rem 1.45rem 1.25rem 1.45rem !important;
+    box-shadow: 0 8px 24px rgba(15, 39, 68, 0.07) !important;
+    margin: 1.1rem 0 1.45rem 0 !important;
+}
+
+.st-key-param_panel [data-testid="stVerticalBlockBorderWrapper"] {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+.param-panel-title-row {
+    padding: 0 0 0.9rem 0;
+}
+
+.param-panel-title {
+    font-size: 1.18rem;
+    font-weight: 900;
+    color: #0f2744;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+}
+
+.param-panel-subtitle {
+    margin-top: 0.34rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6b7f99;
+    line-height: 1.5;
+}
+
+.st-key-param_reset_btn {
+    display: flex !important;
+    justify-content: flex-end !important;
+    padding-top: 0.1rem !important;
+}
+
+.st-key-param_reset_btn button {
+    width: auto !important;
+    min-width: 4.7rem !important;
+    min-height: 2.05rem !important;
+    height: 2.05rem !important;
+    border-radius: 999px !important;
+    padding: 0 0.9rem !important;
+    border: 1px solid #c5d8ee !important;
+    background: #f8fbff !important;
+    color: #2b5ea7 !important;
+    font-size: 0.76rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.02em !important;
+    box-shadow: none !important;
+}
+
+.st-key-param_reset_btn button:hover {
+    border-color: #2b6cb0 !important;
+    background: #eef5ff !important;
+    color: #1a56a0 !important;
+    transform: translateY(-1px);
+}
+
+.param-slider-grid-marker {
+    height: 1px;
+    margin: 0.15rem 0 0.7rem 0;
+    background: #e4edf7;
+}
+
+/* Slider columns after marker */
+div[data-testid="stElementContainer"]:has(.param-slider-grid-marker) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    border: 1px solid #dde8f5;
+    border-radius: 18px;
+    padding: 1rem 1.1rem 0.8rem 1.1rem;
+    box-shadow: 0 3px 12px rgba(26, 86, 160, 0.045);
+}
+
+.st-key-param_panel div[data-testid="stSlider"] {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] label {
+    display: block !important;
+    margin-bottom: 1.05rem !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] label p {
+    font-size: 0.92rem !important;
+    font-weight: 900 !important;
+    color: #102a4c !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    letter-spacing: -0.03em !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] {
+    padding: 0.15rem 0 0.35rem 0 !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+    height: 7px !important;
+    border-radius: 999px !important;
+    background: #e5eef8 !important;
+    overflow: visible !important;
+    box-shadow: inset 0 1px 2px rgba(15, 39, 68, 0.08) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div {
+    height: 7px !important;
+    border-radius: 999px !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
+    background: linear-gradient(90deg, #2b6cb0 0%, #4f8fd8 100%) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [role="slider"] {
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    border: 3px solid #2b6cb0 !important;
+    box-shadow: 0 4px 10px rgba(43, 108, 176, 0.23) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
+    top: -31px !important;
+    color: #1f5fbf !important;
+    background: transparent !important;
+    font-size: 0.84rem !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+}
+
+.st-key-param_panel div[data-testid="stTickBarMin"],
+.st-key-param_panel div[data-testid="stTickBarMax"] {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .st-key-param_reset_btn {
+        justify-content: flex-start !important;
+        margin-bottom: 0.7rem !important;
+    }
+
+    div[data-testid="stElementContainer"]:has(.param-slider-grid-marker) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        margin-bottom: 0.75rem;
+    }
+}
