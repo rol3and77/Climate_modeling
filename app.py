@@ -421,6 +421,13 @@ def render_settings(current_page):
         obs_list = list(obs_datasets.keys())
         current_choice = st.session_state.get("main_obs_choice", obs_list[0])
     
+        dataset_q = st.query_params.get("dataset")
+        if dataset_q is not None:
+            idx = int(dataset_q)
+            if 0 <= idx < len(obs_list):
+                st.session_state["main_obs_choice"] = obs_list[idx]
+                current_choice = obs_list[idx]
+    
         html = [
             '<div class="nav-panel dataset-panel">',
             '<div class="nav-panel-title">데이터셋 선택</div>',
@@ -435,13 +442,6 @@ def render_settings(current_page):
     
         html.append('</div></div>')
         st.markdown("".join(html), unsafe_allow_html=True)
-    
-        dataset_q = st.query_params.get("dataset")
-        if dataset_q is not None:
-            idx = int(dataset_q)
-            if 0 <= idx < len(obs_list):
-                st.session_state["main_obs_choice"] = obs_list[idx]
-                current_choice = obs_list[idx]
     
         controls["obs_choice"] = current_choice
         controls["current_obs_data"] = np.interp(
