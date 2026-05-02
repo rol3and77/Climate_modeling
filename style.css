@@ -1448,3 +1448,180 @@ div[data-testid="stElementContainer"]:has(.param-slider-grid-marker) + div[data-
         align-self: flex-start;
     }
 }
+/* Parameter input card redesign */
+.st-key-param_panel {
+    background: #ffffff !important;
+    border: 1px solid #d7e6f7 !important;
+    border-radius: 26px !important;
+    padding: 1.55rem 1.65rem 1.75rem 1.65rem !important;
+    box-shadow: 0 10px 30px rgba(15, 39, 68, 0.055) !important;
+    margin: 1.1rem 0 1.5rem 0 !important;
+}
+
+.param-panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+}
+
+.param-panel-title {
+    font-size: 1.3rem;
+    font-weight: 950;
+    color: #0f2744;
+    letter-spacing: -0.045em;
+    line-height: 1.18;
+}
+
+.param-panel-subtitle {
+    margin-top: 0.45rem;
+    font-size: 0.86rem;
+    font-weight: 650;
+    color: #6f8098;
+    line-height: 1.5;
+}
+
+.param-reset-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 4.2rem;
+    height: 2.15rem;
+    padding: 0 0.85rem;
+    border-radius: 999px;
+    border: 1px solid #c8d9ee;
+    background: #f8fbff;
+    color: #1f5fbf !important;
+    font-size: 0.8rem;
+    font-weight: 850;
+    text-decoration: none !important;
+    box-shadow: 0 2px 8px rgba(31, 95, 191, 0.06);
+    transition: all 0.16s ease;
+    flex-shrink: 0;
+}
+
+.param-reset-link:hover {
+    background: #eef6ff;
+    border-color: #8fb3df;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(31, 95, 191, 0.12);
+}
+
+.param-panel-divider {
+    height: 1px;
+    width: 100%;
+    background: #e6eef8;
+    margin: 0 0 1.25rem 0;
+}
+
+.st-key-param_card_co2,
+.st-key-param_card_lambda,
+.st-key-param_card_aer {
+    background: linear-gradient(180deg, #fbfdff 0%, #f7faff 100%) !important;
+    border: 1px solid #dce9f7 !important;
+    border-radius: 20px !important;
+    padding: 1.1rem 1.15rem 1rem 1.15rem !important;
+    box-shadow: 0 8px 20px rgba(15, 39, 68, 0.045) !important;
+    min-height: 9rem !important;
+}
+
+.param-control-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.param-control-title {
+    font-size: 1rem;
+    font-weight: 950;
+    color: #0f2744;
+    letter-spacing: -0.04em;
+    line-height: 1.25;
+}
+
+.param-control-desc {
+    margin-top: 0.32rem;
+    font-size: 0.74rem;
+    font-weight: 650;
+    color: #7a8da8;
+    line-height: 1.45;
+}
+
+.param-control-unit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.55rem;
+    border-radius: 999px;
+    background: #eef5ff;
+    border: 1px solid #d7e6f7;
+    color: #2b6cb0;
+    font-size: 0.76rem;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+.st-key-param_card_co2 div[data-testid="stNumberInput"],
+.st-key-param_card_lambda div[data-testid="stNumberInput"],
+.st-key-param_card_aer div[data-testid="stNumberInput"] {
+    margin: 0 !important;
+}
+
+.st-key-param_card_co2 div[data-baseweb="input"],
+.st-key-param_card_lambda div[data-baseweb="input"],
+.st-key-param_card_aer div[data-baseweb="input"] {
+    min-height: 3.45rem !important;
+    border-radius: 16px !important;
+    border: 1.5px solid #c8d9ee !important;
+    background: #ffffff !important;
+    box-shadow: inset 0 1px 2px rgba(15, 39, 68, 0.025), 0 4px 12px rgba(15, 39, 68, 0.035) !important;
+}
+
+.st-key-param_card_co2 input,
+.st-key-param_card_lambda input,
+.st-key-param_card_aer input {
+    color: #1f5fbf !important;
+    font-size: 1.42rem !important;
+    font-weight: 950 !important;
+    text-align: center !important;
+    letter-spacing: -0.03em !important;
+}
+
+.st-key-param_card_co2 button,
+.st-key-param_card_lambda button,
+.st-key-param_card_aer button {
+    color: #2b6cb0 !important;
+    background: #f4f8fd !important;
+    border-color: #dce9f7 !important;
+}
+
+.st-key-param_card_co2 button:hover,
+.st-key-param_card_lambda button:hover,
+.st-key-param_card_aer button:hover {
+    background: #eaf3ff !important;
+}
+
+.param-control-range {
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1px dashed #d7e6f7;
+    color: #7a8da8;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+@media (max-width: 900px) {
+    .param-panel-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .param-reset-link {
+        align-self: flex-start;
+    }
+}
