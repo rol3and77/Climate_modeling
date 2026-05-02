@@ -472,15 +472,18 @@ if page == "시작 페이지":
 
     def modcard(num, title, desc, slug):
         href = f"?module={quote(slug)}"
-        st.markdown(
-            f"""
-<a class="modcard" href="{href}" target="_self">
-  <div class="modcard-num">Module {num:02d}</div>
-  <div class="modcard-title">{title}</div>
-  <div class="modcard-desc">{desc}</div>
-</a>""",
-            unsafe_allow_html=True,
-        )
+    
+        num_str = f"{num:02d}"
+    
+        html = f"""
+    <a class="modcard" href="{href}" target="_self">
+      <div class="modcard-num">Module {num_str}</div>
+      <div class="modcard-title">{title}</div>
+      <div class="modcard-desc">{desc}</div>
+    </a>
+    """
+    
+        st.markdown(html, unsafe_allow_html=True)
 
     row_gap = "1.2rem"
 
