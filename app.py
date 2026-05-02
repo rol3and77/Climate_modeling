@@ -200,7 +200,8 @@ def render_left_panel():
     nav_html.append("</div></div>")
 
     st.markdown("".join(nav_html), unsafe_allow_html=True)
-
+    
+def render_source_panel():
     source_html = (
         '<div class="source-card">'
         '<details class="source-details">'
@@ -214,7 +215,6 @@ def render_left_panel():
         '<a class="source-item" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank"><span class="source-name">IPCC AR6</span><span class="source-desc">기후 변화 과학적 기준</span></a>'
         '<a class="source-item" href="https://gml.noaa.gov/ccgg/trends/" target="_blank"><span class="source-name">NOAA CO₂</span><span class="source-desc">대기 중 CO₂ 농도 추세</span></a>'
         '<a class="source-item" href="https://volcano.si.edu/" target="_blank"><span class="source-name">Smithsonian Volcano</span><span class="source-desc">화산 강제력 데이터</span></a>'
-        '<a class="source-item" href="https://sealevel.nasa.gov/" target="_blank"><span class="source-name">NASA Sea Level</span><span class="source-desc">해수면 상승 데이터</span></a>'
         '</div>'
         '</details>'
         '</div>'
@@ -592,7 +592,8 @@ elif page == "시나리오 기반 기후 변화 예측":
     with left_col:
         render_left_panel()
         controls = render_settings(page)
-
+        render_source_panel()
+        
     with main_col:
         policy = controls["policy"]
 
@@ -887,7 +888,8 @@ elif page == "기후 시스템 파라미터 실험":
 
     with left_col:
         render_left_panel()
-
+        render_source_panel()
+        
     with main_col:
         page_header(
             "기후 시스템 파라미터 실험",
@@ -1106,7 +1108,7 @@ elif page == "모델 적합도 및 관측자료 비교":
     with left_col:
         render_left_panel()
         controls = render_settings(page)
-
+        render_source_panel()
     with main_col:
         obs_choice = controls["obs_choice"]
         current_obs_data = controls["current_obs_data"]
@@ -1260,7 +1262,8 @@ elif page == "모델 검증 및 불확실성 정량화":
     with left_col:
         render_left_panel()
         controls = render_settings(page)
-
+        render_source_panel()
+        
     with main_col:
         diag_obs_choice = controls["diag_obs_choice"]
         diag_obs_data = controls["diag_obs_data"]
@@ -1405,7 +1408,8 @@ elif page == "기후 모델링 용어 및 개념 정의":
 
     with left_col:
         render_left_panel()
-
+        render_source_panel()
+        
     with main_col:
         page_header("기후 모델링 용어 및 개념 정의",
                     "모델에서 사용되는 주요 기후학 개념 · 물리 파라미터 · 검증 지표 참고")
@@ -1506,7 +1510,8 @@ elif page == "연구 요약 및 보고서":
 
     with left_col:
         render_left_panel()
-
+        render_source_panel()
+        
     with main_col:
         page_header("연구 요약 및 보고서",
                     "연구 목적 · 모델 구조 · 해석 주의점 · 연구 의의")
