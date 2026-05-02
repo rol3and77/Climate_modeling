@@ -186,7 +186,7 @@ def render_left_panel():
         ("관측 비교", "모델 적합도 및 관측자료 비교", "fit"),
         ("다중 데이터", "다중 관측 데이터 비교", "multi"),
         ("모델 검증", "모델 검증 및 불확실성 정량화", "uncertainty"),
-        ("연구 요약", "연구 요약 및 보고서", "summary"),
+        ("연구 결과 요약", "연구 요약 및 보고서", "summary"),
         ("용어 정의", "기후 모델링 용어 및 개념 정의", "glossary"),
     ]
 
@@ -214,7 +214,7 @@ def render_source_panel():
         '</summary>'
 
         '<div class="source-content">'
-        '<div class="source-note">본 모델은 주요 공인 데이터를 바탕으로 구성되었습니다.</div>'
+        '<div class="source-note">본 모델은 주요 공인 관측자료와 기후 평가 보고서를 기반으로 구성하였다.</div>'
 
         '<div class="source-group-title">Observational Data</div>'
         '<a class="source-item" href="https://data.giss.nasa.gov/gistemp/" target="_blank"><span class="source-name">NASA GISS (GISTEMP v4)</span><span class="source-desc">Global surface temperature dataset</span></a>'
@@ -248,27 +248,27 @@ def render_settings(current_page):
         scenario_meta = {
             "탄소중립": {
                 "slug": "netzero",
-                "hero_desc": "탄소 배출을 빠르게 감축해 장기 온난화 위험을 최소화하는 경로입니다.",
+                "hero_desc": "탄소 배출을 빠르게 감축하여 장기적 온난화 위험을 최소화하는 경로이다.",
                 "co2": 280,
             },
             "저배출": {
                 "slug": "low",
-                "hero_desc": "감축 정책이 비교적 잘 작동해 온도 상승을 완화하는 시나리오입니다.",
+                "hero_desc": "온실가스 감축 정책이 효과적으로 이행되어 기온 상승을 완화하는 시나리오이다.",
                 "co2": 380,
             },
             "현재정책": {
                 "slug": "current",
-                "hero_desc": "현재 정책이 크게 강화되지 않는다는 가정 아래의 기준 시나리오입니다.",
+                "hero_desc": "현재 수준의 기후 정책이 크게 강화되지 않는다는 가정에 기반한 기준 시나리오이다.",
                 "co2": 550,
             },
             "고배출": {
                 "slug": "high",
-                "hero_desc": "배출 억제가 충분히 이루어지지 않아 온난화 속도가 더 커지는 경로입니다.",
+                "hero_desc": "배출 저감이 충분히 이루어지지 않아 온난화 속도가 증가하는 경로이다.",
                 "co2": 850,
             },
             "극단배출": {
                 "slug": "extreme",
-                "hero_desc": "배출이 거의 제어되지 않아 가장 큰 기후 리스크가 나타나는 경로입니다.",
+                "hero_desc": "배출이 거의 통제되지 않아 가장 큰 기후 위험이 발생하는 경로이다.",
                 "co2": 1500,
             },
         }
@@ -321,7 +321,7 @@ def render_settings(current_page):
     <div class="param-shell">
       <div class="param-head">
         <div class="param-title">파라미터 설정</div>
-        <div class="param-subtitle">기후 시스템 입력값을 조정해 장기 온난화 반응을 실험합니다.</div>
+        <div class="param-subtitle">기후 시스템의 입력 파라미터를 조정하여 장기 온난화 반응을 분석한다.</div>
       </div>
       <div class="param-reset-wrap">
             """,
@@ -347,7 +347,7 @@ def render_settings(current_page):
       <div class="param-card-top">
         <div>
           <div class="param-label">2100년 CO₂ 농도</div>
-          <div class="param-desc">값이 증가할수록 복사강제력이 커져 온난화가 증가한다.</div>
+          <div class="param-desc">값이 증가할수록 복사강제력이 증가하여 온난화 반응이 강화된다.</div>
         </div>
         <div class="param-value">
           <div class="param-value-main">{current_co2}</div>
@@ -378,7 +378,7 @@ def render_settings(current_page):
       <div class="param-card-top">
         <div>
           <div class="param-label">기후 피드백 파라미터 (λ)</div>
-          <div class="param-desc">값이 증가할수록 기후 시스템의 복원력이 강해진다.</div>
+          <div class="param-desc">값이 증가할수록 기후 시스템의 복사 되먹임에 의한 안정화 효과가 강화된다.</div>
         </div>
         <div class="param-value">
           <div class="param-value-main">{current_lambda:.2f}</div>
@@ -410,7 +410,7 @@ def render_settings(current_page):
       <div class="param-card-top">
         <div>
           <div class="param-label">에어로졸 강도</div>
-          <div class="param-desc">값이 증가할수록 냉각 효과가 증가한다.</div>
+          <div class="param-desc">값이 증가할수록 에어로졸에 의한 냉각 효과가 강화된다.</div>
         </div>
         <div class="param-value">
           <div class="param-value-main">{current_aer:.2f}</div>
@@ -531,7 +531,7 @@ if page == "시작 페이지":
         unsafe_allow_html=True,
     )
 
-    sec("분석 모듈 바로가기")
+    sec("분석 모듈 구성")
 
     def modcard(num, title, desc, slug):
         href = f"?module={quote(slug)}"
@@ -570,14 +570,14 @@ if page == "시작 페이지":
         modcard(
             3,
             "모델 적합도 및 관측자료 비교",
-            "관측 데이터 기반 모델 적합도 평가 및 잔차 분석",
+            "관측자료 기반 모델 적합도 평가 및 잔차 분석",
             "fit",
         )
     with r2c2:
         modcard(
             4,
             "다중 데이터 비교",
-            "여러 관측 데이터셋 간 차이 및 공통 경향 분석",
+            "복수 관측 데이터셋 간 편차 및 공통 경향 분석",
             "multi",
         )
 
@@ -588,19 +588,19 @@ if page == "시작 페이지":
          modcard(
             5,
             "모델 검증",
-            "모델 성능 평가 및 불확실성 정량화",
+            "모델 성능 검증 및 불확실성 정량화",
             "uncertainty",
         )
         
     with r3c2:
         modcard(
             6,
-            "연구 요약",
-            "모델 결과 및 주요 분석 내용 종합",
+            "연구 결과 요약",
+            "모델 구조, 주요 결과 및 해석상의 한계 종합",
             "summary",
         )
 
-    st.caption("모듈 카드를 클릭하면 해당 분석 페이지로 바로 이동합니다.")
+    st.caption("각 모듈 카드를 선택하면 해당 분석 페이지로 이동한다.")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 시나리오 기반 기후 변화 예측
@@ -688,7 +688,7 @@ elif page == "시나리오 기반 기후 변화 예측":
                 "1925–2100 전체 구간 평균 추세",
             )
 
-        sec("장기 기온 궤적")
+        sec("장기 기온 변화 궤적")
 
         obs_vals = np.interp(
             years_axis,
@@ -916,7 +916,7 @@ elif page == "기후 시스템 파라미터 실험":
     with main_col:
         page_header(
             "기후 시스템 파라미터 실험",
-            "CO₂·기후 피드백·에어로졸 값을 조정하여 장기 온난화 경로 변화를 탐색합니다",
+            "CO₂ 농도, 기후 피드백, 에어로졸 강도 변화에 따른 장기 온난화 경로 분석",
         )
 
         render_infobox(
@@ -936,7 +936,7 @@ elif page == "기후 시스템 파라미터 실험":
 파라미터 조정
 </div>
 <div style="font-size:0.84rem;font-weight:650;color:#7a8da8;margin-top:0.3rem;margin-bottom:1.15rem;">
-입력 파라미터 변화에 따른 기후 시스템 반응을 정량적으로 분석한다.
+입력 파라미터의 변화에 따른 기후 시스템의 열적 반응을 정량적으로 분석한다.
 </div>
 """,
                     unsafe_allow_html=True,
@@ -1016,25 +1016,25 @@ elif page == "기후 시스템 파라미터 실험":
             '  <div class="cond-item">',
             '    <div class="cond-label">Ocean Heat</div>',
             f'    <div class="cond-val">{exp_klo:.2f}</div>',
-            '    <div class="cond-base">현재 UI에서는 고정</div>',
+            '    <div class="cond-base">본 분석에서는 고정</div>',
             "  </div>",
         
             '  <div class="cond-item">',
             '    <div class="cond-label">ENSO</div>',
             f'    <div class="cond-val">{exp_enso:.2f}</div>',
-            '    <div class="cond-base">현재 UI에서는 고정</div>',
+            '    <div class="cond-base">본 분석에서는 고정</div>',
             "  </div>",
         
             '  <div class="cond-item">',
             '    <div class="cond-label">Volcanic</div>',
             '    <div class="cond-val">1.00</div>',
-            '    <div class="cond-base">현재 UI에서는 고정</div>',
+            '    <div class="cond-base">본 분석에서는 고정</div>',
             "  </div>",
         
             '  <div class="cond-item">',
             '    <div class="cond-label">Non-CO₂</div>',
             '    <div class="cond-val">0.75</div>',
-            '    <div class="cond-base">현재 UI에서는 고정</div>',
+            '    <div class="cond-base">본 분석에서는 고정</div>',
             "  </div>",
         
             '</div>',
@@ -1050,7 +1050,7 @@ elif page == "기후 시스템 파라미터 실험":
                 "2100년 육지 온도 상승",
                 f"+{tl_exp[-1]:.2f}",
                 "°C",
-                "육지는 상대적으로 빠르게 반응",
+                "육지 표면의 빠른 열적 응답 반영",
             )
 
         with c2:
@@ -1058,7 +1058,7 @@ elif page == "기후 시스템 파라미터 실험":
                 "2100년 해양 표층 온도 상승",
                 f"+{tm_exp[-1]:.2f}",
                 "°C",
-                "표층 해양의 완충 효과 반영",
+                "해양 혼합층의 열 저장 효과 반영",
             )
 
         with c3:
@@ -1066,10 +1066,10 @@ elif page == "기후 시스템 파라미터 실험":
                 "2100년 심해 온도 상승",
                 f"+{td_exp[-1]:.2f}",
                 "°C",
-                "심해는 가장 느리게 반응",
+                "심해의 장기 열 흡수 지연 반영",
             )
             
-        sec("실험 결과 시계열")
+        sec("파라미터 실험 결과 시계열")
         
         fig, ax = _styled_fig(figsize=(12, 5.2))
 
@@ -1141,7 +1141,7 @@ elif page == "모델 적합도 및 관측자료 비교":
         current_obs_data = controls["current_obs_data"]
 
         page_header("모델 적합도 및 관측자료 비교",
-                    "관측값 vs 모의값 차이 정량화 · 강제력 기여 요소 분해")
+                    "관측값과 모의값의 차이 정량화 · 강제력 기여 요소 분해")
 
         render_infobox(
             "분석 목적",
@@ -1170,13 +1170,13 @@ elif page == "모델 적합도 및 관측자료 비교":
         with c1:
             render_metric("RMSE", f"{rmse:.3f}", "°C", "제곱근 평균 오차")
         with c2:
-            render_metric("MAE", f"{mae:.3f}", "°C", "절대값 평균 오차")
+            render_metric("MAE", f"{mae:.3f}", "°C", "평균 절대 오차")
         with c3:
-            render_metric("Bias", f"{bias:.3f}", "°C", "과대/과소 예측 경향")
+            render_metric("Bias", f"{bias:.3f}", "°C", "모델의 평균적 과대·과소 추정 경향")
         with c4:
             render_metric("Mean sMAPE", f"{avg_err:.2f}", "%", "대칭 상대 오차 평균")
 
-        sec("상세 분석 차트")
+        sec("모델 적합도 및 강제력 분해 결과")
         fig, axes = _styled_fig(nrows=3, ncols=2, figsize=(16, 18))
         plt.subplots_adjust(hspace=0.42, wspace=0.32)
 
@@ -1299,7 +1299,7 @@ elif page == "모델 검증 및 불확실성 정량화":
         diag_obs_data = controls["diag_obs_data"]
 
         page_header("모델 검증 및 불확실성 정량화",
-                    "잔차 진단 · 파라미터 불확실성 범위 · 민감도 분석")
+                    "잔차 진단 · 파라미터 불확실성 범위 · 민감도 평가")
 
         render_infobox(
             "분석 목적",
@@ -1323,9 +1323,9 @@ elif page == "모델 검증 및 불확실성 정량화":
         with c2:
             render_metric("MAE", f"{mae_diag:.3f}", "°C", "평균 절대 오차")
         with c3:
-            render_metric("Bias", f"{bias_diag:.3f}", "°C", "전반적 편향")
+            render_metric("Bias", f"{bias_diag:.3f}", "°C", "모델 예측의 평균적 편향")
 
-        sec("잔차 진단")
+        sec("잔차 구조 진단")
         c1, c2 = st.columns(2)
         with c1:
             fig_rl, ax_rl = _styled_fig(figsize=(10, 4.5))
@@ -1347,7 +1347,7 @@ elif page == "모델 검증 및 불확실성 정량화":
             plt.tight_layout()
             st.pyplot(fig_rh)
 
-        sec("불확실성 범위")
+        sec("예측 불확실성 범위")
         rng = np.random.default_rng(42)
         samples = []
         for _ in range(20):
@@ -1388,10 +1388,10 @@ elif page == "모델 검증 및 불확실성 정량화":
             "따라서 단일 예측 경로보다 확률적 범위를 함께 제시하는 것이 보다 적절한 해석 방법이다.",
         )
 
-        sec("민감도 분석")
+        sec("민감도 평가")
         sens_options = ["기후 피드백 파라미터", "에어로졸 강도", "해양 열흡수 계수", "ENSO 진폭", "화산 강제력"]
         sens_param = st.selectbox(
-            "민감도 분석 파라미터",
+            "민감도 평가 대상 파라미터",
             sens_options,
             index=sens_options.index(st.session_state.get("main_sens_param", sens_options[0])),
             key="main_sens_param",
@@ -1457,13 +1457,13 @@ elif page == "다중 관측 데이터 비교":
         obs_names_all = list(obs_datasets.keys())
 
         selected_names = st.multiselect(
-            "비교할 관측 데이터셋 선택",
+            "비교 대상 관측 데이터셋 선택",
             obs_names_all,
             default=obs_names_all,
         )
 
         if len(selected_names) == 0:
-            st.warning("최소 1개 이상의 데이터셋을 선택하세요.")
+            st.warning("분석을 위해 최소 1개 이상의 관측 데이터셋을 선택해야 한다.")
             st.stop()
 
         all_obs = []
@@ -1485,7 +1485,7 @@ elif page == "다중 관측 데이터 비교":
         min_obs = np.min(all_obs, axis=0)
         max_obs = np.max(all_obs, axis=0)
 
-        sec("관측 데이터셋 동시 비교")
+        sec("관측 데이터셋 통합 비교")
 
         fig_multi, ax_multi = _styled_fig(figsize=(12, 5.5))
 
@@ -1527,7 +1527,7 @@ elif page == "다중 관측 데이터 비교":
         plt.tight_layout()
         st.pyplot(fig_multi)
 
-        sec("데이터셋별 편차 지표")
+        sec("관측 데이터셋별 편차 지표")
 
         c1, c2, c3 = st.columns(3)
 
@@ -1545,7 +1545,7 @@ elif page == "다중 관측 데이터 비교":
                 "평균 관측 범위",
                 f"{avg_spread:.3f}",
                 "°C",
-                "자료 간 평균 차이 범위",
+                "관측자료 간 평균 분산 범위",
             )
 
         with c3:
@@ -1554,7 +1554,7 @@ elif page == "다중 관측 데이터 비교":
                 "최근 관측 범위",
                 f"{final_spread:.3f}",
                 "°C",
-                "마지막 연도 기준 자료 간 차이",
+                "최종 연도 기준 관측자료 간 차이",
             )
 
         render_infobox(
@@ -1563,7 +1563,7 @@ elif page == "다중 관측 데이터 비교":
             "장기적인 온난화 추세는 일관되게 나타난다. "
             "이는 데이터 처리 방법의 차이에도 불구하고 기후 변화 신호가 강하게 나타남을 의미한다.",
         )
-        sec("모델 vs 다중 관측 평균")
+        sec("모델과 다중 관측 평균의 비교")
 
         with st.spinner("다중 관측 평균에 맞춰 모델을 최적화하는 중입니다..."):
             mean_best_params = get_optimized_params(mean_obs)
@@ -1608,7 +1608,7 @@ elif page == "다중 관측 데이터 비교":
         plt.tight_layout()
         st.pyplot(fig_cmp)
 
-        sec("데이터셋 간 편차 시계열")
+        sec("관측 데이터셋 간 편차 시계열")
 
         spread = max_obs - min_obs
 
@@ -1641,7 +1641,7 @@ elif page == "다중 관측 데이터 비교":
         plt.tight_layout()
         st.pyplot(fig_spread)
 
-        sec("데이터셋 간 상관성")
+        sec("관측 데이터셋 간 상관성")
 
         if len(obs_names) >= 2:
             corr_matrix = np.corrcoef(all_obs)
@@ -1652,7 +1652,7 @@ elif page == "다중 관측 데이터 비교":
             )
             st.dataframe(df_corr, use_container_width=True)
         else:
-            st.info("상관계수 계산을 위해서는 최소 2개 이상의 데이터셋이 필요합니다.")
+            st.info("상관계수 산출을 위해서는 최소 2개 이상의 데이터셋이 필요하다.")
             
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 기후 모델링 용어 및 개념 정의
@@ -1675,85 +1675,85 @@ elif page == "기후 모델링 용어 및 개념 정의":
 
         render_infobox(
             "페이지 안내",
-            "본 페이지는 모델에서 사용되는 주요 기후학 개념, 물리 파라미터, 검증 지표를 정리한 참고용 자료입니다. "
-            "그래프 해석 전에 필요한 개념을 빠르게 확인할 수 있도록 구성했습니다.",
+            "본 페이지는 모델에 사용된 주요 기후학 개념, 물리 파라미터, 검증 지표를 체계적으로 정리한 참고 자료이다. "
+            "그래프 해석에 필요한 핵심 개념을 사전에 확인할 수 있도록 구성하였다.",
         )
 
-        sec("기후 변화의 원인")
+        sec("기후 변화의 주요 강제 요인")
         glossary_forcing = [
             ("온실가스 복사 강제력 (Greenhouse Gas Radiative Forcing)",
-             "대기 중 온실가스가 지구 복사 에너지의 우주 방출을 감소시켜 "
-             "복사 평형을 변화시키는 현상입니다."
-             "이산화탄소 농도가 증가할수록 강제력이 커지며, 본 모델에서는 로그 함수 형태로 반영됩니다.", True),
+             "대기 중 온실가스가 지구 장파복사의 우주 방출을 감소시켜 "
+             "복사 평형을 변화시키는 현상이다."
+             "이산화탄소 농도가 증가할수록 복사강제력이 증가하며, 본 모델에서는 로그 함수 형태로 반영된다.", True),
             ("에어로졸 효과 (Aerosol Effect)",
-             "대기 중 에어로졸 입자가 태양복사를 반사하거나 구름의 반사도를 높여 태양 복사를 반사하거나 구름 반사도를 증가시켜 순복사 에너지를 감소시키는 과정입니다."
-             "온난화를 일부 상쇄하지만 시기와 지역에 따라 영향이 달라집니다.", False),
+             "대기 중 에어로졸 입자가 태양복사를 직접 산란·반사하거나 구름 반사도를 변화시켜 지표로 유입되는 순복사 에너지를 감소시키는 과정이다."
+             "온난화를 일부 상쇄할 수 있으나, 그 영향은 시기와 지역에 따라 달라진다.", False),
             ("화산 강제력 (Volcanic Forcing)",
-             "대규모 화산 분출 이후 성층권에 주입된 입자가 태양복사를 차단하여 단기 냉각을 유도하는 효과입니다. "
-             "본 모델은 시간에 따라 약해지는 지수 감쇠 형태로 이를 표현합니다.", False),
+             "대규모 화산 분출 이후 성층권에 주입된 에어로졸 입자가 태양복사를 차단하여 단기적 냉각을 유도하는 효과이다. "
+             "본 모델에서는 이를 시간에 따라 약화되는 지수 감쇠 형태로 표현한다.", False),
             ("화산 강제력 배율 (Volcanic Forcing Multiplier)",
-             "화산 분출에 의한 냉각 효과의 강도를 조절하는 파라미터로, "
-             "값이 클수록 화산 영향이 더 크게 반영됩니다.", False),
-            ("엘니뇨-남방진동 (ENSO, El Nino-Southern Oscillation)",
-             "열대 태평양 해수면 온도와 대기 순환의 상호작용으로 발생하는 자연 변동성으로, "
-             "전지구 기온에 단기적인 변동성을 유도합니다.", False),
+             "화산 분출에 의한 냉각 효과의 강도를 조절하는 파라미터이다. "
+             "값이 클수록 화산 강제력의 영향이 크게 반영된다.", False),
+            ("엘니뇨-남방진동 (ENSO, El Niño-Southern Oscillation)",
+             "열대 태평양의 해수면 온도와 대기 순환 간 상호작용으로 발생하는 자연 변동성이다. "
+             "전지구 평균기온에 단기적 변동성을 유도한다.", False),
             ("비이산화탄소 인위적 강제력 (Non-CO₂ Anthropogenic Forcing)",
              "메탄(CH₄), 아산화질소(N₂O) 등 CO₂ 이외의 온실가스와 기타 인위적 요인이 "
-             "기후 시스템에 미치는 추가적인 복사 강제력입니다.", False),
+             "기후 시스템에 작용하는 추가적인 복사강제력이다.", False),
         ]
         for title, body, expanded in glossary_forcing:
             with st.expander(title, expanded=expanded):
                 st.write(body)
 
-        sec("기후 시스템의 물리적 반응")
+        sec("기후 시스템의 물리적 응답")
         glossary_physics = [
             ("기온 편차 (Temperature Anomaly)",
-             "절대기온이 아니라 기준 기간 평균으로부터 얼마나 벗어났는지를 나타내는 값입니다. "
-             "서로 다른 시기와 자료를 비교할 때 널리 사용됩니다."),
+             "절대기온이 아니라 기준 기간 평균으로부터의 차이를 나타내는 값이다. "
+             "서로 다른 시기와 관측자료를 비교할 때 널리 사용된다."),
             ("열용량 (Heat Capacity)",
-             "물질의 온도를 1도 높이는 데 필요한 에너지 양입니다. "
-             "바다는 열용량이 커서 육지보다 천천히 가열되고 천천히 냉각됩니다."),
+             "물질의 온도를 1°C 상승시키는 데 필요한 에너지량이다. "
+             "해양은 열용량이 커 육지보다 느리게 가열되고 느리게 냉각된다."),
             ("해양 층위 분리 (Ocean Layering)",
-             "모델에서 해양을 혼합층과 심해로 구분하여 열 저장과 전달 과정을 표현하는 방식입니다. "
-             "이는 해양의 열관성과 장기 온난화 반응을 설명하는 데 중요합니다."),
+             "모델에서 해양을 혼합층과 심해로 구분하여 열 저장 및 전달 과정을 표현하는 방식이다. "
+             "이는 해양의 열관성과 장기 온난화 반응을 설명하는 데 중요하다."),
             ("열 교환 계수 (Heat Exchange Rate)",
-             "육지와 바다, 혹은 해양 표층과 심해 사이에 열이 얼마나 빠르게 이동하는지를 나타내는 계수입니다."),
+             "육지와 해양, 또는 해양 혼합층과 심해 사이의 열 전달 속도를 나타내는 계수이다."),
             ("기후 피드백 파라미터 (Climate Feedback Parameter)",
-             "기후 시스템이 따뜻해질수록 얼마나 강하게 복사 냉각으로 되돌리려 하는지를 나타내는 계수입니다. "
-             "값이 클수록 온난화 억제 효과가 큽니다."),
+             "기온 상승에 대해 기후 시스템이 복사 냉각을 통해 얼마나 강하게 에너지 평형을 회복하려 하는지를 나타내는 계수이다. "
+             "값이 클수록 온난화 억제 효과가 크게 나타난다."),
         ]
         for title, body in glossary_physics:
             with st.expander(title):
                 st.write(body)
 
-        sec("모델 평가와 검증 지표")
+        sec("모델 평가 및 검증 지표")
         glossary_metrics = [
             ("수치 최적화 알고리즘 (L-BFGS-B)",
-             "관측값과 모델값의 차이가 최소가 되도록 파라미터를 자동 조정하는 수치 최적화 알고리즘입니다."),
+             "관측값과 모델값의 차이가 최소화되도록 파라미터를 반복적으로 조정하는 제한 조건 기반 수치 최적화 알고리즘이다."),
             ("대칭 평균 절대 백분율 오차 (sMAPE)",
-             "예측값과 관측값의 차이를 대칭적으로 정규화하여 계산한 상대 오차 지표입니다. "
-             "0에 가까운 값에서도 안정적으로 해석할 수 있습니다."),
+             "예측값과 관측값의 차이를 대칭적으로 정규화하여 계산하는 상대 오차 지표이다. "
+             "0에 가까운 값에서도 비교적 안정적으로 해석할 수 있다."),
             ("평균제곱근오차 (RMSE, Root Mean Squared Error)",
-             "예측값과 관측값 차이의 제곱 평균에 제곱근을 취한 지표입니다. "
-             "큰 오차에 민감하므로 모델이 특정 시점에서 크게 빗나가는지 평가하는 데 유용합니다."),
+             "예측값과 관측값 차이의 제곱 평균에 제곱근을 취한 오차 지표이다. "
+             "큰 오차에 민감하므로 특정 시점의 큰 예측 오차를 평가하는 데 유용하다."),
             ("평균절대오차 (MAE, Mean Absolute Error)",
-             "예측값과 관측값 차이의 절댓값 평균입니다. "
-             "평균적으로 몇 도 정도 오차가 나는지를 직관적으로 해석하기 좋습니다."),
+             "예측값과 관측값 차이의 절댓값 평균으로 정의되는 오차 지표이다. "
+             "평균적으로 어느 정도의 온도 오차가 발생하는지 직관적으로 해석할 수 있다."),
             ("편향 (Bias)",
-             "예측값에서 관측값을 뺀 차이의 평균입니다. "
-             "양수이면 전반적으로 높게, 음수이면 낮게 예측하는 경향을 의미합니다."),
+             "예측값에서 관측값을 뺀 차이의 평균이다. "
+             "양수는 전반적 과대예측, 음수는 전반적 과소예측 경향을 의미한다."),
             ("잔차 (Residual)",
-             "각 시점에서 모델 예측값과 실제 관측값의 차이입니다. "
-             "잔차 패턴을 보면 특정 시기에 구조적인 과대예측 또는 과소예측이 존재하는지 확인할 수 있습니다."),
+             "각 시점에서 모델 예측값과 관측값의 차이를 의미한다. "
+             "잔차 패턴을 통해 특정 시기에 구조적인 과대예측 또는 과소예측이 존재하는지 평가할 수 있다."),
             ("불확실성 범위 (Uncertainty Band)",
-             "모델 파라미터를 조금씩 변화시켜 여러 번 계산했을 때 나타나는 예측 범위입니다. "
-             "단일 예측선보다 모델의 불확실성을 더 정직하게 보여줍니다."),
+             "모델 파라미터를 일정 범위 내에서 변화시켜 반복 계산했을 때 나타나는 예측 범위이다. "
+             "단일 예측선보다 모델 결과의 불확실성을 더 명확하게 제시한다."),
             ("민감도 분석 (Sensitivity Analysis)",
-             "하나의 파라미터를 바꾸었을 때 결과가 얼마나 크게 달라지는지 평가하는 분석입니다. "
-             "어떤 변수가 모델 출력에 가장 큰 영향을 주는지 파악할 수 있습니다."),
+             "특정 파라미터의 변화가 모델 결과에 미치는 영향을 평가하는 분석이다. "
+             "이를 통해 모델 출력에 대한 주요 영향 변수를 파악할 수 있다."),
             ("인위적 요인과 자연적 요인의 상대 기여 (Forcing Dominance)",
              "온실가스, 에어로졸, 화산, 내부 변동 등 여러 강제력 요소를 비교하여 "
-             "온도 변화에 어떤 요인이 더 크게 작용하는지 해석하는 개념입니다."),
+             "온도 변화에 상대적으로 크게 작용하는 요인을 해석하는 개념이다."),
         ]
         for title, body in glossary_metrics:
             with st.expander(title):
@@ -1778,7 +1778,7 @@ elif page == "연구 요약 및 보고서":
         
     with main_col:
         page_header("연구 요약 및 보고서",
-                    "연구 목적 · 모델 구조 · 해석 주의점 · 연구 의의")
+                    "연구 목적 · 모델 구조 · 해석상의 한계 · 연구 의의")
 
         st.markdown("""
         <div class="summary-card">
@@ -1803,7 +1803,7 @@ elif page == "연구 요약 및 보고서":
         </div>
         """, unsafe_allow_html=True)
 
-        sec("연구 요약")
+        sec("연구 결과 요약")
         c1, c2 = st.columns(2, gap="medium")
         with c1:
             st.markdown(
@@ -1812,9 +1812,9 @@ elif page == "연구 요약 및 보고서":
   <div class="pcard-tag">Summary</div>
   <div class="pcard-title">핵심 분석 구성</div>
   <div class="pcard-body">
-    본 모델은 단순화된 전지구 평균 모델로서 지역적 기후 변동을 반영하지 않는다.
-    또한 일부 강제력과 내부 변동성은 단순화된 형태로 표현되어 있다.
-    따라서 결과는 정량적 예측보다는 경향 분석 및 상대 비교에 적합하다.
+    본 연구는 배출 시나리오 예측, 파라미터 민감도 평가, 관측자료 기반 적합도 분석,
+    다중 관측 데이터 비교, 잔차 진단 및 불확실성 정량화를 주요 분석 축으로 구성하였다.
+    이를 통해 단순화된 모델 내에서 기후 강제력과 열적 응답 간의 관계를 종합적으로 해석하였다.
   </div>
 </div>""",
                 unsafe_allow_html=True,
@@ -1826,7 +1826,7 @@ elif page == "연구 요약 및 보고서":
   <div class="pcard-tag">Interpretation</div>
   <div class="pcard-title">해석상의 주의점</div>
   <div class="pcard-body">
-    본 모델은 정밀한 기후 예측 모델이 아니라, 기후 시스템의 주요 메커니즘을 이해하기 위한 해석 중심의 교육·연구용 모델이다.
+    본 모델은 정밀 예측을 목적으로 하는 종합 기후모형이 아니라, 기후 시스템의 주요 메커니즘을 이해하기 위한 해석 중심의 교육·연구용 모델이다.
     지역별 기후 차이를 반영하지 않으며, 일부 강제력과 내부 변동성은 단순화된 형태로 구현되어 있다.
     따라서 결과는 정량적 예측보다는 경향 분석 및 상대적 비교에 적합하다.
   </div>
@@ -1840,7 +1840,7 @@ elif page == "연구 요약 및 보고서":
 <div class="abstract-box">
   <div class="abstract-label">Research Significance</div>
   <div class="abstract-text">
-    본 대시스템은 기후 강제력, 내부 변동성, 열 저장 구조를 통합적으로 고려하여 
+    본 대시보드는 기후 강제력, 내부 변동성, 열 저장 구조를 통합적으로 고려하여 
     전지구 평균기온 변화를 분석할 수 있도록 구성되었다. 
     관측자료 기반 검증, 파라미터 민감도 분석, 불확실성 평가를 결합함으로써 
     기후 시스템의 주요 동작 메커니즘을 정량적으로 해석할 수 있다.
@@ -1849,7 +1849,7 @@ elif page == "연구 요약 및 보고서":
             unsafe_allow_html=True,
         )
 
-        sec("보고서 다운로드")
+        sec("보고서 파일 다운로드")
         report_name, report_bytes = load_report_file()
         if report_bytes is not None:
             st.download_button(
@@ -1861,6 +1861,6 @@ elif page == "연구 요약 및 보고서":
             )
         else:
             st.info(
-                "리포트 파일을 찾지 못했습니다. "
-                "app.py와 같은 위치에 .docx 파일이 있는지 확인하세요."
+                "리포트 파일을 찾을 수 없다. "
+                "app.py와 동일한 디렉터리에 .docx 파일이 있는지 확인해야 한다."
             )
