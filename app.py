@@ -578,7 +578,7 @@ if page == "시작 페이지":
             4,
             "다중 데이터 비교",
             "여러 관측 데이터셋 간 차이 및 공통 경향 분석",
-            "glossary",
+            "multi",
         )
 
     grid_gap(row_gap)
