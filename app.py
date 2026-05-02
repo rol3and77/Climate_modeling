@@ -418,31 +418,31 @@ def render_settings(current_page):
         )
         
     elif current_page == "모델 적합도 및 관측자료 비교":
-        with st.container(border=True):
-            st.markdown(
-                """
-    <div style="font-size:1.45rem;font-weight:900;color:#1a56a0;margin-bottom:0.7rem;">
-    데이터셋 선택
-    </div>
-    <div style="height:4px;background:#dbe7f5;border-radius:999px;margin-bottom:1rem;"></div>
+        st.markdown(
+            """
+    <div class="settings-shell">
+      <div class="settings-title">데이터셋 선택</div>
+      <div class="settings-divider"></div>
     """,
-                unsafe_allow_html=True,
-            )
+            unsafe_allow_html=True,
+        )
     
-            obs_list = list(obs_datasets.keys())
+        obs_list = list(obs_datasets.keys())
     
-            controls["obs_choice"] = st.selectbox(
-                "관측 데이터셋",
-                obs_list,
-                index=obs_list.index(st.session_state.get("main_obs_choice", obs_list[0])),
-                key="main_obs_choice",
-            )
+        controls["obs_choice"] = st.selectbox(
+            "",
+            obs_list,
+            index=obs_list.index(st.session_state.get("main_obs_choice", obs_list[0])),
+            key="main_obs_choice",
+        )
     
-            controls["current_obs_data"] = np.interp(
-                years_axis,
-                list(obs_datasets[controls["obs_choice"]].keys()),
-                list(obs_datasets[controls["obs_choice"]].values()),
-            )
+        controls["current_obs_data"] = np.interp(
+            years_axis,
+            list(obs_datasets[controls["obs_choice"]].keys()),
+            list(obs_datasets[controls["obs_choice"]].values()),
+        )
+    
+        st.markdown("</div>", unsafe_allow_html=True)
     
     elif current_page == "모델 검증 및 불확실성 정량화":
         with st.container(border=True):
