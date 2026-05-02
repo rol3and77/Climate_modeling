@@ -1077,3 +1077,21 @@ div[data-testid="stPyplotRootElement"] {
 .source-details[open] .source-content::-webkit-scrollbar-track {
     background: transparent;
 }
+/* Summary page: equalize the two result summary cards */
+.pcard {
+    min-height: 18.5rem !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+}
+
+.pcard-body {
+    flex: 1 1 auto !important;
+}
+
+@media (max-width: 900px) {
+    .pcard {
+        min-height: auto !important;
+    }
+}
