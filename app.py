@@ -24,6 +24,7 @@ from urllib.parse import quote
 
 
 # ── UI helper 함수 ───────────────────────────────────────────────────
+    
 def page_header(title, subtitle=""):
     st.markdown(f"""
         <div style="margin-bottom: 1.5rem;">
@@ -70,6 +71,19 @@ def render_metric(label, val, unit="", note=""):
 """,
         unsafe_allow_html=True,
     )
+    
+def open_chart_card(title, desc=""):
+    st.markdown(
+        f"""
+<div class="chart-card">
+  <div class="chart-card-title">{title}</div>
+  <div class="chart-card-desc">{desc}</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+def close_chart_card():
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def grid_gap(height="1.2rem"):
@@ -1072,8 +1086,15 @@ elif page == "기후 시스템 파라미터 실험":
 
         ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
         plt.tight_layout()
+        
+        open_chart_card(
+            "실험 결과 시계열",
+            "사용자가 설정한 파라미터에 따른 온도 변화 경로입니다."
+        )
         st.pyplot(fig)
 
+        close_chart_card()
+        
         render_infobox(
             "해석",
             "같은 배출 조건에서도 파라미터 선택에 따라 최종 온도 상승폭과 경로가 달라질 수 있습니다. "
