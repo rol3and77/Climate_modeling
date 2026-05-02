@@ -27,9 +27,14 @@ def _clean_year_temp(df, year_col, temp_col):
     return dict(zip(df["Year"], df["Temp"]))
 
 
-def rebase_temperature_anomaly(data, baseline_start=COMMON_BASELINE_START, baseline_end=COMMON_BASELINE_END):
+def rebase_temperature_anomaly(
+    data,
+    baseline_start=COMMON_BASELINE_START,
+    baseline_end=COMMON_BASELINE_END,
+):
     baseline_values = [
-        temp for year, temp in data.items()
+        temp
+        for year, temp in data.items()
         if baseline_start <= year <= baseline_end
     ]
 
