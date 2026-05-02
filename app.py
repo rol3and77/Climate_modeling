@@ -244,7 +244,7 @@ def render_source_panel():
         '</summary>'
 
         '<div class="source-content">'
-        '<div class="source-note">본 모델은 주요 공인 관측자료와 기후 평가 보고서를 기반으로 구성하였다.</div>'
+        '<div class="source-note">본 모델은 주요 공인 관측자료와 기후 평가 보고서를 기반으로 구성하였으며, 관측 온도 편차 자료는 데이터셋 간 기준기간 차이를 줄이기 위해 1981–2010년 평균 기준으로 재정렬하였다.</div>'
 
         '<div class="source-group-title">Observational Data</div>'
         '<a class="source-item" href="https://data.giss.nasa.gov/gistemp/" target="_blank"><span class="source-name">NASA GISS (GISTEMP v4)</span><span class="source-desc">Global surface temperature dataset</span></a>'
@@ -1218,6 +1218,7 @@ elif page == "모델 적합도 및 관측자료 비교":
         render_infobox(
             "분석 목적",
             "모델이 관측자료의 장기 기온 변화를 재현하는 정도를 정량적으로 평가한다. "
+            "모든 관측 온도 편차 자료는 데이터셋 간 기준기간 차이를 줄이기 위해 1981–2010년 평균 기준으로 재정렬하였다. "
             "최적화된 파라미터를 기반으로 관측값과 모의값의 차이를 분석하고, "
             "인위적 및 자연적 강제력의 상대적 기여를 분해한다.",
         )
@@ -1246,7 +1247,14 @@ elif page == "모델 적합도 및 관측자료 비교":
         with c3:
             render_metric("Bias", f"{bias:.3f}", "°C", "모델의 평균적 과대·과소 추정 경향")
         with c4:
-            render_metric("Mean sMAPE", f"{avg_err:.2f}", "%", "대칭 상대 오차 평균")
+            render_metric("평균 안정화 상대오차", f"{avg_err:.2f}", "%", "분모 안정화 항을 포함한 상대 오차 평균")
+
+        render_infobox(
+            "지표 해석",
+            "RMSE는 큰 오차에 민감한 지표이며, MAE는 평균적인 절대 오차를 나타낸다. "
+            "Bias는 모델이 관측값보다 전반적으로 높거나 낮게 예측하는 경향을 의미한다. "
+            "평균 안정화 상대오차는 0에 가까운 온도 편차 구간에서 상대오차가 과도하게 커지는 문제를 완화하기 위해 분모 안정화 항을 포함한 상대 오차 지표이다.",
+        )
 
         sec("모델 적합도 및 강제력 분해 결과")
         fig, axes = _styled_fig(nrows=3, ncols=2, figsize=(16, 18))
@@ -1272,8 +1280,8 @@ elif page == "모델 적합도 및 관측자료 비교":
         axes[1, 0].axhline(0, color="#0f2744", lw=0.8)
         _apply_chart_style(
             axes[1, 0],
-            title=f"sMAPE  |  Mean: {avg_err:.2f}%  RMSE: {rmse:.3f}°C  MAE: {mae:.3f}°C  Bias: {bias:.3f}°C",
-            xlabel="Year", ylabel="sMAPE-like Error (%)",
+            title=f"Stabilized Relative Error  |  Mean: {avg_err:.2f}%  RMSE: {rmse:.3f}°C  MAE: {mae:.3f}°C  Bias: {bias:.3f}°C",
+            xlabel="Year", ylabel="Stabilized Relative Error (%)",
         )
 
         f_co2 = [
@@ -1347,7 +1355,7 @@ elif page == "모델 적합도 및 관측자료 비교":
             "해석",
             "모델은 전반적인 장기 온난화 추세를 재현하지만, 특정 시점에서는 체계적인 오차가 나타난다. "
             "이는 강제력 입력의 단순화 및 내부 변동성 표현의 제한에서 기인할 가능성이 있다. "
-            "따라서 본 모델은 장기 추세 분석에는 적합하지만 단기 변동 재현에는 한계가 있다.",
+            "따라서 본 모델은 장기 추세 분석과 상대 비교에는 적합하지만, 지역별 기후 차이, 계절성, 구름 피드백, 해양 순환의 공간적 구조 등은 명시적으로 반영하지 못한다.",
         )
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1398,6 +1406,11 @@ elif page == "모델 검증 및 불확실성 정량화":
             render_metric("Bias", f"{bias_diag:.3f}", "°C", "모델 예측의 평균적 편향")
 
         sec("잔차 구조 진단")
+        render_infobox(
+            "잔차 해석",
+            "잔차가 양수이면 모델이 관측값보다 높게 예측한 것이며, 음수이면 관측값보다 낮게 예측한 것이다. "
+            "특정 기간에 동일한 부호의 잔차가 지속되면 강제력 입력 또는 내부 변동성 표현에서 구조적 편향이 존재할 가능성을 시사한다.",
+        )
         c1, c2 = st.columns(2)
         with c1:
             fig_rl, ax_rl = _styled_fig(figsize=(10, 4.5))
@@ -1531,6 +1544,7 @@ elif page == "다중 관측 데이터 비교":
         render_infobox(
             "분석 목적",
             "복수의 관측 데이터셋을 비교하여 데이터 간 편차와 공통적인 장기 온난화 경향을 분석한다. "
+            "자료 간 직접 비교의 일관성을 높이기 위해 모든 관측 온도 편차 자료는 1981–2010년 평균 기준으로 재정렬하였다. "
             "관측자료 간 최소–최대 범위와 평균을 통해 관측 불확실성을 정량적으로 평가한다.",
         )
 
@@ -1549,15 +1563,26 @@ elif page == "다중 관측 데이터 비교":
         all_obs = []
         obs_names = []
 
+        dataset_meta = []
         for name in selected_names:
             data = obs_datasets[name]
+            years_available = sorted(data.keys())
+            dataset_meta.append({
+                "데이터셋": name,
+                "시작 연도": int(min(years_available)),
+                "종료 연도": int(max(years_available)),
+                "자료 수": len(years_available),
+                "공통 기준기간": "1981–2010",
+            })
             obs_vals = np.interp(
                 years_axis,
-                list(data.keys()),
-                list(data.values()),
+                years_available,
+                [data[y] for y in years_available],
             )
             all_obs.append(obs_vals)
             obs_names.append(name)
+
+        st.dataframe(pd.DataFrame(dataset_meta), use_container_width=True, hide_index=True)
 
         all_obs = np.array(all_obs)
 
@@ -1641,6 +1666,7 @@ elif page == "다중 관측 데이터 비교":
             "해석",
             "서로 다른 관측 데이터셋 간에는 절대값 수준에서 차이가 존재하지만, "
             "장기적인 온난화 추세는 일관되게 나타난다. "
+            "공통 기준기간 보정을 통해 데이터셋 간 수직 오프셋의 영향을 줄였으며, "
             "이는 데이터 처리 방법의 차이에도 불구하고 기후 변화 신호가 강하게 나타남을 의미한다.",
         )
         sec("모델과 다중 관측 평균의 비교")
@@ -1810,9 +1836,9 @@ elif page == "기후 모델링 용어 및 개념 정의":
         glossary_metrics = [
             ("수치 최적화 알고리즘 (L-BFGS-B)",
              "관측값과 모델값의 차이가 최소화되도록 파라미터를 반복적으로 조정하는 제한 조건 기반 수치 최적화 알고리즘이다."),
-            ("대칭 평균 절대 백분율 오차 (sMAPE)",
-             "예측값과 관측값의 차이를 대칭적으로 정규화하여 계산하는 상대 오차 지표이다. "
-             "0에 가까운 값에서도 비교적 안정적으로 해석할 수 있다."),
+            ("안정화 상대오차 (Stabilized Relative Error)",
+             "예측값과 관측값의 차이를 상대적으로 정규화하되, 분모에 안정화 항을 추가하여 0에 가까운 온도 편차 구간에서 오차가 과도하게 커지는 문제를 완화한 지표이다. "
+             "본 대시보드의 평균 안정화 상대오차는 표준 sMAPE와 유사하지만, 안정화 항을 포함한다는 점에서 구분된다."),
             ("평균제곱근오차 (RMSE, Root Mean Squared Error)",
              "예측값과 관측값 차이의 제곱 평균에 제곱근을 취한 오차 지표이다. "
              "큰 오차에 민감하므로 특정 시점의 큰 예측 오차를 평가하는 데 유용하다."),
@@ -1881,6 +1907,16 @@ elif page == "연구 요약 및 보고서":
             비CO₂ 인위적 강제력, 화산 강제력, ENSO 유사 내부 변동성이 포함된다.
           </div>
         </div>
+
+        <div class="summary-card">
+          <div class="summary-tag">Data Processing</div>
+          <div class="summary-title">관측자료 전처리</div>
+          <div class="summary-text">
+            NASA GISS, HadCRUT5, Berkeley Earth의 전지구 평균기온 편차 자료는 데이터셋 간 기준기간 차이를 줄이기 위해
+            1981–2010년 평균 기준으로 재정렬하였다. 이를 통해 관측자료 간 수직 오프셋의 영향을 완화하고,
+            모델 적합도 및 다중 관측자료 비교의 일관성을 높였다.
+          </div>
+        </div>
         """, unsafe_allow_html=True)
 
         sec("연구 결과 요약")
@@ -1907,8 +1943,8 @@ elif page == "연구 요약 및 보고서":
   <div class="pcard-title">해석상의 주의점</div>
   <div class="pcard-body">
     본 모델은 정밀 예측을 목적으로 하는 종합 기후모형이 아니라, 기후 시스템의 주요 메커니즘을 이해하기 위한 해석 중심의 교육·연구용 모델이다.
-    지역별 기후 차이를 반영하지 않으며, 일부 강제력과 내부 변동성은 단순화된 형태로 구현되어 있다.
-    따라서 결과는 정량적 예측보다는 경향 분석 및 상대적 비교에 적합하다.
+    지역별 기후 차이, 계절성, 구름 피드백, 해양 순환의 공간적 구조 등은 명시적으로 반영하지 않으며, 일부 강제력과 내부 변동성은 단순화된 형태로 구현되어 있다.
+    따라서 결과는 절대적인 미래 예측값보다 장기 경향 분석 및 상대적 비교에 적합하다.
   </div>
 </div>""",
                 unsafe_allow_html=True,
