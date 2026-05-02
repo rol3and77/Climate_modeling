@@ -428,14 +428,22 @@ def render_settings(current_page):
             )
     
             obs_list = list(obs_datasets.keys())
+            current_choice = st.session_state.get("main_obs_choice", obs_list[0])
     
-            controls["obs_choice"] = st.selectbox(
-                "관측 데이터셋",
-                obs_list,
-                index=obs_list.index(st.session_state.get("main_obs_choice", obs_list[0])),
-                key="main_obs_choice",
-                label_visibility="collapsed",
-            )
+            for name in obs_list:
+                is_active = name == current_choice
+                button_type = "primary" if is_active else "secondary"
+    
+                if st.button(
+                    name,
+                    key=f"dataset_btn_{name}",
+                    use_container_width=True,
+                    type=button_type,
+                ):
+                    st.session_state["main_obs_choice"] = name
+                    st.rerun()
+    
+            controls["obs_choice"] = st.session_state.get("main_obs_choice", obs_list[0])
     
             controls["current_obs_data"] = np.interp(
                 years_axis,
@@ -444,32 +452,39 @@ def render_settings(current_page):
             )
     
     elif current_page == "모델 검증 및 불확실성 정량화":
-        with st.container(border=True):
+        with st.container(border=True, key="diag_dataset_box"):
             st.markdown(
                 """
-    <div style="font-size:1.45rem;font-weight:900;color:#1a56a0;margin-bottom:0.7rem;">
-    검증 데이터셋
-    </div>
-    <div style="height:4px;background:#dbe7f5;border-radius:999px;margin-bottom:1rem;"></div>
+    <div class="settings-title">검증 데이터셋</div>
+    <div class="settings-divider"></div>
     """,
                 unsafe_allow_html=True,
             )
     
             obs_list = list(obs_datasets.keys())
+            current_choice = st.session_state.get("main_diag_obs_choice", obs_list[0])
     
-            controls["diag_obs_choice"] = st.selectbox(
-                "검증용 데이터셋",
-                obs_list,
-                index=obs_list.index(st.session_state.get("main_diag_obs_choice", obs_list[0])),
-                key="main_diag_obs_choice",
-            )
+            for name in obs_list:
+                is_active = name == current_choice
+                button_type = "primary" if is_active else "secondary"
+    
+                if st.button(
+                    name,
+                    key=f"diag_dataset_btn_{name}",
+                    use_container_width=True,
+                    type=button_type,
+                ):
+                    st.session_state["main_diag_obs_choice"] = name
+                    st.rerun()
+    
+            controls["diag_obs_choice"] = st.session_state.get("main_diag_obs_choice", obs_list[0])
     
             controls["diag_obs_data"] = np.interp(
                 years_axis,
                 list(obs_datasets[controls["diag_obs_choice"]].keys()),
                 list(obs_datasets[controls["diag_obs_choice"]].values()),
             )
-
+        
     return controls
 
 
