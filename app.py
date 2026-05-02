@@ -16,7 +16,29 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+
+# Matplotlib 그래프에서 한글이 네모(□)로 깨지는 문제를 방지한다.
+# 실행 환경에 설치된 한글 지원 글꼴을 우선순위에 따라 자동 선택한다.
+def set_korean_matplotlib_font():
+    preferred_fonts = [
+        "Noto Sans CJK KR",
+        "NanumSquare",
+        "NanumGothic",
+        "AppleGothic",
+        "Malgun Gothic",
+        "UnDotum",
+        "Baekmuk Dotum",
+    ]
+    available_fonts = {f.name for f in fm.fontManager.ttflist}
+    for font_name in preferred_fonts:
+        if font_name in available_fonts:
+            matplotlib.rcParams["font.family"] = font_name
+            break
+    matplotlib.rcParams["axes.unicode_minus"] = False
+
+set_korean_matplotlib_font()
 import pandas as pd
+
 import streamlit.components.v1 as components
 import plotly.graph_objects as go
 from pathlib import Path
@@ -607,7 +629,6 @@ if page == "시작 페이지":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "시나리오 기반 기후 변화 예측":
     st.query_params["module"] = "scenario"
-    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -905,7 +926,6 @@ setTimeout(() => {
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "기후 시스템 파라미터 실험":
     st.query_params["module"] = "experiment"
-    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -929,28 +949,27 @@ elif page == "기후 시스템 파라미터 실험":
         )
         
         with st.container(border=True, key="param_panel"):
-            h1, h2 = st.columns([5, 1])
+            h1, h2 = st.columns([5.6, 1.15], vertical_alignment="top")
 
             with h1:
                 st.markdown(
                     """
-<div style="font-size:1.2rem;font-weight:950;color:#0f2744;letter-spacing:-0.035em;">
-파라미터 조정
-</div>
-<div style="font-size:0.84rem;font-weight:650;color:#7a8da8;margin-top:0.3rem;margin-bottom:1.15rem;">
-입력 파라미터의 변화에 따른 기후 시스템의 열적 반응을 정량적으로 분석한다.
+<div class="param-panel-title-row">
+  <div class="param-panel-title">파라미터 조정</div>
+  <div class="param-panel-subtitle">입력 파라미터 변화에 따른 기후 시스템의 열적 반응을 정량적으로 분석한다.</div>
 </div>
 """,
                     unsafe_allow_html=True,
                 )
 
             with h2:
-                if st.button("↻ 초기화", use_container_width=True, key="param_reset_btn"):
+                if st.button("Reset", use_container_width=True, key="param_reset_btn"):
                     st.session_state["main_exp_co2"] = 550
                     st.session_state["main_exp_lambda"] = 1.5
                     st.session_state["main_exp_aer"] = 1.0
                     st.rerun()
 
+            st.markdown('<div class="param-slider-grid-marker"></div>', unsafe_allow_html=True)
             p1, p2, p3 = st.columns(3, gap="large")
 
             with p1:
@@ -1127,7 +1146,6 @@ elif page == "기후 시스템 파라미터 실험":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "모델 적합도 및 관측자료 비교":
     st.query_params["module"] = "fit"
-    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1286,7 +1304,6 @@ elif page == "모델 적합도 및 관측자료 비교":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "모델 검증 및 불확실성 정량화":
     st.query_params["module"] = "uncertainty"
-    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1444,7 +1461,6 @@ elif page == "모델 검증 및 불확실성 정량화":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "다중 관측 데이터 비교":
     st.query_params["module"] = "multi"
-    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1672,7 +1688,6 @@ elif page == "다중 관측 데이터 비교":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "기후 모델링 용어 및 개념 정의":
     st.query_params["module"] = "glossary"
-    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
@@ -1780,7 +1795,6 @@ elif page == "기후 모델링 용어 및 개념 정의":
 # ═══════════════════════════════════════════════════════════════════════════════
 elif page == "연구 요약 및 보고서":
     st.query_params["module"] = "summary"
-    st.markdown('<div class="split-scroll-page"></div>', unsafe_allow_html=True)
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
