@@ -599,7 +599,8 @@ elif page == "시나리오 기반 기후 변화 예측":
   </div>
   <div class="cond-item">
     <div class="cond-label">2100년 예상 온도</div>
-    <div class="cond-val">+{p_2100:.2f} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">°C</span></div>
+    p_str = f"{p_2100:.2f}"
+    <div class="cond-val">+{p_str} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">°C</span></div>
   </div>
 </div>
 """,
