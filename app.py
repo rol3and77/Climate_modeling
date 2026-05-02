@@ -16,29 +16,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
-
-# Matplotlib 그래프에서 한글이 네모(□)로 깨지는 문제를 방지한다.
-# 실행 환경에 설치된 한글 지원 글꼴을 우선순위에 따라 자동 선택한다.
-def set_korean_matplotlib_font():
-    preferred_fonts = [
-        "Noto Sans CJK KR",
-        "NanumSquare",
-        "NanumGothic",
-        "AppleGothic",
-        "Malgun Gothic",
-        "UnDotum",
-        "Baekmuk Dotum",
-    ]
-    available_fonts = {f.name for f in fm.fontManager.ttflist}
-    for font_name in preferred_fonts:
-        if font_name in available_fonts:
-            matplotlib.rcParams["font.family"] = font_name
-            break
-    matplotlib.rcParams["axes.unicode_minus"] = False
-
-set_korean_matplotlib_font()
 import pandas as pd
-
 import streamlit.components.v1 as components
 import plotly.graph_objects as go
 from pathlib import Path
@@ -1426,6 +1404,14 @@ elif page == "모델 검증 및 불확실성 정량화":
             "ENSO 진폭": (np.linspace(0.05, 0.25, 12), 3),
             "화산 강제력": (np.linspace(0.3, 2.0, 12), 4),
         }
+        sens_param_en_map = {
+            "기후 피드백 파라미터": "Climate Feedback Parameter",
+            "에어로졸 강도": "Aerosol Strength",
+            "해양 열흡수 계수": "Ocean Heat Uptake Coefficient",
+            "ENSO 진폭": "ENSO Amplitude",
+            "화산 강제력": "Volcanic Forcing",
+        }
+        sens_param_en = sens_param_en_map[sens_param]
         test_range, idx_change = param_config[sens_param]
 
         sens_results = []
@@ -1442,7 +1428,7 @@ elif page == "모델 검증 및 불확실성 정량화":
                   markeredgewidth=1.8)
         _apply_chart_style(
             ax_s,
-            title=f"Sensitivity of Projected 2100 Warming — {sens_param}",
+            title=f"Sensitivity of Projected 2100 Warming — {sens_param_en}",
             xlabel="Parameter Value",
             ylabel="Projected Temperature in 2100 (°C)",
         )
