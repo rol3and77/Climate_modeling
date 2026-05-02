@@ -72,19 +72,6 @@ def render_metric(label, val, unit="", note=""):
         unsafe_allow_html=True,
     )
     
-def open_chart_card(title, desc=""):
-    st.markdown(
-        f"""
-<div class="chart-card">
-  <div class="chart-card-title">{title}</div>
-  <div class="chart-card-desc">{desc}</div>
-""",
-        unsafe_allow_html=True,
-    )
-
-def close_chart_card():
-    st.markdown("</div>", unsafe_allow_html=True)
-
 
 def grid_gap(height="1.2rem"):
     st.markdown(f'<div style="height:{height};"></div>', unsafe_allow_html=True)
@@ -153,7 +140,6 @@ ALL_PAGES = [
     "기후 모델링 용어 및 개념 정의",
     "연구 요약 및 보고서",
 ]
-NAV_PAGES = ALL_PAGES[1:]
 
 slug_to_page = {
     "home": "시작 페이지",
@@ -185,11 +171,6 @@ policy_map = {
 if policy_q in policy_map:
     st.session_state["main_policy"] = policy_map[policy_q]
 
-
-def set_page(target):
-    st.session_state["page"] = target
-    st.query_params["module"] = page_to_slug.get(target, "home")
-    st.rerun()
 
 
 # ── Left Panel ────────────────────────────────────────────────────────────────
@@ -639,8 +620,8 @@ elif page == "시나리오 기반 기후 변화 예측":
         )
 
         sec("핵심 결과")
-        c1, c2, c3 = st.columns(3)
-
+        c1, c2 = st.columns(2)
+        
         with c1:
             render_metric(
                 "2100년 예상 온난화",
@@ -650,14 +631,6 @@ elif page == "시나리오 기반 기후 변화 예측":
             )
 
         with c2:
-            render_metric(
-                "2100년 예상 해수면 상승",
-                f"+{p_2100 * 35:.1f}",
-                "cm",
-                "단순 비례 가정에 따른 참고 지표",
-            )
-
-        with c3:
             render_metric(
                 "평균 온난화 속도",
                 f"{trend_21c:.3f}",
