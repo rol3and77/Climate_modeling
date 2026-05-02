@@ -1050,3 +1050,30 @@ div[data-testid="stPyplotRootElement"] {
         align-self: flex-start;
     }
 }
+/* Source panel inner scroll fix */
+.source-card {
+    max-height: calc(100vh - 2rem);
+    overflow: hidden;
+}
+
+.source-details[open] .source-content {
+    max-height: min(62vh, 760px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #c8d9ee transparent;
+}
+
+.source-details[open] .source-content::-webkit-scrollbar {
+    width: 7px;
+}
+
+.source-details[open] .source-content::-webkit-scrollbar-thumb {
+    background: #c8d9ee;
+    border-radius: 999px;
+}
+
+.source-details[open] .source-content::-webkit-scrollbar-track {
+    background: transparent;
+}
