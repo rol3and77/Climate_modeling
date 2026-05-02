@@ -1342,3 +1342,11 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     top: 1rem;
     z-index: 20;
 }
+/* 왼쪽 column 전체를 스크롤 고정 */
+[data-testid="stHorizontalBlock"] > div:first-child {
+    position: sticky !important;
+    top: 1rem !important;
+    align-self: flex-start !important;
+    height: fit-content !important;
+    z-index: 50 !important;
+}
