@@ -186,8 +186,8 @@ def render_left_panel():
         ("관측 비교", "모델 적합도 및 관측자료 비교", "fit"),
         ("다중 데이터", "다중 관측 데이터 비교", "multi"),
         ("모델 검증", "모델 검증 및 불확실성 정량화", "uncertainty"),
-        ("용어 정의", "기후 모델링 용어 및 개념 정의", "glossary"),
         ("연구 요약", "연구 요약 및 보고서", "summary"),
+        ("용어 정의", "기후 모델링 용어 및 개념 정의", "glossary"),
     ]
 
     nav_html = ['<div class="nav-panel">']
