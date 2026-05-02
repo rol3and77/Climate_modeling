@@ -12,6 +12,16 @@ DT_SECONDS = 24 * 3600
 LAND_FRAC, OCEAN_FRAC = 0.29, 0.71
 C_LAND, C_MIXED, C_DEEP = 2.0e7, 1.2e8, 2.0e9
 
+PARAM_NAMES = [
+    "lambda_base",
+    "aerosol_multiplier",
+    "land_ocean_heat_exchange",
+    "enso_amplitude",
+    "volcanic_multiplier",
+    "nonco2_multiplier",
+    "solar_multiplier",
+]
+
 
 # ── Forcing functions ───────────────────────────────────────────────────────
 def co2_forcing(co2_ppm, temperature_anomaly):
@@ -31,11 +41,59 @@ def aerosol_effect(year, multiplier):
     return multiplier * base
 
 
+def solar_effect(year, multiplier):
+    """Approximate the 11-year solar-cycle contribution as a small natural forcing term."""
+    return multiplier * 0.05 * np.sin(2.0 * np.pi * (float(year) - START_YEAR) / 11.0)
+
+
+def _normalize_params(params):
+    """Accept the legacy 6-parameter vector and append the default solar multiplier."""
+    if len(params) == 6:
+        return list(params) + [1.0]
+    if len(params) == 7:
+        return list(params)
+    raise ValueError(
+        "params must contain 6 or 7 values: "
+        "lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult, [solar_mult]"
+    )
+
+
+def _build_co2_path(y_lin, end_year, end_co2, co2_history=None):
+    """Create the CO₂ pathway used by the model.
+
+    If co2_history is supplied, the historical segment is interpolated from the
+    provided annual observations. Future years are linearly connected from the
+    latest historical value to the scenario target end_co2.
+    """
+    if co2_history:
+        co2_years = np.array(sorted(co2_history.keys()), dtype=float)
+        co2_values = np.array([float(co2_history[int(y)]) for y in co2_years], dtype=float)
+
+        valid = np.isfinite(co2_years) & np.isfinite(co2_values)
+        co2_years = co2_years[valid]
+        co2_values = co2_values[valid]
+
+        if len(co2_years) >= 2:
+            if end_year > co2_years[-1]:
+                xp = np.append(co2_years, float(end_year))
+                fp = np.append(co2_values, float(end_co2))
+            else:
+                xp = co2_years
+                fp = co2_values
+            return np.interp(y_lin, xp, fp)
+
+    return np.interp(
+        y_lin,
+        np.array([1925.0, 2025.0, float(max(2025, end_year))]),
+        np.array([306.0, 427.0, float(end_co2)]),
+    )
+
+
 @njit
 def fast_core(
     total_steps, start_year, dt_seconds, land_frac, ocean_frac,
     c_land, c_mixed, c_deep, initial_temp,
-    lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult, co2_path,
+    lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult, solar_mult, co2_path,
 ):
     Tl = np.zeros(total_steps)
     Tm = np.zeros(total_steps)
@@ -61,6 +119,10 @@ def fast_core(
         + 0.4 * np.sin(2.0 * np.pi * (y_arr - 1925.0) / 2.7)
     )
 
+    # Small 11-year solar-cycle forcing. This is intentionally weak because the
+    # long-term warming signal is primarily represented by anthropogenic forcing.
+    f_solar_arr = solar_mult * 0.05 * np.sin(2.0 * np.pi * (y_arr - 1925.0) / 11.0)
+
     f_volc_arr = np.zeros(total_steps)
     volc_data = np.array([
         [1963.2, -0.8, 1.2],
@@ -74,11 +136,12 @@ def fast_core(
             if y_arr[i] >= ys:
                 f_volc_arr[i] += volc_mult * strength * np.exp(-(y_arr[i] - ys) / decay)
 
-    co2_init = 5.35 * np.log(max(1.0, 306.0) / 280.0) * (1.0 + 0.01 * max(0.0, initial_temp))
+    co2_init = 5.35 * np.log(max(1.0, co2_path[0]) / 280.0) * (1.0 + 0.01 * max(0.0, initial_temp))
     aer_init = aer_mult * np.interp(float(start_year), xp_aer, fp_aer)
-    forcing_offset = (lambda_base * initial_temp) - (co2_init + aer_init)
+    solar_init = solar_mult * 0.05 * np.sin(2.0 * np.pi * (float(start_year) - 1925.0) / 11.0)
+    forcing_offset = (lambda_base * initial_temp) - (co2_init + aer_init + solar_init)
 
-    base_forcing = f_non_co2 + aer_arr + f_volc_arr + f_osc_arr + forcing_offset
+    base_forcing = f_non_co2 + aer_arr + f_volc_arr + f_osc_arr + f_solar_arr + forcing_offset
 
     for i in range(total_steps - 1):
         curr_T = land_frac * Tl[i] + ocean_frac * Tm[i]
@@ -94,7 +157,6 @@ def fast_core(
         Tm[i + 1] = Tm[i] + ((total_forcing - dynamic_lambda * Tm[i] + h_lo - h_md) / c_mixed) * dt_seconds
         Td[i + 1] = Td[i] + (h_md / c_deep) * dt_seconds
 
-        # Numerical safety bound for exceptional parameter combinations.
         if Tl[i + 1] > 100.0:
             Tl[i + 1] = 100.0
         if Tm[i + 1] > 100.0:
@@ -111,20 +173,14 @@ def fast_core(
     return Tl, Tm, Td
 
 
-def run_model(params, init_temp, end_year=2025, end_co2=427):
+def run_model(params, init_temp, end_year=2025, end_co2=427, co2_history=None):
     """Run the simplified three-box energy balance model.
 
     params order:
     [lambda_base, aerosol_multiplier, land_ocean_exchange, enso_amplitude,
-     volcanic_multiplier, nonco2_multiplier]
+     volcanic_multiplier, nonco2_multiplier, solar_multiplier]
     """
-    if len(params) != 6:
-        raise ValueError(
-            "params must contain 6 values: "
-            "lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult"
-        )
-
-    lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult = params
+    lambda_base, aer_mult, k_lo, enso_amp, volc_mult, nonco2_mult, solar_mult = _normalize_params(params)
 
     current_years_count = int(end_year - START_YEAR + 1)
     if current_years_count <= 0:
@@ -132,18 +188,13 @@ def run_model(params, init_temp, end_year=2025, end_co2=427):
 
     total_steps = current_years_count * 365
     y_lin = np.linspace(START_YEAR, end_year, total_steps)
-
-    co2_path = np.interp(
-        y_lin,
-        np.array([1925.0, 2025.0, float(max(2025, end_year))]),
-        np.array([306.0, 427.0, float(end_co2)]),
-    )
+    co2_path = _build_co2_path(y_lin, end_year, end_co2, co2_history=co2_history)
 
     Tl, Tm, Td = fast_core(
         total_steps, START_YEAR, DT_SECONDS, LAND_FRAC, OCEAN_FRAC,
         C_LAND, C_MIXED, C_DEEP, float(init_temp),
         float(lambda_base), float(aer_mult), float(k_lo), float(enso_amp),
-        float(volc_mult), float(nonco2_mult), co2_path,
+        float(volc_mult), float(nonco2_mult), float(solar_mult), co2_path,
     )
 
     daily_global = LAND_FRAC * Tl + OCEAN_FRAC * Tm
@@ -157,7 +208,7 @@ def run_model(params, init_temp, end_year=2025, end_co2=427):
     )
 
 
-def get_optimized_params(obs_data):
+def get_optimized_params(obs_data, co2_history=None):
     """Estimate model parameters by minimizing mean squared error to observations."""
     obs_data = np.asarray(obs_data, dtype=float)
 
@@ -167,15 +218,15 @@ def get_optimized_params(obs_data):
     init_temp = obs_data[0]
 
     def objective(params):
-        model, _, _, _, _ = run_model(params, init_temp)
+        model, _, _, _, _ = run_model(params, init_temp, co2_history=co2_history)
         return np.mean((model - obs_data) ** 2)
 
     starts = [
-        [1.5, 1.0, 2.0, 0.08, 1.0, 0.75],
-        [1.0, 1.2, 1.5, 0.06, 0.8, 0.6],
-        [2.0, 0.8, 2.5, 0.10, 1.2, 0.9],
-        [1.3, 1.5, 3.0, 0.05, 0.6, 0.5],
-        [1.8, 0.7, 1.0, 0.12, 1.5, 1.0],
+        [1.5, 1.0, 2.0, 0.08, 1.0, 0.75, 1.0],
+        [1.0, 1.2, 1.5, 0.06, 0.8, 0.6, 0.8],
+        [2.0, 0.8, 2.5, 0.10, 1.2, 0.9, 1.2],
+        [1.3, 1.5, 3.0, 0.05, 0.6, 0.5, 0.6],
+        [1.8, 0.7, 1.0, 0.12, 1.5, 1.0, 1.5],
     ]
 
     bounds = [
@@ -185,6 +236,7 @@ def get_optimized_params(obs_data):
         (0.03, 0.15), # ENSO amplitude
         (0.3, 2.0),   # volcanic forcing multiplier
         (0.3, 1.5),   # non-CO₂ forcing multiplier
+        (0.0, 2.0),   # solar forcing multiplier
     ]
 
     best_res = None
