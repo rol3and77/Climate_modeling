@@ -1031,3 +1031,96 @@ div[data-testid="stPyplotRootElement"] {
     .hero-title { font-size: 1.6rem; }
     .block-container { padding: 1rem !important; }
 }
+
+/* Parameter slider redesign */
+.st-key-param_panel {
+    background: #ffffff !important;
+    border: 1px solid #dbe7f5 !important;
+    border-radius: 22px !important;
+    padding: 1.35rem 1.5rem 1.25rem 1.5rem !important;
+    box-shadow: 0 6px 18px rgba(15, 39, 68, 0.06) !important;
+    margin: 1.1rem 0 1.5rem 0 !important;
+}
+
+.st-key-param_panel [data-testid="stHorizontalBlock"] {
+    gap: 2.2rem !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] {
+    background: #f8fbff !important;
+    border: 1px solid #e2ecf7 !important;
+    border-radius: 18px !important;
+    padding: 1rem 1.05rem 0.85rem 1.05rem !important;
+    margin: 0 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] label {
+    margin-bottom: 0.9rem !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] label p {
+    font-size: 0.92rem !important;
+    font-weight: 850 !important;
+    color: #102a43 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.35 !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] {
+    padding-top: 0.65rem !important;
+    padding-bottom: 0.25rem !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+    height: 5px !important;
+    border-radius: 999px !important;
+    background: #dfeaf6 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div,
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child,
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:last-child {
+    height: 5px !important;
+    border-radius: 999px !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:first-child {
+    background: #2b6cb0 !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child > div:last-child {
+    background: #dfeaf6 !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [role="slider"] {
+    width: 20px !important;
+    height: 20px !important;
+    background: #ffffff !important;
+    border: 3px solid #2b6cb0 !important;
+    box-shadow: 0 2px 8px rgba(43, 108, 176, 0.22) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [role="slider"]:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(43, 108, 176, 0.28) !important;
+}
+
+.st-key-param_panel div[data-testid="stSlider"] [data-testid="stSliderThumbValue"] {
+    top: -32px !important;
+    background: #ffffff !important;
+    border: 1px solid #d6e2f0 !important;
+    border-radius: 999px !important;
+    color: #2b6cb0 !important;
+    font-size: 0.78rem !important;
+    font-weight: 850 !important;
+    padding: 0.12rem 0.45rem !important;
+    box-shadow: 0 2px 8px rgba(15, 39, 68, 0.08) !important;
+}
+
+.st-key-param_panel div[data-testid="stTickBarMin"],
+.st-key-param_panel div[data-testid="stTickBarMax"] {
+    display: none !important;
+}
