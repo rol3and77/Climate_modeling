@@ -131,11 +131,15 @@ def _apply_chart_style(ax, title="", xlabel="", ylabel=""):
 def load_report_file():
     report_candidates = [
         Path("기후모델 웹사이트 분석 리포트.docx"),
+        Path("기후모델 웹사이트 분석 리포트.docx"),
+        Path("./기후모델 웹사이트 분석 리포트.docx"),
         Path("./기후모델 웹사이트 분석 리포트.docx"),
     ]
+
     for path in report_candidates:
         if path.exists():
             return path.name, path.read_bytes()
+
     return None, None
     
 # ── 페이지 설정 ──────────────────────────────────────────────────────────────
