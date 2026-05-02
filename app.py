@@ -1249,8 +1249,81 @@ elif page == "모델 적합도 및 관측자료 비교":
             "모델은 전체적인 장기 온난화 추세를 비교적 잘 재현하지만, 일부 시기에는 과대·과소예측이 나타납니다. "
             "이는 단순화된 강제력 입력과 내부 변동성 표현의 한계에서 비롯될 수 있으며, "
             "장기 추세 설명에는 유용하나 단기 변동 재현에는 제한이 있음을 보여줍니다.",
+            )
+    sec("다중 관측 데이터 비교")
+    
+    all_obs = []
+    obs_names = []
+    
+    for name, data in obs_datasets.items():
+        obs_vals = np.interp(
+            years_axis,
+            list(data.keys()),
+            list(data.values()),
         )
-
+        all_obs.append(obs_vals)
+        obs_names.append(name)
+    
+    all_obs = np.array(all_obs)
+    
+    mean_obs = np.mean(all_obs, axis=0)
+    min_obs = np.min(all_obs, axis=0)
+    max_obs = np.max(all_obs, axis=0)
+    
+    fig_multi, ax_multi = _styled_fig(figsize=(12, 5.2))
+    
+    for name, obs_vals in zip(obs_names, all_obs):
+        ax_multi.plot(
+            years_axis,
+            obs_vals,
+            lw=1.5,
+            alpha=0.65,
+            label=name,
+        )
+    
+    ax_multi.fill_between(
+        years_axis,
+        min_obs,
+        max_obs,
+        color="#64748b",
+        alpha=0.15,
+        label="Observation Range",
+    )
+    
+    ax_multi.plot(
+        years_axis,
+        mean_obs,
+        color="#0f2744",
+        lw=2.4,
+        ls="--",
+        label="Mean Observation",
+    )
+    
+    ax_multi.plot(
+        years_axis,
+        best_global,
+        color="#1a56a0",
+        lw=2.6,
+        label=f"Model fitted to {obs_choice}",
+    )
+    
+    _apply_chart_style(
+        ax_multi,
+        title="Multi-Dataset Observation Comparison",
+        xlabel="Year",
+        ylabel="Temperature Anomaly (°C)",
+    )
+    
+    ax_multi.legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+    plt.tight_layout()
+    st.pyplot(fig_multi)
+    
+    render_infobox(
+        "다중 데이터 해석",
+        "이 그래프는 NASA GISS, HadCRUT5, Berkeley Earth 관측자료를 동시에 비교한 것입니다. "
+        "회색 영역은 관측자료 간 범위를, 검은 점선은 관측 평균을 나타냅니다. "
+        "이를 통해 모델이 특정 관측자료에만 맞는지, 여러 관측자료의 공통적인 장기 추세를 재현하는지 함께 확인할 수 있습니다.",
+    )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 모델 검증 및 불확실성 정량화
