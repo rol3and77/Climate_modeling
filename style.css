@@ -42,6 +42,36 @@
     padding: 18px 20px;
     margin-bottom: 16px;
 }
+.summary-card {
+    background: #ffffff;
+    border: 1px solid #d6e2f0;
+    border-radius: 18px;
+    padding: 1.35rem 1.45rem;
+    box-shadow: 0 4px 16px rgba(26,86,160,0.06);
+    margin-bottom: 1rem;
+}
+
+.summary-tag {
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #1a56a0;
+    margin-bottom: 0.65rem;
+}
+
+.summary-title {
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: #0f2744;
+    margin-bottom: 0.65rem;
+}
+
+.summary-text {
+    font-size: 0.93rem;
+    line-height: 1.85;
+    color: #475569;
+}
 
 /* ── Reset & Base ─────────────────────────────────────────── */
 html, body, [class*="css"] {
