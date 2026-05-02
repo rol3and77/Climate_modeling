@@ -416,28 +416,52 @@ def render_settings(current_page):
             """,
             unsafe_allow_html=True,
         )
-    
+        
     elif current_page == "모델 적합도 및 관측자료 비교":
         st.markdown(
-            """
-
+            '<div class="settings-shell"><div class="settings-title">데이터셋 선택</div>',
+            unsafe_allow_html=True,
+        )
+    
+        obs_list = list(obs_datasets.keys())
+    
+        controls["obs_choice"] = st.selectbox(
+            "관측 데이터셋",
+            obs_list,
+            index=obs_list.index(st.session_state.get("main_obs_choice", obs_list[0])),
+            key="main_obs_choice",
+        )
+    
+        controls["current_obs_data"] = np.interp(
+            years_axis,
+            list(obs_datasets[controls["obs_choice"]].keys()),
+            list(obs_datasets[controls["obs_choice"]].values()),
+        )
+    
+        st.markdown("</div>", unsafe_allow_html=True)
+    
     elif current_page == "모델 검증 및 불확실성 정량화":
         st.markdown(
             '<div class="settings-shell"><div class="settings-title">검증 데이터셋</div>',
             unsafe_allow_html=True,
         )
+    
         obs_list = list(obs_datasets.keys())
+    
         controls["diag_obs_choice"] = st.selectbox(
             "검증용 데이터셋",
             obs_list,
             index=obs_list.index(st.session_state.get("main_diag_obs_choice", obs_list[0])),
             key="main_diag_obs_choice",
         )
+    
         controls["diag_obs_data"] = np.interp(
             years_axis,
             list(obs_datasets[controls["diag_obs_choice"]].keys()),
             list(obs_datasets[controls["diag_obs_choice"]].values()),
         )
+    
+        st.markdown("</div>", unsafe_allow_html=True)
 
     return controls
 
@@ -472,18 +496,15 @@ if page == "시작 페이지":
 
     def modcard(num, title, desc, slug):
         href = f"?module={quote(slug)}"
-    
-        num_str = f"{num:02d}"
-    
-        html = f"""
+        st.markdown(
+            f"""
     <a class="modcard" href="{href}" target="_self">
-      <div class="modcard-num">Module {num_str}</div>
+      <div class="modcard-num">Module {num:02d}</div>
       <div class="modcard-title">{title}</div>
       <div class="modcard-desc">{desc}</div>
-    </a>
-    """
-    
-        st.markdown(html, unsafe_allow_html=True)
+    </a>""",
+            unsafe_allow_html=True,
+        )
 
     row_gap = "1.2rem"
 
@@ -599,8 +620,7 @@ elif page == "시나리오 기반 기후 변화 예측":
   </div>
   <div class="cond-item">
     <div class="cond-label">2100년 예상 온도</div>
-    p_str = f"{p_2100:.2f}"
-    <div class="cond-val">+{p_str} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">°C</span></div>
+    <div class="cond-val">+{p_2100:.2f} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">°C</span></div>
   </div>
 </div>
 """,
