@@ -195,6 +195,14 @@ policy_map = {
 if policy_q in policy_map:
     st.session_state["main_policy"] = policy_map[policy_q]
 
+if st.query_params.get("reset") == "param":
+    st.session_state["main_exp_co2"] = 550
+    st.session_state["main_exp_lambda"] = 1.5
+    st.session_state["main_exp_aer"] = 1.0
+    st.query_params.clear()
+    st.query_params["module"] = "experiment"
+    st.rerun()
+
 
 
 # ── Left Panel ────────────────────────────────────────────────────────────────
@@ -949,27 +957,20 @@ elif page == "기후 시스템 파라미터 실험":
         )
         
         with st.container(border=True, key="param_panel"):
-            h1, h2 = st.columns([5.6, 1.15], vertical_alignment="top")
-
-            with h1:
-                st.markdown(
-                    """
-<div class="param-panel-title-row">
-  <div class="param-panel-title">파라미터 조정</div>
-  <div class="param-panel-subtitle">입력 파라미터 변화에 따른 기후 시스템의 열적 반응을 정량적으로 분석한다.</div>
+            st.markdown(
+                """
+<div class="param-panel-head">
+  <div class="param-panel-copy">
+    <div class="param-panel-title">파라미터 조정</div>
+    <div class="param-panel-subtitle">입력 파라미터 변화에 따른 기후 시스템의 열적 반응을 정량적으로 분석한다.</div>
+  </div>
+  <a class="param-reset-link" href="?module=experiment&reset=param" target="_self">Reset</a>
 </div>
+<div class="param-panel-divider"></div>
 """,
-                    unsafe_allow_html=True,
-                )
+                unsafe_allow_html=True,
+            )
 
-            with h2:
-                if st.button("Reset", use_container_width=True, key="param_reset_btn"):
-                    st.session_state["main_exp_co2"] = 550
-                    st.session_state["main_exp_lambda"] = 1.5
-                    st.session_state["main_exp_aer"] = 1.0
-                    st.rerun()
-
-            st.markdown('<div class="param-slider-grid-marker"></div>', unsafe_allow_html=True)
             p1, p2, p3 = st.columns(3, gap="large")
 
             with p1:
