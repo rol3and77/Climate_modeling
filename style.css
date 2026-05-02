@@ -1315,3 +1315,26 @@ div[data-testid="stPyplotRootElement"] { border-radius: 12px; }
     margin: 1rem 0 1.4rem 0;
 }
 
+.st-key-dataset_box [data-testid="stVerticalBlockBorderWrapper"],
+.st-key-diag_dataset_box [data-testid="stVerticalBlockBorderWrapper"] {
+    background: #ffffff !important;
+    border: 3px solid #cfe0f3 !important;
+    border-radius: 32px !important;
+    padding: 2rem 1.8rem !important;
+}
+
+.st-key-dataset_box .settings-title,
+.st-key-diag_dataset_box .settings-title {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #1a56a0;
+}
+
+.st-key-dataset_box .settings-divider,
+.st-key-diag_dataset_box .settings-divider {
+    height: 4px;
+    background: #dbe7f5;
+    border-radius: 999px;
+    margin: 1rem 0 1.4rem 0;
+}
+
