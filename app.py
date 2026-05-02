@@ -136,6 +136,7 @@ ALL_PAGES = [
     "시나리오 기반 기후 변화 예측",
     "기후 시스템 파라미터 실험",
     "모델 적합도 및 관측자료 비교",
+    "다중 관측 데이터 비교",
     "모델 검증 및 불확실성 정량화",
     "기후 모델링 용어 및 개념 정의",
     "연구 요약 및 보고서",
@@ -146,6 +147,7 @@ slug_to_page = {
     "scenario": "시나리오 기반 기후 변화 예측",
     "experiment": "기후 시스템 파라미터 실험",
     "fit": "모델 적합도 및 관측자료 비교",
+    "multi": "다중 관측 데이터 비교",
     "uncertainty": "모델 검증 및 불확실성 정량화",
     "glossary": "기후 모델링 용어 및 개념 정의",
     "summary": "연구 요약 및 보고서",
@@ -182,6 +184,7 @@ def render_left_panel():
         ("시나리오 예측", "시나리오 기반 기후 변화 예측", "scenario"),
         ("파라미터 실험", "기후 시스템 파라미터 실험", "experiment"),
         ("관측 비교", "모델 적합도 및 관측자료 비교", "fit"),
+        ("다중 데이터", "다중 관측 데이터 비교", "multi"),
         ("모델 검증", "모델 검증 및 불확실성 정량화", "uncertainty"),
         ("용어 정의", "기후 모델링 용어 및 개념 정의", "glossary"),
         ("연구 요약", "연구 요약 및 보고서", "summary"),
@@ -1250,80 +1253,6 @@ elif page == "모델 적합도 및 관측자료 비교":
             "이는 단순화된 강제력 입력과 내부 변동성 표현의 한계에서 비롯될 수 있으며, "
             "장기 추세 설명에는 유용하나 단기 변동 재현에는 제한이 있음을 보여줍니다.",
             )
-    sec("다중 관측 데이터 비교")
-    
-    all_obs = []
-    obs_names = []
-    
-    for name, data in obs_datasets.items():
-        obs_vals = np.interp(
-            years_axis,
-            list(data.keys()),
-            list(data.values()),
-        )
-        all_obs.append(obs_vals)
-        obs_names.append(name)
-    
-    all_obs = np.array(all_obs)
-    
-    mean_obs = np.mean(all_obs, axis=0)
-    min_obs = np.min(all_obs, axis=0)
-    max_obs = np.max(all_obs, axis=0)
-    
-    fig_multi, ax_multi = _styled_fig(figsize=(12, 5.2))
-    
-    for name, obs_vals in zip(obs_names, all_obs):
-        ax_multi.plot(
-            years_axis,
-            obs_vals,
-            lw=1.5,
-            alpha=0.65,
-            label=name,
-        )
-    
-    ax_multi.fill_between(
-        years_axis,
-        min_obs,
-        max_obs,
-        color="#64748b",
-        alpha=0.15,
-        label="Observation Range",
-    )
-    
-    ax_multi.plot(
-        years_axis,
-        mean_obs,
-        color="#0f2744",
-        lw=2.4,
-        ls="--",
-        label="Mean Observation",
-    )
-    
-    ax_multi.plot(
-        years_axis,
-        best_global,
-        color="#1a56a0",
-        lw=2.6,
-        label=f"Model fitted to {obs_choice}",
-    )
-    
-    _apply_chart_style(
-        ax_multi,
-        title="Multi-Dataset Observation Comparison",
-        xlabel="Year",
-        ylabel="Temperature Anomaly (°C)",
-    )
-    
-    ax_multi.legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
-    plt.tight_layout()
-    st.pyplot(fig_multi)
-    
-    render_infobox(
-        "다중 데이터 해석",
-        "이 그래프는 NASA GISS, HadCRUT5, Berkeley Earth 관측자료를 동시에 비교한 것입니다. "
-        "회색 영역은 관측자료 간 범위를, 검은 점선은 관측 평균을 나타냅니다. "
-        "이를 통해 모델이 특정 관측자료에만 맞는지, 여러 관측자료의 공통적인 장기 추세를 재현하는지 함께 확인할 수 있습니다.",
-    )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 모델 검증 및 불확실성 정량화
@@ -1470,7 +1399,126 @@ elif page == "모델 검증 및 불확실성 정량화":
         )
         plt.tight_layout()
         st.pyplot(fig_s)
+        
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 다중 관측 데이터 비교
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "다중 관측 데이터 비교":
+    st.query_params["module"] = "multi"
+    left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
+    with left_col:
+        render_left_panel()
+        render_source_panel()
+
+    with main_col:
+        page_header(
+            "다중 관측 데이터 비교",
+            "NASA GISS · HadCRUT5 · Berkeley Earth 관측자료의 공통 경향 및 차이 분석",
+        )
+
+        render_infobox(
+            "분석 목적",
+            "여러 공인 관측 데이터셋을 동시에 비교하여 자료 간 차이와 공통적인 장기 온난화 경향을 확인합니다. "
+            "단일 관측자료에만 의존하지 않고, 관측자료 간 범위와 평균을 함께 제시하여 모델 검증의 기준을 확장합니다.",
+        )
+
+        all_obs = []
+        obs_names = []
+
+        for name, data in obs_datasets.items():
+            obs_vals = np.interp(
+                years_axis,
+                list(data.keys()),
+                list(data.values()),
+            )
+            all_obs.append(obs_vals)
+            obs_names.append(name)
+
+        all_obs = np.array(all_obs)
+
+        mean_obs = np.mean(all_obs, axis=0)
+        min_obs = np.min(all_obs, axis=0)
+        max_obs = np.max(all_obs, axis=0)
+
+        sec("관측 데이터셋 동시 비교")
+
+        fig_multi, ax_multi = _styled_fig(figsize=(12, 5.5))
+
+        for name, vals in zip(obs_names, all_obs):
+            ax_multi.plot(
+                years_axis,
+                vals,
+                lw=1.6,
+                alpha=0.72,
+                label=name,
+            )
+
+        ax_multi.fill_between(
+            years_axis,
+            min_obs,
+            max_obs,
+            color="#64748b",
+            alpha=0.16,
+            label="Observation Range",
+        )
+
+        ax_multi.plot(
+            years_axis,
+            mean_obs,
+            color="#0f2744",
+            lw=2.5,
+            ls="--",
+            label="Mean Observation",
+        )
+
+        _apply_chart_style(
+            ax_multi,
+            title="Multi-Dataset Global Temperature Anomaly Comparison",
+            xlabel="Year",
+            ylabel="Temperature Anomaly (°C)",
+        )
+
+        ax_multi.legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()
+        st.pyplot(fig_multi)
+
+        sec("데이터셋별 편차 지표")
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            render_metric(
+                "데이터셋 수",
+                f"{len(obs_names)}",
+                "개",
+                "현재 불러온 관측자료 수",
+            )
+
+        with c2:
+            avg_spread = np.mean(max_obs - min_obs)
+            render_metric(
+                "평균 관측 범위",
+                f"{avg_spread:.3f}",
+                "°C",
+                "자료 간 평균 차이 범위",
+            )
+
+        with c3:
+            final_spread = max_obs[-1] - min_obs[-1]
+            render_metric(
+                "최근 관측 범위",
+                f"{final_spread:.3f}",
+                "°C",
+                "마지막 연도 기준 자료 간 차이",
+            )
+
+        render_infobox(
+            "해석",
+            "세 관측자료는 세부 값에서는 차이가 있지만, 장기적인 전지구 평균기온 상승 경향은 공통적으로 나타납니다. "
+            "회색 영역은 자료 간 최소-최대 범위를 의미하며, 검은 점선은 관측자료 평균입니다. "
+            "이 페이지는 특정 데이터셋 하나에 모델을 맞추기 전에, 관측자료 자체의 차이와 공통 경향을 확인하는 보조 분석 페이지입니다.",
+        )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 페이지: 기후 모델링 용어 및 개념 정의
