@@ -6,9 +6,10 @@ from climate_core import (
     END_YEAR,
     co2_forcing,
     aerosol_effect,
+    solar_effect,
 )
 
-from data_loader import load_manual_obs
+from data_loader import load_manual_obs, load_co2_observations, MULTI_MEAN_NAME
 
 import streamlit as st
 import numpy as np
@@ -151,6 +152,7 @@ def load_css(path="style.css"):
 load_css()
 
 obs_datasets = load_manual_obs()
+co2_observations = load_co2_observations()
 
 # ── 페이지 / 네비게이션 상태 ───────────────────────────────────────────────────
 ALL_PAGES = [
@@ -662,10 +664,11 @@ elif page == "시나리오 기반 기후 변화 예측":
         }
 
         res_full, _, _, _, _ = run_model(
-            [1.5, 1.0, 2.0, 0.12, 1.0, 0.75],
+            [1.5, 1.0, 2.0, 0.12, 1.0, 0.75, 1.0],
             -0.22,
             end_year=2100,
             end_co2=emission_map[policy],
+            co2_history=co2_observations,
         )
 
         p_2100 = res_full[-1]
@@ -1056,12 +1059,13 @@ elif page == "기후 시스템 파라미터 실험":
         exp_klo = 2.0
         exp_enso = 0.12
 
-        custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso, 1.0, 0.75]
+        custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso, 1.0, 0.75, 1.0]
         res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
             custom_params,
             -0.22,
             end_year=2100,
             end_co2=exp_co2,
+            co2_history=co2_observations,
         )
 
         cond_html = "\n".join([
@@ -1107,6 +1111,12 @@ elif page == "기후 시스템 파라미터 실험":
             '    <div class="cond-label">Non-CO₂</div>',
             '    <div class="cond-val">0.75</div>',
             '    <div class="cond-base">본 분석에서는 고정</div>',
+            "  </div>",
+
+            '  <div class="cond-item">',
+            '    <div class="cond-label">Solar</div>',
+            '    <div class="cond-val">1.00</div>',
+            '    <div class="cond-base">11년 주기 자연 강제력</div>',
             "  </div>",
         
             '</div>',
@@ -1220,13 +1230,13 @@ elif page == "모델 적합도 및 관측자료 비교":
             "모델이 관측자료의 장기 기온 변화를 재현하는 정도를 정량적으로 평가한다. "
             "모든 관측 온도 편차 자료는 데이터셋 간 기준기간 차이를 줄이기 위해 1981–2010년 평균 기준으로 재정렬하였다. "
             "최적화된 파라미터를 기반으로 관측값과 모의값의 차이를 분석하고, "
-            "인위적 및 자연적 강제력의 상대적 기여를 분해한다.",
+            "CO₂ 역사 경로와 태양복사 강제력을 포함하여 인위적 및 자연적 강제력의 상대적 기여를 분해한다.",
         )
 
         with st.spinner(f"{obs_choice} 데이터에 맞춰 모델을 최적화하는 중입니다..."):
-            best_params = get_optimized_params(current_obs_data)
+            best_params = get_optimized_params(current_obs_data, co2_history=co2_observations)
             best_global, best_tl, best_tm, best_td, daily_all = run_model(
-                best_params, current_obs_data[0]
+                best_params, current_obs_data[0], co2_history=co2_observations
             )
 
         err = 2 * (best_global - current_obs_data) / (
@@ -1285,7 +1295,7 @@ elif page == "모델 적합도 및 관측자료 비교":
         )
 
         f_co2 = [
-            co2_forcing(np.interp(y, [1925, 2025], [306, 427]), best_global[int(y - 1925)])
+            co2_forcing(np.interp(y, list(co2_observations.keys()), list(co2_observations.values())), best_global[int(y - 1925)])
             for y in years_axis
         ]
         f_non_co2 = [best_params[5] * ((y - 1925) / 100) ** 2.2 for y in years_axis]
@@ -1316,14 +1326,16 @@ elif page == "모델 적합도 및 관측자료 비교":
             )
             for y in years_axis
         ]
+        f_solar = [solar_effect(y, best_params[6]) for y in years_axis]
         axes[2, 0].fill_between(years_axis, 0, f_volc, color="#64748b", alpha=0.55, label="Volcanic Forcing")
         axes[2, 0].plot(years_axis, f_osc, color="#f59e0b", lw=1.8, label="Internal Oscillation")
+        axes[2, 0].plot(years_axis, f_solar, color="#22c55e", lw=1.4, label="Solar Cycle")
         _apply_chart_style(axes[2, 0], title="Natural Forcing Components",
                            xlabel="Year", ylabel="Forcing (W/m²)")
         axes[2, 0].legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
 
         anthro = np.array(f_co2) + np.array(f_non_co2) + np.array(f_aero)
-        natural = np.array(f_volc) + np.array(f_osc)
+        natural = np.array(f_volc) + np.array(f_osc) + np.array(f_solar)
         axes[2, 1].plot(years_axis, anthro, color="#1a56a0", lw=2.2, label="Anthropogenic Contribution")
         axes[2, 1].plot(years_axis, natural, color="#0f2744", lw=1.6, ls="--", label="Natural Contribution")
         axes[2, 1].axhline(0, color="#94a3b8", lw=0.8, ls="--")
@@ -1388,8 +1400,8 @@ elif page == "모델 검증 및 불확실성 정량화":
         )
 
         with st.spinner(f"{diag_obs_choice} 자료를 기준으로 검증을 수행하는 중입니다..."):
-            diag_best_params = get_optimized_params(diag_obs_data)
-            diag_best_global, _, _, _, _ = run_model(diag_best_params, diag_obs_data[0])
+            diag_best_params = get_optimized_params(diag_obs_data, co2_history=co2_observations)
+            diag_best_global, _, _, _, _ = run_model(diag_best_params, diag_obs_data[0], co2_history=co2_observations)
 
         residuals = diag_best_global - diag_obs_data
         rmse_diag = np.sqrt(np.mean((diag_best_global - diag_obs_data) ** 2))
@@ -1437,7 +1449,7 @@ elif page == "모델 검증 및 불확실성 정량화":
         samples = []
         for _ in range(20):
             noisy_params = np.array(diag_best_params) + rng.normal(
-                0, [0.08, 0.08, 0.10, 0.01, 0.10, 0.08], size=6
+                0, [0.08, 0.08, 0.10, 0.01, 0.10, 0.08, 0.15], size=7
             )
             
             noisy_params[0] = np.clip(noisy_params[0], 0.7, 2.3)
@@ -1446,7 +1458,8 @@ elif page == "모델 검증 및 불확실성 정량화":
             noisy_params[3] = np.clip(noisy_params[3], 0.05, 0.25)
             noisy_params[4] = np.clip(noisy_params[4], 0.3, 2.0)
             noisy_params[5] = np.clip(noisy_params[5], 0.3, 1.5)
-            res_tmp, _, _, _, _ = run_model(noisy_params.tolist(), diag_obs_data[0])
+            noisy_params[6] = np.clip(noisy_params[6], 0.0, 2.0)
+            res_tmp, _, _, _, _ = run_model(noisy_params.tolist(), diag_obs_data[0], co2_history=co2_observations)
             samples.append(res_tmp)
 
         samples = np.array(samples)
@@ -1474,7 +1487,7 @@ elif page == "모델 검증 및 불확실성 정량화":
         )
 
         sec("민감도 평가")
-        sens_options = ["기후 피드백 파라미터", "에어로졸 강도", "해양 열흡수 계수", "ENSO 진폭", "화산 강제력"]
+        sens_options = ["기후 피드백 파라미터", "에어로졸 강도", "해양 열흡수 계수", "ENSO 진폭", "화산 강제력", "태양복사 강제력"]
         sens_param = st.selectbox(
             "민감도 평가 대상 파라미터",
             sens_options,
@@ -1488,6 +1501,7 @@ elif page == "모델 검증 및 불확실성 정량화":
             "해양 열흡수 계수": (np.linspace(0.5, 3.5, 12), 2),
             "ENSO 진폭": (np.linspace(0.05, 0.25, 12), 3),
             "화산 강제력": (np.linspace(0.3, 2.0, 12), 4),
+            "태양복사 강제력": (np.linspace(0.0, 2.0, 12), 6),
         }
         sens_param_en_map = {
             "기후 피드백 파라미터": "Climate Feedback Parameter",
@@ -1495,6 +1509,7 @@ elif page == "모델 검증 및 불확실성 정량화":
             "해양 열흡수 계수": "Ocean Heat Uptake Coefficient",
             "ENSO 진폭": "ENSO Amplitude",
             "화산 강제력": "Volcanic Forcing",
+            "태양복사 강제력": "Solar Forcing",
         }
         sens_param_en = sens_param_en_map[sens_param]
         test_range, idx_change = param_config[sens_param]
@@ -1503,7 +1518,7 @@ elif page == "모델 검증 및 불확실성 정량화":
         for val in test_range:
             params = list(diag_best_params)
             params[idx_change] = val
-            res_tmp, _, _, _, _ = run_model(params, diag_obs_data[0], end_year=2100, end_co2=550)
+            res_tmp, _, _, _, _ = run_model(params, diag_obs_data[0], end_year=2100, end_co2=550, co2_history=co2_observations)
             sens_results.append(res_tmp[-1])
 
         fig_s, ax_s = _styled_fig(figsize=(12, 4.8))
@@ -1548,7 +1563,7 @@ elif page == "다중 관측 데이터 비교":
             "관측자료 간 최소–최대 범위와 평균을 통해 관측 불확실성을 정량적으로 평가한다.",
         )
 
-        obs_names_all = list(obs_datasets.keys())
+        obs_names_all = [name for name in obs_datasets.keys() if name != MULTI_MEAN_NAME]
 
         selected_names = st.multiselect(
             "비교 대상 관측 데이터셋 선택",
@@ -1672,8 +1687,8 @@ elif page == "다중 관측 데이터 비교":
         sec("모델과 다중 관측 평균의 비교")
 
         with st.spinner("다중 관측 평균에 맞춰 모델을 최적화하는 중입니다..."):
-            mean_best_params = get_optimized_params(mean_obs)
-            mean_model, _, _, _, _ = run_model(mean_best_params, mean_obs[0])
+            mean_best_params = get_optimized_params(mean_obs, co2_history=co2_observations)
+            mean_model, _, _, _, _ = run_model(mean_best_params, mean_obs[0], co2_history=co2_observations)
 
         fig_cmp, ax_cmp = _styled_fig(figsize=(12, 5.2))
 
@@ -1803,6 +1818,9 @@ elif page == "기후 모델링 용어 및 개념 정의":
             ("엘니뇨-남방진동 (ENSO, El Niño-Southern Oscillation)",
              "열대 태평양의 해수면 온도와 대기 순환 간 상호작용으로 발생하는 자연 변동성이다. "
              "전지구 평균기온에 단기적 변동성을 유도한다.", False),
+            ("태양복사 강제력 (Solar Radiative Forcing)",
+             "태양 활동의 주기적 변화가 지구 에너지 수지에 미치는 자연 강제력이다. "
+             "본 모델에서는 11년 태양 주기를 단순화한 약한 주기 함수로 표현한다.", False),
             ("비이산화탄소 인위적 강제력 (Non-CO₂ Anthropogenic Forcing)",
              "메탄(CH₄), 아산화질소(N₂O) 등 CO₂ 이외의 온실가스와 기타 인위적 요인이 "
              "기후 시스템에 작용하는 추가적인 복사강제력이다.", False),
@@ -1904,7 +1922,7 @@ elif page == "연구 요약 및 보고서":
             본 모델은 육지, 해양 혼합층, 심해의 세 층으로 구성된 단순 에너지 균형 모델이다.
             각 층은 서로 다른 열용량을 가지며, 이를 통해 기후 시스템의 시간 지연 효과와
             열 저장 특성을 표현한다. 모델에는 CO₂ 복사 강제력, 에어로졸 냉각 효과,
-            비CO₂ 인위적 강제력, 화산 강제력, ENSO 유사 내부 변동성이 포함된다.
+            비CO₂ 인위적 강제력, 화산 강제력, 태양복사 강제력, ENSO 유사 내부 변동성이 포함된다.
           </div>
         </div>
 
@@ -1958,7 +1976,7 @@ elif page == "연구 요약 및 보고서":
   <div class="abstract-text">
     본 대시보드는 기후 강제력, 내부 변동성, 열 저장 구조를 통합적으로 고려하여 
     전지구 평균기온 변화를 분석할 수 있도록 구성되었다. 
-    관측자료 기반 검증, 파라미터 민감도 분석, 불확실성 평가를 결합함으로써 
+    다중 관측 평균 기반 검증, 파라미터 민감도 분석, 불확실성 평가를 결합함으로써 
     기후 시스템의 주요 동작 메커니즘을 정량적으로 해석할 수 있다.
   </div>
 </div>""",
