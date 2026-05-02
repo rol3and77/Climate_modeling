@@ -593,9 +593,13 @@ elif page == "시나리오 기반 기후 변화 예측":
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
+        st.markdown('<div class="sticky-left">', unsafe_allow_html=True)
+        
         render_left_panel()
         controls = render_settings(page)
         render_source_panel()
+
+        st.markdown('</div>', unsafe_allow_html=True)
         
     with main_col:
         policy = controls["policy"]
@@ -890,9 +894,12 @@ elif page == "기후 시스템 파라미터 실험":
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
+        st.markdown('<div class="sticky-left">', unsafe_allow_html=True)
+    
         render_left_panel()
         render_source_panel()
         
+        st.markdown('</div>', unsafe_allow_html=True)
     with main_col:
         page_header(
             "기후 시스템 파라미터 실험",
@@ -1109,9 +1116,14 @@ elif page == "모델 적합도 및 관측자료 비교":
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
+        st.markdown('<div class="sticky-left">', unsafe_allow_html=True)
+        
         render_left_panel()
         controls = render_settings(page)
         render_source_panel()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
     with main_col:
         obs_choice = controls["obs_choice"]
         current_obs_data = controls["current_obs_data"]
@@ -1262,9 +1274,13 @@ elif page == "모델 검증 및 불확실성 정량화":
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
+        st.markdown('<div class="sticky-left">', unsafe_allow_html=True)
+    
         render_left_panel()
         controls = render_settings(page)
         render_source_panel()
+
+        st.markdown('</div>', unsafe_allow_html=True)
         
     with main_col:
         diag_obs_choice = controls["diag_obs_choice"]
@@ -1408,9 +1424,13 @@ elif page == "다중 관측 데이터 비교":
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
+        st.markdown('<div class="sticky-left">', unsafe_allow_html=True)
+    
         render_left_panel()
         render_source_panel()
-
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
     with main_col:
         page_header(
             "다중 관측 데이터 비교",
@@ -1632,8 +1652,12 @@ elif page == "기후 모델링 용어 및 개념 정의":
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
+        st.markdown('<div class="sticky-left">', unsafe_allow_html=True)
+    
         render_left_panel()
         render_source_panel()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
         
     with main_col:
         page_header("기후 모델링 용어 및 개념 정의",
@@ -1734,8 +1758,12 @@ elif page == "연구 요약 및 보고서":
     left_col, main_col = st.columns([1.05, 4.2], gap="large")
 
     with left_col:
+        st.markdown('<div class="sticky-left">', unsafe_allow_html=True)
+
         render_left_panel()
         render_source_panel()
+
+        st.markdown('</div>', unsafe_allow_html=True)
         
     with main_col:
         page_header("연구 요약 및 보고서",
