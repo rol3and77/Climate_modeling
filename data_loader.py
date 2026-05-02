@@ -29,10 +29,11 @@ def load_nasa_gistemp():
 
 @lru_cache(maxsize=1)
 def load_hadcrut():
-    url = "https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/HadCRUT%205%20global%20temperature%20anomalies/HadCRUT%205%20global%20temperature%20anomalies.csv"
+    url = "https://www.metoffice.gov.uk/hadobs/hadcrut5/data/current/analysis/diagnostics/HadCRUT.5.1.0.0.analysis.summary_series.global.annual.csv"
 
     df = pd.read_csv(url)
-    return _clean_year_temp(df, "Year", "Global average temperature anomaly")
+
+    return _clean_year_temp(df, "Time", "Anomaly (deg C)")
 
 
 @lru_cache(maxsize=1)
