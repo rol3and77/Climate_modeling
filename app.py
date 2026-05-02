@@ -1043,8 +1043,6 @@ elif page == "기후 시스템 파라미터 실험":
                 "심해는 가장 느리게 반응",
             )
 
-        sec("실험 결과 시계열")
-
         fig, ax = _styled_fig(figsize=(12, 5.2))
 
         obs_vals = np.interp(
