@@ -1,1370 +1,2004 @@
-# ============================================================
-# app.py
-# Fast Streamlit Dashboard
-# Loads pre-trained model/result files from result/
-# ============================================================
+from climate_core import (
+    run_model,
+    get_optimized_params,
+    years_axis,
+    START_YEAR,
+    END_YEAR,
+    co2_forcing,
+    aerosol_effect,
+    solar_effect,
+)
 
-import os
-import time
-from datetime import datetime, timedelta
+from data_loader import load_manual_obs, load_co2_observations, MULTI_MEAN_NAME
 
-import joblib
-import numpy as np
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-import requests
 import streamlit as st
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
 
-
-st.set_page_config(
-    page_title="Seoul Weather ML Dashboard",
-    page_icon="🌤️",
-    layout="wide",
-)
-
-def load_css(file_path: str):
-    if os.path.exists(file_path):
-        with open(file_path, encoding="utf-8") as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-load_css("style.css")
-
-def apply_english_chart_style(fig, title="", x_title="", y_title=""):
-    """
-    Apply consistent English chart typography.
-    The dashboard explanations remain Korean, but all chart-internal text
-    is kept in English to prevent font rendering issues.
-    """
-    fig.update_layout(
-        title=title,
-        xaxis_title=x_title,
-        yaxis_title=y_title,
-        legend_title_text="",
-        font=dict(
-            family="Inter, Arial, sans-serif",
-            size=13,
-            color="#171717"
-        ),
-        title_font=dict(size=20, family="Inter, Arial, sans-serif"),
-        hoverlabel=dict(
-            font=dict(family="Inter, Arial, sans-serif")
-        )
-    )
-    return fig
-
-
-
-# ============================================================
-# Paths
-# ============================================================
-
-RESULT_DIR = "result"
-
-MODEL_PATH = os.path.join(RESULT_DIR, "seoul_temperature_model.joblib")
-PERFORMANCE_PATH = os.path.join(RESULT_DIR, "model_performance_comparison.csv")
-PREDICTION_PATH = os.path.join(RESULT_DIR, "temperature_prediction_result.csv")
-SUMMARY_PATH = os.path.join(RESULT_DIR, "project_summary.csv")
-FEATURE_PATH = os.path.join(RESULT_DIR, "feature_importance.csv")
-PROCESSED_PATH = os.path.join(RESULT_DIR, "seoul_weather_processed_dataset.csv")
-CV_SUMMARY_PATH = os.path.join(RESULT_DIR, "time_series_cv_summary.csv")
-CV_RESULTS_PATH = os.path.join(RESULT_DIR, "time_series_cv_results.csv")
-DATA_QUALITY_PATH = os.path.join(RESULT_DIR, "data_quality_report.csv")
-MISSING_REPORT_PATH = os.path.join(RESULT_DIR, "missing_value_report.csv")
-RESIDUAL_SUMMARY_PATH = os.path.join(RESULT_DIR, "residual_analysis_summary.csv")
-ERROR_BY_HOUR_PATH = os.path.join(RESULT_DIR, "error_by_hour.csv")
-ERROR_BY_MONTH_PATH = os.path.join(RESULT_DIR, "error_by_month.csv")
-ERROR_BY_SEASON_PATH = os.path.join(RESULT_DIR, "error_by_season.csv")
-ERROR_BY_TEMP_BIN_PATH = os.path.join(RESULT_DIR, "error_by_temperature_bin.csv")
-MODEL_CARD_PATH = os.path.join(RESULT_DIR, "model_card.md")
-
-API_URL = "https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList"
-SEOUL_STATION_ID = "108"
-PREDICT_HOUR = 1
-
-REQUIRED_COLUMNS = [
-    "지점",
-    "지점명",
-    "일시",
-    "기온(°C)",
-    "강수량(mm)",
-    "풍속(m/s)",
-    "습도(%)",
-    "현지기압(hPa)",
-    "해면기압(hPa)",
-]
-
-NUMERIC_COLUMNS = [
-    "지점",
-    "기온(°C)",
-    "강수량(mm)",
-    "풍속(m/s)",
-    "습도(%)",
-    "현지기압(hPa)",
-    "해면기압(hPa)",
-]
-
-INTERPOLATE_COLUMNS = [
-    "기온(°C)",
-    "풍속(m/s)",
-    "습도(%)",
-    "현지기압(hPa)",
-    "해면기압(hPa)",
-]
-
-
-# ============================================================
-# Utility
-# ============================================================
-
-@st.cache_data
-def load_csv(path: str) -> pd.DataFrame:
-    return pd.read_csv(path, encoding="utf-8-sig")
-
-
-@st.cache_resource
-def load_model_bundle():
-    return joblib.load(MODEL_PATH)
-
-
-@st.cache_data
-def load_optional_csv(path: str):
-    if os.path.exists(path):
-        return pd.read_csv(path, encoding="utf-8-sig")
-    return None
-
-
-def load_optional_text(path: str):
-    if os.path.exists(path):
-        with open(path, encoding="utf-8") as f:
-            return f.read()
-    return None
-
-
-def make_season(month: int) -> int:
-    if month in [3, 4, 5]:
-        return 0
-    if month in [6, 7, 8]:
-        return 1
-    if month in [9, 10, 11]:
-        return 2
-    return 3
-
-
-def add_features(df: pd.DataFrame, predict_hour: int = 1):
-    df = df.copy()
-
-    df["hour"] = df["일시"].dt.hour
-    df["month"] = df["일시"].dt.month
-    df["dayofyear"] = df["일시"].dt.dayofyear
-    df["dayofweek"] = df["일시"].dt.dayofweek
-
-    df["season"] = df["month"].apply(make_season)
-
-    df["hour_sin"] = np.sin(2 * np.pi * df["hour"] / 24)
-    df["hour_cos"] = np.cos(2 * np.pi * df["hour"] / 24)
-    df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12)
-    df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12)
-
-    df["temp_1h_ago"] = df["기온(°C)"].shift(1)
-    df["temp_3h_ago"] = df["기온(°C)"].shift(3)
-    df["temp_6h_ago"] = df["기온(°C)"].shift(6)
-    df["temp_12h_ago"] = df["기온(°C)"].shift(12)
-    df["temp_24h_ago"] = df["기온(°C)"].shift(24)
-    df["temp_48h_ago"] = df["기온(°C)"].shift(48)
-
-    df["humidity_1h_ago"] = df["습도(%)"].shift(1)
-    df["pressure_1h_ago"] = df["해면기압(hPa)"].shift(1)
-    df["wind_1h_ago"] = df["풍속(m/s)"].shift(1)
-
-    df["temp_diff_1h"] = df["기온(°C)"] - df["temp_1h_ago"]
-    df["temp_diff_3h"] = df["기온(°C)"] - df["temp_3h_ago"]
-    df["pressure_diff_1h"] = df["해면기압(hPa)"] - df["pressure_1h_ago"]
-
-    df["temp_rolling_3h"] = df["기온(°C)"].rolling(window=3).mean()
-    df["temp_rolling_6h"] = df["기온(°C)"].rolling(window=6).mean()
-    df["humidity_rolling_3h"] = df["습도(%)"].rolling(window=3).mean()
-    df["pressure_rolling_3h"] = df["해면기압(hPa)"].rolling(window=3).mean()
-    df["temp_std_6h"] = df["기온(°C)"].rolling(window=6).std()
-
-    df["rain_yesno"] = np.where(df["강수량(mm)"] > 0, 1, 0)
-
-    actual_temp_col = f"actual_temp_{predict_hour}h_later"
-    target_change_col = f"target_temp_change_{predict_hour}h"
-
-    df[actual_temp_col] = df["기온(°C)"].shift(-predict_hour)
-    df[target_change_col] = df[actual_temp_col] - df["기온(°C)"]
-
-    return df, target_change_col, actual_temp_col
-
-
-def ensure_required_files():
-    required = [
-        MODEL_PATH,
-        PERFORMANCE_PATH,
-        PREDICTION_PATH,
-        SUMMARY_PATH,
-        FEATURE_PATH,
-        PROCESSED_PATH,
+# Matplotlib 그래프에서 한글이 네모(□)로 깨지는 문제를 방지한다.
+# 실행 환경에 설치된 한글 지원 글꼴을 우선순위에 따라 자동 선택한다.
+def set_korean_matplotlib_font():
+    preferred_fonts = [
+        "Noto Sans CJK KR",
+        "NanumSquare",
+        "NanumGothic",
+        "AppleGothic",
+        "Malgun Gothic",
+        "UnDotum",
+        "Baekmuk Dotum",
     ]
-    return [path for path in required if not os.path.exists(path)]
+    available_fonts = {f.name for f in fm.fontManager.ttflist}
+    for font_name in preferred_fonts:
+        if font_name in available_fonts:
+            matplotlib.rcParams["font.family"] = font_name
+            break
+    matplotlib.rcParams["axes.unicode_minus"] = False
+
+set_korean_matplotlib_font()
+import pandas as pd
+
+import streamlit.components.v1 as components
+import plotly.graph_objects as go
+from pathlib import Path
+from urllib.parse import quote
 
 
-def make_api_params(service_key: str):
-    today = datetime.now()
+# ── UI helper 함수 ───────────────────────────────────────────────────
+    
+def page_header(title, subtitle=""):
+    st.markdown(f"""
+        <div style="margin-bottom: 1.5rem;">
+            <div style="font-size: 1.4rem; font-weight: 700; color: #0f2744;">
+                {title}
+            </div>
+            <div style="font-size: 0.95rem; color: #64748b; margin-top: 4px;">
+                {subtitle}
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
-    end_time = today - timedelta(days=1)
-    end_time = end_time.replace(hour=23, minute=0, second=0, microsecond=0)
-
-    start_time = end_time - timedelta(days=3)
-    start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
-
-    params = {
-        "serviceKey": service_key,
-        "pageNo": "1",
-        "numOfRows": "100",
-        "dataType": "JSON",
-        "dataCd": "ASOS",
-        "dateCd": "HR",
-        "startDt": start_time.strftime("%Y%m%d"),
-        "startHh": start_time.strftime("%H"),
-        "endDt": end_time.strftime("%Y%m%d"),
-        "endHh": end_time.strftime("%H"),
-        "stnIds": SEOUL_STATION_ID,
-    }
-
-    return params, start_time, end_time
-
-
-def request_asos_api(service_key: str, retry: int = 5, wait: int = 3):
-    params, start_time, end_time = make_api_params(service_key)
-    last_error = None
-
-    for _ in range(1, retry + 1):
-        try:
-            response = requests.get(
-                API_URL,
-                params=params,
-                timeout=30,
-                headers={"User-Agent": "Mozilla/5.0"},
-            )
-
-            if response.status_code != 200:
-                last_error = RuntimeError(f"HTTP {response.status_code}: {response.text[:300]}")
-                time.sleep(wait)
-                continue
-
-            if response.text.strip() == "":
-                last_error = RuntimeError("API returned an empty response.")
-                time.sleep(wait)
-                continue
-
-            try:
-                data = response.json()
-            except Exception:
-                last_error = RuntimeError(f"API response is not JSON: {response.text[:300]}")
-                time.sleep(wait)
-                continue
-
-            header = data.get("response", {}).get("header", {})
-            result_code = header.get("resultCode")
-            result_msg = header.get("resultMsg")
-
-            if result_code != "00":
-                raise RuntimeError(f"API error {result_code}: {result_msg}")
-
-            items = data["response"]["body"]["items"]["item"]
-            api_df = pd.DataFrame(items)
-
-            return api_df, start_time, end_time
-
-        except Exception as e:
-            last_error = e
-            time.sleep(wait)
-
-    raise RuntimeError(f"API request failed after retries: {last_error}")
-
-
-def clean_api_data(api_df: pd.DataFrame) -> pd.DataFrame:
-    api_weather = api_df.rename(
-        columns={
-            "stnId": "지점",
-            "stnNm": "지점명",
-            "tm": "일시",
-            "ta": "기온(°C)",
-            "rn": "강수량(mm)",
-            "ws": "풍속(m/s)",
-            "hm": "습도(%)",
-            "pa": "현지기압(hPa)",
-            "ps": "해면기압(hPa)",
-        }
+def render_infobox(title, body):
+    st.markdown(
+        f"""
+<div class="infobox">
+  <div class="infobox-title">{title}</div>
+  <div class="infobox-body">{body}</div>
+</div>
+""",
+        unsafe_allow_html=True,
     )
 
-    api_weather = api_weather[REQUIRED_COLUMNS].copy()
-    api_weather["일시"] = pd.to_datetime(api_weather["일시"])
-
-    for col in NUMERIC_COLUMNS:
-        api_weather[col] = pd.to_numeric(api_weather[col], errors="coerce")
-
-    api_weather["강수량(mm)"] = api_weather["강수량(mm)"].fillna(0)
-    api_weather = api_weather.sort_values("일시").reset_index(drop=True)
-
-    for col in INTERPOLATE_COLUMNS:
-        api_weather[col] = api_weather[col].interpolate(method="linear")
-        api_weather[col] = api_weather[col].ffill().bfill()
-
-    return api_weather
-
-
-def predict_latest_from_api(api_weather: pd.DataFrame, model_bundle: dict):
-    model = model_bundle["model"]
-    feature_columns = model_bundle["feature_columns"]
-    predict_hour = model_bundle.get("predict_hour", 1)
-
-    if len(api_weather) < 49:
-        raise ValueError("At least 49 hourly records are required because the model uses 48-hour lag features.")
-
-    api_featured, _, _ = add_features(api_weather, predict_hour=predict_hour)
-    api_featured = api_featured.dropna().reset_index(drop=True)
-
-    latest = api_featured.iloc[-1].copy()
-
-    current_time = latest["일시"]
-    current_temp = latest["기온(°C)"]
-
-    X_latest = pd.DataFrame([latest[feature_columns]])
-    predicted_change = model.predict(X_latest)[0]
-    predicted_temp = current_temp + predicted_change
-
-    return {
-        "base_time": current_time,
-        "target_time": current_time + pd.Timedelta(hours=predict_hour),
-        "current_temp": current_temp,
-        "predicted_change": predicted_change,
-        "predicted_temp": predicted_temp,
-    }
-
-
-def compare_api_interval(api_weather: pd.DataFrame, model_bundle: dict):
-    model = model_bundle["model"]
-    feature_columns = model_bundle["feature_columns"]
-    predict_hour = model_bundle.get("predict_hour", 1)
-
-    api_compare, _, actual_temp_col = add_features(api_weather, predict_hour=predict_hour)
-    api_compare_model = api_compare.dropna().reset_index(drop=True)
-
-    X_api = api_compare_model[feature_columns]
-    predicted_change = model.predict(X_api)
-    predicted_temp = api_compare_model["기온(°C)"].values + predicted_change
-
-    compare_result = pd.DataFrame({
-        "Base_Time": api_compare_model["일시"],
-        "Prediction_Time": api_compare_model["일시"] + pd.Timedelta(hours=predict_hour),
-        "Current_Temperature": api_compare_model["기온(°C)"],
-        "Actual_Temperature": api_compare_model[actual_temp_col],
-        "Predicted_Temperature": predicted_temp,
-        "Predicted_Change": predicted_change,
-    })
-
-    compare_result["Error"] = compare_result["Actual_Temperature"] - compare_result["Predicted_Temperature"]
-    compare_result["Absolute_Error"] = np.abs(compare_result["Error"])
-
-    return compare_result
-
-
-# ============================================================
-# UI
-# ============================================================
-
-st.markdown(
-    """
-    <section class="weather-hero">
-      <div class="hero-copy">
-        <div class="hero-kicker">Seoul ASOS · GitHub Actions · Streamlit</div>
-        <h1>Forecast Seoul temperature with a developer-grade dashboard.</h1>
-        <p>
-          5년치 서울 ASOS 시간별 관측자료를 기반으로 1시간 뒤 기온 변화량을 예측하고,
-          Future Forecast, API Prediction, Custom Analysis를 한 화면에서 확인하는 머신러닝 대시보드입니다.
-        </p>
-        <div class="hero-actions">
-          <span class="hero-pill primary">Get forecast</span>
-          <span class="hero-pill">View model results</span>
-          <span class="hero-pill">Analyze custom hours</span>
+def sec(title):
+    st.markdown(f"""
+        <div style="
+            font-size:1.15rem;
+            font-weight:600;
+            margin-top:1.5rem;
+            margin-bottom:0.5rem;
+            color:#0f2744;
+        ">
+            {title}
         </div>
-      </div>
-      <div class="hero-mockup">
-        <div class="mockup-top">
-          <div class="mockup-dots">
-            <span class="mockup-dot"></span>
-            <span class="mockup-dot"></span>
-            <span class="mockup-dot"></span>
-          </div>
-          <span>weather-dashboard.app</span>
-        </div>
-        <div class="mockup-grid">
-          <div class="mockup-panel">
-            <div class="mockup-label">Prediction target</div>
-            <div class="mockup-value">+1h</div>
-          </div>
-          <div class="mockup-panel">
-            <div class="mockup-label">Station</div>
-            <div class="mockup-value">Seoul 108</div>
-          </div>
-          <div class="mockup-panel">
-            <div class="mockup-label">Automation</div>
-            <div class="mockup-code">
-              <span class="coral">data/*.csv</span> → GitHub Actions<br/>
-              train_pipeline.py → result/*.joblib<br/>
-              Streamlit → fast dashboard
-            </div>
-          </div>
-          <div class="mockup-panel">
-            <div class="mockup-label">Forecast logic</div>
-            <div class="mockup-code">
-              current temperature<br/>
-              + <span class="teal">predicted temperature change</span><br/>
-              = future temperature
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    """,
-    unsafe_allow_html=True,
+    """, unsafe_allow_html=True)
+def render_metric(label, val, unit="", note=""):
+    st.markdown(
+        f"""
+<div class="mcard">
+  <div class="mcard-label">{label}</div>
+  <div class="mcard-val">{val}<span class="mcard-unit">{unit}</span></div>
+  <div class="mcard-note">{note}</div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+    
+
+def grid_gap(height="1.2rem"):
+    st.markdown(f'<div style="height:{height};"></div>', unsafe_allow_html=True)
+
+
+def _styled_fig(nrows=1, ncols=1, figsize=(12, 5)):
+    fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
+    fig.patch.set_facecolor("#ffffff")
+    return fig, axes
+
+
+def _apply_chart_style(ax, title="", xlabel="", ylabel=""):
+    ax.set_facecolor("#ffffff")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    ax.spines["left"].set_color("#dbe7f5")
+    ax.spines["bottom"].set_color("#dbe7f5")
+    ax.spines["left"].set_linewidth(1.0)
+    ax.spines["bottom"].set_linewidth(1.0)
+
+    ax.tick_params(colors="#7a8da8", labelsize=9)
+    ax.grid(True, color="#e6eef8", linewidth=0.8, linestyle="-", alpha=0.75)
+
+    if title:
+        ax.set_title(title, fontsize=12, fontweight="bold", color="#0f2744", pad=14)
+    if xlabel:
+        ax.set_xlabel(xlabel, fontsize=9, color="#7a8da8", labelpad=8)
+    if ylabel:
+        ax.set_ylabel(ylabel, fontsize=9, color="#7a8da8", labelpad=8)
+
+
+@st.cache_data
+def load_report_file():
+    report_candidates = [
+        Path("기후모델 웹사이트 분석 리포트.docx"),
+        Path("기후모델 웹사이트 분석 리포트.docx"),
+        Path("./기후모델 웹사이트 분석 리포트.docx"),
+        Path("./기후모델 웹사이트 분석 리포트.docx"),
+    ]
+
+    for path in report_candidates:
+        if path.exists():
+            return path.name, path.read_bytes()
+
+    return None, None
+    
+# ── 페이지 설정 ──────────────────────────────────────────────────────────────
+st.set_page_config(
+    page_title="기후 모델링 연구 대시보드",
+    layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
-missing_files = ensure_required_files()
+def load_css(path="style.css"):
+    with open(path, "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-if missing_files:
-    st.error("필수 result 파일이 없습니다. GitHub Actions 학습을 먼저 실행하세요.")
-    st.code("\n".join(missing_files))
-    st.stop()
+load_css()
 
-model_bundle = load_model_bundle()
-performance_df = load_csv(PERFORMANCE_PATH)
-prediction_df = load_csv(PREDICTION_PATH)
-summary_df = load_csv(SUMMARY_PATH)
-feature_importance_df = load_csv(FEATURE_PATH)
-processed_df = load_csv(PROCESSED_PATH)
+obs_datasets = load_manual_obs()
+co2_observations = load_co2_observations()
 
-cv_summary_df = load_optional_csv(CV_SUMMARY_PATH)
-cv_results_df = load_optional_csv(CV_RESULTS_PATH)
-data_quality_df = load_optional_csv(DATA_QUALITY_PATH)
-missing_report_df = load_optional_csv(MISSING_REPORT_PATH)
-residual_summary_df = load_optional_csv(RESIDUAL_SUMMARY_PATH)
-error_by_hour_df = load_optional_csv(ERROR_BY_HOUR_PATH)
-error_by_month_df = load_optional_csv(ERROR_BY_MONTH_PATH)
-error_by_season_df = load_optional_csv(ERROR_BY_SEASON_PATH)
-error_by_temp_bin_df = load_optional_csv(ERROR_BY_TEMP_BIN_PATH)
-model_card_text = load_optional_text(MODEL_CARD_PATH)
+# ── 페이지 / 네비게이션 상태 ───────────────────────────────────────────────────
+ALL_PAGES = [
+    "시작 페이지",
+    "시나리오 기반 기후 변화 예측",
+    "기후 시스템 파라미터 실험",
+    "모델 적합도 및 관측자료 비교",
+    "다중 관측 데이터 비교",
+    "모델 검증 및 불확실성 정량화",
+    "기후 모델링 용어 및 개념 정의",
+    "연구 요약 및 보고서",
+]
 
-prediction_df["Time"] = pd.to_datetime(prediction_df["Time"])
-processed_df["일시"] = pd.to_datetime(processed_df["일시"])
-summary = summary_df.iloc[0]
+slug_to_page = {
+    "home": "시작 페이지",
+    "scenario": "시나리오 기반 기후 변화 예측",
+    "experiment": "기후 시스템 파라미터 실험",
+    "fit": "모델 적합도 및 관측자료 비교",
+    "multi": "다중 관측 데이터 비교",
+    "uncertainty": "모델 검증 및 불확실성 정량화",
+    "glossary": "기후 모델링 용어 및 개념 정의",
+    "summary": "연구 요약 및 보고서",
+}
+page_to_slug = {v: k for k, v in slug_to_page.items()}
 
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Deploy Model", summary["deploy_model"])
-col2.metric("Prediction Target", "1 hour later")
-col3.metric("MAE", f"{summary['mae']:.3f} °C")
-col4.metric("RMSE", f"{summary['rmse']:.3f} °C")
+if "page" not in st.session_state:
+    st.session_state["page"] = "시작 페이지"
 
-st.divider()
+q = st.query_params.get("module")
+if q in slug_to_page:
+    st.session_state["page"] = slug_to_page[q]
 
-tab_overview, tab_results, tab_diagnostics, tab_api, tab_future, tab_analysis, tab_data = st.tabs(
-    ["Overview", "Model Results", "Research Diagnostics", "API Prediction", "Future Forecast", "Custom Analysis", "Data Preview"]
-)
+page = st.session_state["page"]
+policy_q = st.query_params.get("policy")
+policy_map = {
+    "netzero": "탄소중립",
+    "low": "저배출",
+    "current": "현재정책",
+    "high": "고배출",
+    "extreme": "극단배출",
+}
+if policy_q in policy_map:
+    st.session_state["main_policy"] = policy_map[policy_q]
 
-
-with tab_overview:
-    st.subheader("Project Overview")
-
-    st.markdown(
-        """
-        **구성**
-        - GitHub Actions가 `data/` 폴더의 CSV를 읽고 자동 학습
-        - Streamlit은 `result/` 폴더의 모델과 결과 파일만 읽어 빠르게 실행
-        - 직접 기온을 예측하는 대신, **1시간 뒤 기온 변화량**을 예측
-        - 최종 기온 = 현재 기온 + 예측 변화량
-        - Baseline과 머신러닝 모델 성능 비교
-        - API 최신 제공 자료 기반 예측 지원
-        - 그래프 내부 텍스트는 글꼴 깨짐을 방지하기 위해 영어로 통일하고, 해석과 안내문은 한국어로 제공
-        """
-    )
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Baseline RMSE", f"{summary['baseline_rmse']:.3f} °C")
-    c2.metric("Deploy Model RMSE", f"{summary['rmse']:.3f} °C")
-    c3.metric("R²", f"{summary['r2']:.4f}")
-
-    st.info(
-        f"Performance-best model: {summary['best_model']} / "
-        f"Deployment model: {summary['deploy_model']}"
-    )
-
-    st.warning(
-        "ASOS 시간자료 API는 실시간 현재 자료가 아니라 전날 자료까지 제공합니다. "
-        "따라서 API 예측은 'API에서 제공되는 최신 관측 시각 기준 1시간 뒤 예측'으로 해석해야 합니다."
-    )
-
-
-with tab_results:
-    st.subheader("Model Performance Comparison")
-    st.dataframe(performance_df, use_container_width=True)
-
-    perf_long = performance_df.melt(
-        id_vars="Model",
-        value_vars=["MAE", "RMSE", "R2"],
-        var_name="Metric",
-        value_name="Value",
-    )
-
-    fig_perf = px.bar(
-        perf_long,
-        x="Model",
-        y="Value",
-        color="Metric",
-        barmode="group",
-        title="Model Performance Comparison",
-    )
-    fig_perf = apply_english_chart_style(
-        fig_perf,
-        title="Model Performance Comparison",
-        x_title="Model",
-        y_title="Score"
-    )
-    st.plotly_chart(fig_perf, use_container_width=True)
-
-    st.subheader("Test Data: Actual vs Predicted")
-
-    fig_line = go.Figure()
-    fig_line.add_trace(go.Scatter(x=prediction_df["Time"], y=prediction_df["Actual_Temperature"], mode="lines", name="Actual Temperature"))
-    fig_line.add_trace(go.Scatter(x=prediction_df["Time"], y=prediction_df["Predicted_Temperature"], mode="lines", name="Predicted Temperature"))
-    fig_line = apply_english_chart_style(
-        fig_line,
-        title="Actual vs Predicted Temperature Over Time",
-        x_title="Time",
-        y_title="Temperature (°C)"
-    )
-    st.plotly_chart(fig_line, use_container_width=True)
-
-    fig_scatter = px.scatter(
-        prediction_df,
-        x="Actual_Temperature",
-        y="Predicted_Temperature",
-        title="Actual vs Predicted Scatter Plot",
-        labels={
-            "Actual_Temperature": "Actual Temperature (°C)",
-            "Predicted_Temperature": "Predicted Temperature (°C)",
-        },
-    )
-    fig_scatter = apply_english_chart_style(
-        fig_scatter,
-        title="Actual vs Predicted Scatter Plot",
-        x_title="Actual Temperature (°C)",
-        y_title="Predicted Temperature (°C)"
-    )
-    st.plotly_chart(fig_scatter, use_container_width=True)
-
-    st.subheader("Predicted Temperature Change")
-    fig_change = px.line(
-        prediction_df,
-        x="Time",
-        y="Predicted_Change",
-        title="Predicted 1-Hour Temperature Change",
-        labels={"Predicted_Change": "Predicted Change (°C)", "Time": "Time"},
-    )
-    fig_change.add_hline(y=0, line_dash="dash")
-    fig_change = apply_english_chart_style(
-        fig_change,
-        title="Predicted 1-Hour Temperature Change",
-        x_title="Time",
-        y_title="Predicted Change (°C)"
-    )
-    st.plotly_chart(fig_change, use_container_width=True)
-
-    st.subheader("Prediction Error Over Time")
-    fig_error = px.line(
-        prediction_df,
-        x="Time",
-        y="Error",
-        title="Error Over Time",
-        labels={"Error": "Error (Actual - Predicted)", "Time": "Time"},
-    )
-    fig_error.add_hline(y=0, line_dash="dash")
-    fig_error = apply_english_chart_style(
-        fig_error,
-        title="Error Over Time",
-        x_title="Time",
-        y_title="Error (Actual - Predicted)"
-    )
-    st.plotly_chart(fig_error, use_container_width=True)
-
-    st.subheader("Feature Importance")
-    top_features = feature_importance_df.sort_values("Importance", ascending=False).head(15)
-    fig_feature = px.bar(top_features, x="Importance", y="Feature_English", orientation="h", title="Top 15 Feature Importance")
-    fig_feature.update_layout(yaxis={"categoryorder": "total ascending"})
-    fig_feature = apply_english_chart_style(
-        fig_feature,
-        title="Top 15 Feature Importance",
-        x_title="Importance",
-        y_title="Feature"
-    )
-    st.plotly_chart(fig_feature, use_container_width=True)
-
-    no_current_temp = feature_importance_df[
-        feature_importance_df["Feature"] != "기온(°C)"
-    ].sort_values("Importance", ascending=False).head(15)
-
-    st.subheader("Feature Importance Except Current Temperature")
-    fig_no_temp = px.bar(no_current_temp, x="Importance", y="Feature_English", orientation="h", title="Feature Importance Except Current Temperature")
-    fig_no_temp.update_layout(yaxis={"categoryorder": "total ascending"})
-    fig_no_temp = apply_english_chart_style(
-        fig_no_temp,
-        title="Feature Importance Except Current Temperature",
-        x_title="Importance",
-        y_title="Feature"
-    )
-    st.plotly_chart(fig_no_temp, use_container_width=True)
+if st.query_params.get("reset") == "param":
+    st.session_state["main_exp_co2"] = 550
+    st.session_state["main_exp_lambda"] = 1.5
+    st.session_state["main_exp_aer"] = 1.0
+    st.query_params.clear()
+    st.query_params["module"] = "experiment"
+    st.rerun()
 
 
 
-with tab_diagnostics:
-    st.subheader("Research Diagnostics")
-    st.markdown(
-        """
-        이 탭은 단순 예측 결과를 넘어서, 데이터 품질·시간 순서 교차검증·잔차 분석·시간대별 오차를 확인하기 위한 연구용 진단 화면입니다.
-        """
-    )
+# ── Left Panel ────────────────────────────────────────────────────────────────
+def render_left_panel():
+    current = st.session_state.get("page", "시작 페이지")
 
-    if data_quality_df is not None:
-        st.markdown("### Data Quality Report")
-        st.dataframe(data_quality_df, use_container_width=True)
+    nav_items = [
+        ("시작 페이지", "시작 페이지", "home"),
+        ("시나리오 예측", "시나리오 기반 기후 변화 예측", "scenario"),
+        ("파라미터 실험", "기후 시스템 파라미터 실험", "experiment"),
+        ("관측 비교", "모델 적합도 및 관측자료 비교", "fit"),
+        ("다중 데이터", "다중 관측 데이터 비교", "multi"),
+        ("모델 검증", "모델 검증 및 불확실성 정량화", "uncertainty"),
+        ("연구 결과 요약", "연구 요약 및 보고서", "summary"),
+        ("용어 정의", "기후 모델링 용어 및 개념 정의", "glossary"),
+    ]
 
-    if missing_report_df is not None:
-        st.markdown("### Missing Value Report")
-        st.dataframe(missing_report_df, use_container_width=True)
+    nav_html = ['<div class="nav-panel">']
+    nav_html.append('<div class="nav-panel-title">탐색 메뉴</div>')
+    nav_html.append('<div class="nav-links">')
 
-    if cv_summary_df is not None:
-        st.markdown("### Time-Series Cross-Validation Summary")
-        st.dataframe(cv_summary_df, use_container_width=True)
-
-        if {"Model", "CV_RMSE_Mean"}.issubset(cv_summary_df.columns):
-            fig_cv = px.bar(
-                cv_summary_df,
-                x="Model",
-                y="CV_RMSE_Mean",
-                title="Time-Series Cross-Validation RMSE",
-                labels={"CV_RMSE_Mean": "CV RMSE Mean (°C)"}
-            )
-            fig_cv = apply_english_chart_style(
-                fig_cv,
-                title="Time-Series Cross-Validation RMSE",
-                x_title="Model",
-                y_title="CV RMSE Mean (°C)"
-            )
-            st.plotly_chart(fig_cv, use_container_width=True)
-
-    if residual_summary_df is not None:
-        st.markdown("### Residual Analysis Summary")
-        st.dataframe(residual_summary_df, use_container_width=True)
-
-    if error_by_hour_df is not None:
-        st.markdown("### Error by Hour")
-        fig_hour_error = go.Figure()
-        fig_hour_error.add_trace(
-            go.Scatter(
-                x=error_by_hour_df["Hour"],
-                y=error_by_hour_df["MAE"],
-                mode="lines+markers",
-                name="MAE"
-            )
-        )
-        fig_hour_error.add_trace(
-            go.Scatter(
-                x=error_by_hour_df["Hour"],
-                y=error_by_hour_df["RMSE"],
-                mode="lines+markers",
-                name="RMSE"
-            )
-        )
-        fig_hour_error = apply_english_chart_style(
-            fig_hour_error,
-            title="Prediction Error by Hour",
-            x_title="Hour",
-            y_title="Error (°C)"
-        )
-        st.plotly_chart(fig_hour_error, use_container_width=True)
-
-    col_a, col_b = st.columns(2)
-
-    with col_a:
-        if error_by_month_df is not None:
-            st.markdown("### Error by Month")
-            st.dataframe(error_by_month_df, use_container_width=True)
-
-    with col_b:
-        if error_by_season_df is not None:
-            st.markdown("### Error by Season")
-            st.dataframe(error_by_season_df, use_container_width=True)
-
-    if error_by_temp_bin_df is not None:
-        st.markdown("### Error by Temperature Range")
-        st.dataframe(error_by_temp_bin_df, use_container_width=True)
-
-    if model_card_text is not None:
-        st.markdown("### Model Card")
-        st.markdown(model_card_text)
-
-    if cv_summary_df is None:
-        st.info(
-            "Research diagnostic files are not available yet. "
-            "Run the updated GitHub Actions training pipeline to generate them."
+    for label, page_name, slug in nav_items:
+        active_class = " active" if current == page_name else ""
+        nav_html.append(
+            f'<a class="nav-link{active_class}" href="?module={slug}" target="_self">{label}</a>'
         )
 
+    nav_html.append("</div></div>")
 
+    st.markdown("".join(nav_html), unsafe_allow_html=True)
+    
+def render_source_panel():
+    source_html = (
+        '<div class="source-card">'
+        '<details class="source-details">'
+        '<summary>'
+        '<span class="source-arrow">›</span>'
+        '<span class="source-title">자료 출처</span>'
+        '</summary>'
 
+        '<div class="source-content">'
+        '<div class="source-note">본 모델은 주요 공인 관측자료와 기후 평가 보고서를 기반으로 구성하였으며, 관측 온도 편차 자료는 데이터셋 간 기준기간 차이를 줄이기 위해 1981–2010년 평균 기준으로 재정렬하였다.</div>'
 
-with tab_api:
-    st.subheader("API-Based Latest Available Prediction")
+        '<div class="source-group-title">Observational Data</div>'
+        '<a class="source-item" href="https://data.giss.nasa.gov/gistemp/" target="_blank"><span class="source-name">NASA GISS (GISTEMP v4)</span><span class="source-desc">Global surface temperature dataset</span></a>'
+        '<a class="source-item" href="https://www.metoffice.gov.uk/hadobs/hadcrut5/" target="_blank"><span class="source-name">HadCRUT5</span><span class="source-desc">Met Office global temperature dataset</span></a>'
+        '<a class="source-item" href="https://berkeleyearth.org/data/" target="_blank"><span class="source-name">Berkeley Earth</span><span class="source-desc">Independent temperature reconstruction</span></a>'
+        '<a class="source-item" href="https://www.ncei.noaa.gov/access/monitoring/global-temperature-anomalies" target="_blank"><span class="source-name">NOAA Global Temperature</span><span class="source-desc">Alternative global temperature dataset</span></a>'
 
-    st.warning(
-        "공공데이터포털 ASOS 시간자료 API는 전날 자료까지 제공합니다. "
-        "따라서 최신 제공 가능 시각 기준으로 1시간 뒤 기온을 예측합니다."
+        '<div class="source-group-title">Climate Reports & Models</div>'
+        '<a class="source-item" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank"><span class="source-name">IPCC AR6</span><span class="source-desc">Scientific assessment report</span></a>'
+        '<a class="source-item" href="https://esgf-node.llnl.gov/projects/cmip6/" target="_blank"><span class="source-name">CMIP6</span><span class="source-desc">Climate model intercomparison</span></a>'
+
+        '<div class="source-group-title">Atmospheric Data</div>'
+        '<a class="source-item" href="https://gml.noaa.gov/ccgg/trends/" target="_blank"><span class="source-name">NOAA CO₂</span><span class="source-desc">Atmospheric CO₂ concentration</span></a>'
+
+        '<div class="source-group-title">Ocean & Forcing</div>'
+        '<a class="source-item" href="https://www.ncei.noaa.gov/access/global-ocean-heat-content/" target="_blank"><span class="source-name">NOAA Ocean Heat Content</span><span class="source-desc">Ocean heat storage dataset</span></a>'
+        '<a class="source-item" href="https://volcano.si.edu/" target="_blank"><span class="source-name">Smithsonian Volcano</span><span class="source-desc">Volcanic activity database</span></a>'
+
+        '</div>'
+        '</details>'
+        '</div>'
     )
-
-    service_key = st.text_input(
-        "Public Data Portal API Key",
-        type="password",
-        help="GitHub에 API 키를 직접 올리지 말고, 이 입력창에 넣어 사용하세요.",
-    )
-
-    if st.button("Fetch API Data and Predict"):
-        if not service_key:
-            st.error("API 키를 입력하세요.")
-        else:
-            try:
-                with st.spinner("ASOS API 자료를 불러오는 중입니다..."):
-                    api_df, start_time, end_time = request_asos_api(service_key, retry=5, wait=3)
-                    api_weather = clean_api_data(api_df)
-
-                    latest_result = predict_latest_from_api(api_weather, model_bundle)
-                    compare_result = compare_api_interval(api_weather, model_bundle)
-
-                    api_mae = mean_absolute_error(compare_result["Actual_Temperature"], compare_result["Predicted_Temperature"])
-                    api_rmse = np.sqrt(mean_squared_error(compare_result["Actual_Temperature"], compare_result["Predicted_Temperature"]))
-                    api_r2 = r2_score(compare_result["Actual_Temperature"], compare_result["Predicted_Temperature"])
-
-                st.success("API 예측 완료")
-
-                a1, a2, a3, a4, a5 = st.columns(5)
-                a1.metric("Base Time", str(latest_result["base_time"]))
-                a2.metric("Target Time", str(latest_result["target_time"]))
-                a3.metric("Current Temp", f"{latest_result['current_temp']:.1f} °C")
-                a4.metric("Predicted Change", f"{latest_result['predicted_change']:.2f} °C")
-                a5.metric("Predicted Temp", f"{latest_result['predicted_temp']:.2f} °C")
-
-                m1, m2, m3 = st.columns(3)
-                m1.metric("API MAE", f"{api_mae:.3f} °C")
-                m2.metric("API RMSE", f"{api_rmse:.3f} °C")
-                m3.metric("API R²", f"{api_r2:.4f}")
-
-                fig_api = go.Figure()
-                fig_api.add_trace(go.Scatter(x=compare_result["Prediction_Time"], y=compare_result["Actual_Temperature"], mode="lines+markers", name="Actual"))
-                fig_api.add_trace(go.Scatter(x=compare_result["Prediction_Time"], y=compare_result["Predicted_Temperature"], mode="lines+markers", name="Predicted"))
-                fig_api = apply_english_chart_style(
-                    fig_api,
-                    title="API Interval: Actual vs Predicted",
-                    x_title="Time",
-                    y_title="Temperature (°C)"
-                )
-                st.plotly_chart(fig_api, use_container_width=True)
-
-                fig_api_change = px.line(
-                    compare_result,
-                    x="Prediction_Time",
-                    y="Predicted_Change",
-                    title="API Interval: Predicted Temperature Change",
-                    labels={"Predicted_Change": "Predicted Change (°C)"},
-                )
-                fig_api_change.add_hline(y=0, line_dash="dash")
-                fig_api_change = apply_english_chart_style(
-                    fig_api_change,
-                    title="API Interval: Predicted Temperature Change",
-                    x_title="Prediction Time",
-                    y_title="Predicted Change (°C)"
-                )
-                st.plotly_chart(fig_api_change, use_container_width=True)
-
-                st.subheader("API Comparison Table")
-                st.dataframe(compare_result.tail(30), use_container_width=True)
-
-            except Exception as e:
-                st.error(f"API prediction failed: {e}")
-
-
-
-
-with tab_future:
-    st.subheader("Future Forecast After Latest Uploaded Data")
-    st.markdown(
-        """
-        이 탭은 **업로드된 데이터의 마지막 시점 이후**를 예측합니다.
-
-        - 가까운 미래는 모델을 반복 적용하여 시간별 기온을 시뮬레이션합니다.
-        - 먼 미래는 특정 날짜·시간과 비슷한 과거 패턴을 이용해 계절적 예상 기온을 계산합니다.
-        - 실제 장기예보가 아니라, 보유한 서울 ASOS 데이터 기반의 통계적 추정입니다.
-        """
-    )
-
-    def iterative_future_forecast(history_df: pd.DataFrame, model_bundle: dict, target_time: pd.Timestamp, exogenous_mode: str):
-        model = model_bundle["model"]
-        feature_columns = model_bundle["feature_columns"]
-        predict_hour = model_bundle.get("predict_hour", 1)
-
-        future_history = history_df[REQUIRED_COLUMNS].copy()
-        future_history["일시"] = pd.to_datetime(future_history["일시"])
-        future_history = future_history.sort_values("일시").reset_index(drop=True)
-
-        if len(future_history) < 60:
-            raise ValueError("미래 예측을 위해 최소 60시간 이상의 데이터가 필요합니다.")
-
-        latest_time = future_history["일시"].iloc[-1]
-
-        if target_time <= latest_time:
-            raise ValueError("예측 대상 시각은 업로드된 데이터의 마지막 시각보다 이후여야 합니다.")
-
-        horizon_hours = int(np.ceil((target_time - latest_time) / pd.Timedelta(hours=1)))
-
-        forecast_rows = []
-
-        for step in range(1, horizon_hours + 1):
-            featured, _, _ = add_features(future_history, predict_hour=predict_hour)
-            latest_feature_row = featured.iloc[-1].copy()
-
-            if latest_feature_row[feature_columns].isna().sum() > 0:
-                raise ValueError("예측에 필요한 파생변수 중 결측값이 있습니다. 데이터 길이를 확인하세요.")
-
-            current_time = latest_feature_row["일시"]
-            current_temp = latest_feature_row["기온(°C)"]
-
-            X_latest = pd.DataFrame([latest_feature_row[feature_columns]])
-            predicted_change = float(model.predict(X_latest)[0])
-            predicted_temp = float(current_temp + predicted_change)
-
-            next_time = current_time + pd.Timedelta(hours=1)
-            recent_6h = future_history.tail(6)
-
-            if exogenous_mode == "Recent 6-hour average":
-                next_rainfall = float(recent_6h["강수량(mm)"].mean())
-                next_wind = float(recent_6h["풍속(m/s)"].mean())
-                next_humidity = float(recent_6h["습도(%)"].mean())
-                next_local_pressure = float(recent_6h["현지기압(hPa)"].mean())
-                next_sea_pressure = float(recent_6h["해면기압(hPa)"].mean())
-            else:
-                next_rainfall = float(future_history.iloc[-1]["강수량(mm)"])
-                next_wind = float(future_history.iloc[-1]["풍속(m/s)"])
-                next_humidity = float(future_history.iloc[-1]["습도(%)"])
-                next_local_pressure = float(future_history.iloc[-1]["현지기압(hPa)"])
-                next_sea_pressure = float(future_history.iloc[-1]["해면기압(hPa)"])
-
-            forecast_rows.append({
-                "Forecast_Step": step,
-                "Base_Time": current_time,
-                "Forecast_Time": next_time,
-                "Base_Temperature": current_temp,
-                "Predicted_Change": predicted_change,
-                "Predicted_Temperature": predicted_temp,
-                "Assumed_Humidity": next_humidity,
-                "Assumed_Wind_Speed": next_wind,
-                "Assumed_Rainfall": next_rainfall,
-                "Assumed_Sea_Level_Pressure": next_sea_pressure,
-            })
-
-            next_row = {
-                "지점": 108,
-                "지점명": "서울",
-                "일시": next_time,
-                "기온(°C)": predicted_temp,
-                "강수량(mm)": next_rainfall,
-                "풍속(m/s)": next_wind,
-                "습도(%)": next_humidity,
-                "현지기압(hPa)": next_local_pressure,
-                "해면기압(hPa)": next_sea_pressure,
-            }
-
-            future_history = pd.concat([future_history, pd.DataFrame([next_row])], ignore_index=True)
-
-        return pd.DataFrame(forecast_rows)
-
-
-    def calendar_temperature_estimate(processed_history: pd.DataFrame, target_time: pd.Timestamp, day_window: int = 14):
-        """
-        먼 미래 날짜에 대해 같은 월/일/시간대 주변의 과거 관측값을 이용해
-        계절적 예상 기온을 계산한다.
-        """
-        hist = processed_history.copy()
-        hist["일시"] = pd.to_datetime(hist["일시"])
-        hist["Month"] = hist["일시"].dt.month
-        hist["Day"] = hist["일시"].dt.day
-        hist["Hour"] = hist["일시"].dt.hour
-        hist["DayOfYear"] = hist["일시"].dt.dayofyear
-
-        target_doy = target_time.dayofyear
-        target_hour = target_time.hour
-
-        # Circular day-of-year distance, handles year boundary.
-        hist["Day_Distance"] = np.minimum(
-            np.abs(hist["DayOfYear"] - target_doy),
-            366 - np.abs(hist["DayOfYear"] - target_doy)
-        )
-
-        sample = hist[
-            (hist["Hour"] == target_hour)
-            & (hist["Day_Distance"] <= day_window)
-        ].copy()
-
-        # If too few rows, widen to +/- 30 days.
-        if len(sample) < 20:
-            sample = hist[
-                (hist["Hour"] == target_hour)
-                & (hist["Day_Distance"] <= 30)
-            ].copy()
-
-        if sample.empty:
-            raise ValueError("선택한 날짜와 시간대에 대응하는 과거 패턴 데이터를 찾지 못했습니다.")
-
-        estimate = {
-            "Target_Time": target_time,
-            "Estimated_Temperature": float(sample["기온(°C)"].mean()),
-            "Median_Temperature": float(sample["기온(°C)"].median()),
-            "Min_Similar_Pattern": float(sample["기온(°C)"].min()),
-            "Max_Similar_Pattern": float(sample["기온(°C)"].max()),
-            "Std_Similar_Pattern": float(sample["기온(°C)"].std()),
-            "Sample_Count": int(len(sample)),
-            "Day_Window": int(day_window if len(sample) >= 20 else 30),
+    st.markdown(source_html, unsafe_allow_html=True)
+    
+# ── Settings Panel (per page) ─────────────────────────────────────────────────
+def render_settings(current_page):
+    controls = {}
+    if current_page == "시나리오 기반 기후 변화 예측":
+        current_policy = st.session_state.get("main_policy", "현재정책")
+    
+        scenario_meta = {
+            "탄소중립": {
+                "slug": "netzero",
+                "hero_desc": "탄소 배출을 빠르게 감축하여 장기적 온난화 위험을 최소화하는 경로이다.",
+                "co2": 280,
+            },
+            "저배출": {
+                "slug": "low",
+                "hero_desc": "온실가스 감축 정책이 효과적으로 이행되어 기온 상승을 완화하는 시나리오이다.",
+                "co2": 380,
+            },
+            "현재정책": {
+                "slug": "current",
+                "hero_desc": "현재 수준의 기후 정책이 크게 강화되지 않는다는 가정에 기반한 기준 시나리오이다.",
+                "co2": 550,
+            },
+            "고배출": {
+                "slug": "high",
+                "hero_desc": "배출 저감이 충분히 이루어지지 않아 온난화 속도가 증가하는 경로이다.",
+                "co2": 850,
+            },
+            "극단배출": {
+                "slug": "extreme",
+                "hero_desc": "배출이 거의 통제되지 않아 가장 큰 기후 위험이 발생하는 경로이다.",
+                "co2": 1500,
+            },
         }
-
-        return estimate, sample
-
-
-    history_for_future = processed_df[REQUIRED_COLUMNS].copy()
-    history_for_future["일시"] = pd.to_datetime(history_for_future["일시"])
-    history_for_future = history_for_future.sort_values("일시").reset_index(drop=True)
-
-    latest_obs = history_for_future.iloc[-1]
-    latest_time = pd.to_datetime(latest_obs["일시"])
-
-    st.info(
-        f"업로드된 데이터의 마지막 시각은 **{latest_time}** 입니다. "
-        "이 시각 이후의 날짜와 시간을 선택해 예측할 수 있습니다."
-    )
-
-    mode = st.radio(
-        "Forecast mode",
-        [
-            "Short-term ML simulation",
-            "Any-date seasonal estimate"
-        ],
-        horizontal=True,
-        help=(
-            "Short-term ML simulation은 마지막 데이터 이후를 시간별로 반복 예측합니다. "
-            "Any-date seasonal estimate는 2025년 이후 어떤 날짜라도 과거 유사 날짜 패턴으로 추정합니다."
+    
+        order = ["탄소중립", "저배출", "현재정책", "고배출", "극단배출"]
+        current_idx = order.index(current_policy)
+        fill_pct = (current_idx / (len(order) - 1)) * 100
+    
+        html = [
+            '<div class="settings-shell">',
+            '<div class="settings-title">배출 시나리오 설정</div>',
+            f'<div class="scenario-hero">'
+            f'<div class="scenario-hero-top">현재 선택 시나리오</div>'
+            f'<div class="scenario-hero-name">{current_policy}</div>'
+            f'<div class="scenario-hero-desc">{scenario_meta[current_policy]["hero_desc"]}</div>'
+            f'</div>',
+            '<div class="scenario-scale-title">시나리오 강도</div>',
+            '<div class="scenario-scale">',
+            '<div class="scenario-scale-line"></div>',
+            f'<div class="scenario-scale-fill" style="width: calc({fill_pct}% - 12px);"></div>',
+            '<div class="scenario-scale-steps">'
+        ]
+    
+        for label in order:
+            meta = scenario_meta[label]
+            active = " active" if label == current_policy else ""
+            html.append(
+                f'<a class="scenario-step{active}" href="?module=scenario&policy={meta["slug"]}" target="_self">'
+                f'<span class="scenario-step-inner">'
+                f'<div class="scenario-dot"></div>'
+                f'<div class="scenario-step-label">{label}</div>'
+                f'</span>'
+                f'</a>'
+            )
+    
+        html.extend([
+            '</div>',
+            '<div class="scenario-scale-foot"><span class="low">낮음</span><span class="mid">현재 수준</span><span class="high">높음</span></div>',
+            '</div>',
+            f'<div class="scenario-current">현재 선택: <strong>{current_policy}</strong> · 2100년 CO₂ {scenario_meta[current_policy]["co2"]} ppm</div>',
+            '</div>'
+        ])
+    
+        st.markdown("".join(html), unsafe_allow_html=True)
+        controls["policy"] = current_policy
+        
+    elif current_page == "기후 시스템 파라미터 실험":
+        st.markdown(
+            """
+    <div class="param-shell">
+      <div class="param-head">
+        <div class="param-title">파라미터 설정</div>
+        <div class="param-subtitle">기후 시스템의 입력 파라미터를 조정하여 장기 온난화 반응을 분석한다.</div>
+      </div>
+      <div class="param-reset-wrap">
+            """,
+            unsafe_allow_html=True,
         )
-    )
-
-    if mode == "Short-term ML simulation":
-        st.markdown("#### Short-term ML simulation")
-        st.caption(
-            "마지막 관측값 이후부터 선택한 목표 시각까지 시간별로 반복 예측합니다. "
-            "너무 먼 미래까지 반복하면 오차가 누적되므로 1~30일 정도의 단기 시뮬레이션에 적합합니다."
+    
+        if st.button("↻ 초기화", use_container_width=True, key="main_reset_experiment"):
+            for k, v in {
+                "main_exp_co2": 550,
+                "main_exp_lambda": 1.5,
+                "main_exp_aer": 1.0,
+            }.items():
+                st.session_state[k] = v
+            st.rerun()
+    
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+        # CO2
+        current_co2 = int(st.session_state.get("main_exp_co2", 550))
+        st.markdown(
+            f"""
+    <div class="param-card">
+      <div class="param-card-top">
+        <div>
+          <div class="param-label">2100년 CO₂ 농도</div>
+          <div class="param-desc">값이 증가할수록 복사강제력이 증가하여 온난화 반응이 강화된다.</div>
+        </div>
+        <div class="param-value">
+          <div class="param-value-main">{current_co2}</div>
+          <div class="param-value-unit">ppm</div>
+        </div>
+      </div>
+            """,
+            unsafe_allow_html=True,
         )
-
-        c1, c2, c3 = st.columns([1.2, 0.8, 1.2])
-
-        with c1:
-            target_date = st.date_input(
-                "Target date",
-                value=(latest_time + pd.Timedelta(hours=12)).date(),
-                min_value=(latest_time + pd.Timedelta(hours=1)).date(),
-                max_value=(latest_time + pd.Timedelta(days=30)).date(),
-                help="반복 ML 예측은 최대 30일 이후까지 선택할 수 있습니다."
-            )
-
-        with c2:
-            target_hour = st.number_input(
-                "Target hour",
-                min_value=0,
-                max_value=23,
-                value=int((latest_time + pd.Timedelta(hours=12)).hour),
-                step=1
-            )
-
-        with c3:
-            exogenous_mode = st.selectbox(
-                "Future weather assumption",
-                ["Hold last observed", "Recent 6-hour average"],
-                help="미래 습도·풍속·기압·강수량을 어떻게 가정할지 선택합니다."
-            )
-
-        target_time = pd.Timestamp(
-            year=target_date.year,
-            month=target_date.month,
-            day=target_date.day,
-            hour=int(target_hour)
-        )
-
-        if target_time <= latest_time:
-            st.warning("예측 대상 시각은 마지막 데이터 시각보다 이후여야 합니다.")
-        else:
-            horizon_hours = int(np.ceil((target_time - latest_time) / pd.Timedelta(hours=1)))
-
-            h1, h2, h3 = st.columns(3)
-            h1.metric("Latest Data Time", str(latest_time))
-            h2.metric("Target Time", str(target_time))
-            h3.metric("Forecast Horizon", f"{horizon_hours} h")
-
-            try:
-                future_result = iterative_future_forecast(
-                    history_df=history_for_future,
-                    model_bundle=model_bundle,
-                    target_time=target_time,
-                    exogenous_mode=exogenous_mode
-                )
-
-                final_row = future_result.iloc[-1]
-
-                fm1, fm2, fm3, fm4 = st.columns(4)
-                fm1.metric("Final Forecast Time", str(final_row["Forecast_Time"]))
-                fm2.metric("Final Predicted Temp", f"{final_row['Predicted_Temperature']:.2f} °C")
-                fm3.metric("Total Temp Change", f"{final_row['Predicted_Temperature'] - latest_obs['기온(°C)']:.2f} °C")
-                fm4.metric("Forecast Steps", f"{len(future_result)} h")
-
-                fig_future = go.Figure()
-                fig_future.add_trace(
-                    go.Scatter(
-                        x=[latest_obs["일시"]],
-                        y=[latest_obs["기온(°C)"]],
-                        mode="markers",
-                        name="Latest Observed Temperature",
-                        marker=dict(size=10)
-                    )
-                )
-                fig_future.add_trace(
-                    go.Scatter(
-                        x=future_result["Forecast_Time"],
-                        y=future_result["Predicted_Temperature"],
-                        mode="lines+markers",
-                        name="Future Predicted Temperature"
-                    )
-                )
-                fig_future = apply_english_chart_style(
-                    fig_future,
-                    title="Future Temperature Forecast After Latest Uploaded Data",
-                    x_title="Forecast Time",
-                    y_title="Temperature (°C)"
-                )
-                st.plotly_chart(fig_future, use_container_width=True)
-
-                fig_change_future = px.bar(
-                    future_result,
-                    x="Forecast_Time",
-                    y="Predicted_Change",
-                    title="Predicted Hourly Temperature Change",
-                    labels={"Predicted_Change": "Predicted Change (°C)", "Forecast_Time": "Forecast Time"}
-                )
-                fig_change_future.add_hline(y=0, line_dash="dash")
-                fig_change_future = apply_english_chart_style(
-                    fig_change_future,
-                    title="Predicted Hourly Temperature Change",
-                    x_title="Forecast Time",
-                    y_title="Predicted Change (°C)"
-                )
-                st.plotly_chart(fig_change_future, use_container_width=True)
-
-                st.subheader("Future Forecast Table")
-                st.dataframe(future_result, use_container_width=True)
-
-                csv_future = future_result.to_csv(index=False, encoding="utf-8-sig")
-                st.download_button(
-                    label="Download future forecast as CSV",
-                    data=csv_future,
-                    file_name="future_forecast_after_latest_data.csv",
-                    mime="text/csv",
-                )
-
-            except Exception as e:
-                st.error(f"Future forecast failed: {e}")
-
-    else:
-        st.markdown("#### Any-date seasonal estimate")
-        st.caption(
-            "2025년 이후 원하는 날짜와 시간을 입력하면, 과거 5년 데이터에서 같은 날짜 주변·같은 시간대의 패턴을 찾아 "
-            "계절적 예상 기온을 계산합니다. 장기 실제 날씨 예보가 아니라 과거 패턴 기반 기대값입니다."
-        )
-
-        c1, c2, c3 = st.columns([1.2, 0.8, 1])
-
-        with c1:
-            target_date = st.date_input(
-                "Target date after uploaded data",
-                value=max((latest_time + pd.DateOffset(years=1)).date(), latest_time.date()),
-                min_value=(latest_time + pd.Timedelta(days=1)).date(),
-                max_value=pd.Timestamp("2100-12-31").date(),
-                help="2025년 이후 어느 날짜든 선택할 수 있습니다."
-            )
-
-        with c2:
-            target_hour = st.number_input(
-                "Target hour",
-                min_value=0,
-                max_value=23,
-                value=12,
-                step=1
-            )
-
-        with c3:
-            day_window = st.slider(
-                "Similar-date window",
-                min_value=3,
-                max_value=30,
-                value=14,
-                help="선택한 날짜 전후 며칠까지 유사 날짜로 볼지 정합니다."
-            )
-
-        target_time = pd.Timestamp(
-            year=target_date.year,
-            month=target_date.month,
-            day=target_date.day,
-            hour=int(target_hour)
-        )
-
-        try:
-            estimate, similar_sample = calendar_temperature_estimate(
-                processed_history=processed_df,
-                target_time=target_time,
-                day_window=int(day_window)
-            )
-
-            e1, e2, e3, e4 = st.columns(4)
-            e1.metric("Target Time", str(estimate["Target_Time"]))
-            e2.metric("Estimated Temp", f"{estimate['Estimated_Temperature']:.2f} °C")
-            e3.metric("Typical Range", f"{estimate['Min_Similar_Pattern']:.1f} ~ {estimate['Max_Similar_Pattern']:.1f} °C")
-            e4.metric("Similar Samples", f"{estimate['Sample_Count']}")
-
-            st.markdown(
-                f"""
-                **해석:** {target_time}의 예상 기온은 과거 유사 날짜·시간대 기준으로 약  
-                **{estimate['Estimated_Temperature']:.2f}°C**입니다.  
-                표준편차는 **{estimate['Std_Similar_Pattern']:.2f}°C**이므로,
-                실제 기온은 기압계·강수·바람 등 당시 조건에 따라 달라질 수 있습니다.
-                """
-            )
-
-            similar_sample = similar_sample.sort_values("일시").copy()
-
-            fig_pattern = px.scatter(
-                similar_sample,
-                x="일시",
-                y="기온(°C)",
-                color="Year" if "Year" in similar_sample.columns else None,
-                title="Historical Similar-Date Temperature Samples",
-                labels={"기온(°C)": "Temperature (°C)", "일시": "Historical Time"}
-            )
-            fig_pattern.add_hline(
-                y=estimate["Estimated_Temperature"],
-                line_dash="dash",
-                annotation_text="Estimated temperature"
-            )
-            fig_pattern = apply_english_chart_style(
-                fig_pattern,
-                title="Historical Similar-Date Temperature Samples",
-                x_title="Historical Time",
-                y_title="Temperature (°C)"
-            )
-            st.plotly_chart(fig_pattern, use_container_width=True)
-
-            st.subheader("Similar Historical Samples")
-            display_cols = ["일시", "기온(°C)", "습도(%)", "풍속(m/s)", "강수량(mm)", "해면기압(hPa)"]
-            st.dataframe(similar_sample[display_cols].tail(300), use_container_width=True)
-
-            estimate_df = pd.DataFrame([estimate])
-            csv_estimate = estimate_df.to_csv(index=False, encoding="utf-8-sig")
-            st.download_button(
-                label="Download seasonal estimate as CSV",
-                data=csv_estimate,
-                file_name="any_date_seasonal_temperature_estimate.csv",
-                mime="text/csv"
-            )
-
-            st.info(
-                "이 기능은 장기 실제 예보가 아니라 과거 패턴 기반 추정입니다. "
-                "예를 들어 2030년 8월 15일 14시를 선택하면, 과거 데이터에서 8월 15일 주변 날짜의 14시 기온 패턴을 이용해 예상값을 계산합니다."
-            )
-
-        except Exception as e:
-            st.error(f"Seasonal estimate failed: {e}")
-
-
-
-with tab_analysis:
-    st.subheader("Custom Temperature Analysis")
-    st.markdown(
-        """
-        원하는 날짜 범위와 시간대를 선택하면 해당 구간의 서울 기온 변화를 분석할 수 있습니다.
-        """
-    )
-
-    weather_analysis = processed_df.copy()
-    weather_analysis["Date"] = weather_analysis["일시"].dt.date
-    weather_analysis["Hour"] = weather_analysis["일시"].dt.hour
-    weather_analysis["Month"] = weather_analysis["일시"].dt.month
-    weather_analysis["Year"] = weather_analysis["일시"].dt.year
-
-    min_date = weather_analysis["Date"].min()
-    max_date = weather_analysis["Date"].max()
-
-    c1, c2, c3 = st.columns([1.2, 1.2, 1])
-
-    with c1:
-        selected_dates = st.date_input(
-            "Date range",
-            value=(min_date, max_date),
-            min_value=min_date,
-            max_value=max_date,
-        )
-
-    with c2:
-        selected_hours = st.slider("Hour range", 0, 23, (0, 23))
-
-    with c3:
-        aggregation = st.selectbox(
-            "Aggregation",
-            ["Hourly records", "Daily average", "Monthly average", "Yearly average"],
-        )
-
-    if isinstance(selected_dates, tuple) and len(selected_dates) == 2:
-        start_date, end_date = selected_dates
-    else:
-        start_date = selected_dates
-        end_date = selected_dates
-
-    start_hour, end_hour = selected_hours
-
-    filtered = weather_analysis[
-        (weather_analysis["Date"] >= start_date)
-        & (weather_analysis["Date"] <= end_date)
-        & (weather_analysis["Hour"] >= start_hour)
-        & (weather_analysis["Hour"] <= end_hour)
-    ].copy()
-
-    if filtered.empty:
-        st.warning("선택한 조건에 해당하는 데이터가 없습니다.")
-    else:
-        temp_col = "기온(°C)"
-
-        avg_temp = filtered[temp_col].mean()
-        min_temp = filtered[temp_col].min()
-        max_temp = filtered[temp_col].max()
-        std_temp = filtered[temp_col].std()
-
-        min_row = filtered.loc[filtered[temp_col].idxmin()]
-        max_row = filtered.loc[filtered[temp_col].idxmax()]
-
-        m1, m2, m3, m4, m5 = st.columns(5)
-        m1.metric("Average Temp", f"{avg_temp:.2f} °C")
-        m2.metric("Min Temp", f"{min_temp:.2f} °C")
-        m3.metric("Max Temp", f"{max_temp:.2f} °C")
-        m4.metric("Std Dev", f"{std_temp:.2f} °C")
-        m5.metric("Records", f"{len(filtered):,}")
-
-        st.caption(
-            f"Lowest: {min_row['일시']} / {min_row[temp_col]:.2f} °C  |  "
-            f"Highest: {max_row['일시']} / {max_row[temp_col]:.2f} °C"
-        )
-
-        if aggregation == "Hourly records":
-            plot_df = filtered[["일시", temp_col]].copy()
-            plot_df = plot_df.rename(columns={"일시": "Time", temp_col: "Temperature"})
-            fig = px.line(plot_df, x="Time", y="Temperature", title="Temperature Trend")
-        elif aggregation == "Daily average":
-            plot_df = filtered.groupby("Date", as_index=False)[temp_col].mean()
-            plot_df = plot_df.rename(columns={"Date": "Time", temp_col: "Temperature"})
-            fig = px.line(plot_df, x="Time", y="Temperature", title="Daily Average Temperature")
-        elif aggregation == "Monthly average":
-            filtered["YearMonth"] = filtered["일시"].dt.to_period("M").astype(str)
-            plot_df = filtered.groupby("YearMonth", as_index=False)[temp_col].mean()
-            plot_df = plot_df.rename(columns={"YearMonth": "Time", temp_col: "Temperature"})
-            fig = px.line(plot_df, x="Time", y="Temperature", title="Monthly Average Temperature")
-        else:
-            plot_df = filtered.groupby("Year", as_index=False)[temp_col].mean()
-            plot_df = plot_df.rename(columns={"Year": "Time", temp_col: "Temperature"})
-            fig = px.bar(plot_df, x="Time", y="Temperature", title="Yearly Average Temperature")
-
-        fig = apply_english_chart_style(
-            fig,
-            title=fig.layout.title.text or "Temperature Trend",
-            x_title="Time",
-            y_title="Temperature (°C)"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-        st.subheader("Average Temperature by Hour")
-        hourly_avg = filtered.groupby("Hour", as_index=False)[temp_col].mean()
-        hourly_avg = hourly_avg.rename(columns={temp_col: "Average_Temperature"})
-        fig_hour = px.bar(hourly_avg, x="Hour", y="Average_Temperature", title="Average Temperature by Hour")
-        fig_hour = apply_english_chart_style(
-            fig_hour,
-            title="Average Temperature by Hour",
-            x_title="Hour",
-            y_title="Average Temperature (°C)"
-        )
-        st.plotly_chart(fig_hour, use_container_width=True)
-
-        st.subheader("Temperature Distribution")
-        fig_hist = px.histogram(filtered, x=temp_col, nbins=40, title="Temperature Distribution")
-        fig_hist = apply_english_chart_style(
-            fig_hist,
-            title="Temperature Distribution",
-            x_title="Temperature (°C)",
-            y_title="Count"
-        )
-        st.plotly_chart(fig_hist, use_container_width=True)
-
-        st.subheader("Filtered Data")
-        preview_cols = ["일시", "기온(°C)", "강수량(mm)", "풍속(m/s)", "습도(%)", "해면기압(hPa)"]
-        st.dataframe(filtered[preview_cols].tail(200), use_container_width=True)
-
-        csv_data = filtered[preview_cols].to_csv(index=False, encoding="utf-8-sig")
-        st.download_button(
-            label="Download filtered data as CSV",
-            data=csv_data,
-            file_name="custom_temperature_analysis.csv",
-            mime="text/csv",
-        )
-
-
-with tab_data:
-    st.subheader("Generated Result Files")
-
-    if os.path.exists(RESULT_DIR):
-        files = sorted(os.listdir(RESULT_DIR))
-        st.write(files)
-    else:
-        st.warning("result 폴더가 없습니다.")
-
-    st.subheader("Prediction Result Preview")
-    st.dataframe(prediction_df.head(100), use_container_width=True)
-
-    st.subheader("Processed Dataset Preview")
-    st.dataframe(processed_df.head(100), use_container_width=True)
-
-st.markdown(
-    """
-    <div class="dashboard-footer">
-      <strong>Seoul Weather ML Dashboard</strong><br/>
-      GitHub Actions로 학습 결과를 자동 생성하고, Streamlit에서는 사전 생성된 모델과 결과 파일을 불러오는 빠른 대시보드 구조입니다.
+    
+        st.markdown(
+            """
+      <div class="param-range">
+        <span>250</span>
+        <span class="param-pill">권장 400–1000 ppm</span>
+        <span>1500</span>
+      </div>
     </div>
-    """,
-    unsafe_allow_html=True,
-)
+            """,
+            unsafe_allow_html=True,
+        )
+    
+        # Lambda
+        current_lambda = float(st.session_state.get("main_exp_lambda", 1.5))
+        st.markdown(
+            f"""
+    <div class="param-card">
+      <div class="param-card-top">
+        <div>
+          <div class="param-label">기후 피드백 파라미터 (λ)</div>
+          <div class="param-desc">값이 증가할수록 기후 시스템의 복사 되먹임에 의한 안정화 효과가 강화된다.</div>
+        </div>
+        <div class="param-value">
+          <div class="param-value-main">{current_lambda:.2f}</div>
+          <div class="param-value-unit">W/m²/°C</div>
+        </div>
+      </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+    
+        st.markdown(
+            """
+      <div class="param-range">
+        <span>0.5</span>
+        <span class="param-pill">기준 1.50</span>
+        <span>3.0</span>
+      </div>
+    </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+        # Aerosol
+        current_aer = float(st.session_state.get("main_exp_aer", 1.0))
+        st.markdown(
+            f"""
+    <div class="param-card">
+      <div class="param-card-top">
+        <div>
+          <div class="param-label">에어로졸 강도</div>
+          <div class="param-desc">값이 증가할수록 에어로졸에 의한 냉각 효과가 강화된다.</div>
+        </div>
+        <div class="param-value">
+          <div class="param-value-main">{current_aer:.2f}</div>
+          <div class="param-value-unit">배율</div>
+        </div>
+      </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+    
+        st.markdown(
+            """
+      <div class="param-range">
+        <span>0.0</span>
+        <span class="param-pill">기준 1.00</span>
+        <span>3.0</span>
+      </div>
+    </div>
+    </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        
+    elif current_page == "모델 적합도 및 관측자료 비교":
+        obs_list = list(obs_datasets.keys())
+        current_choice = st.session_state.get("main_obs_choice", obs_list[0])
+    
+        dataset_q = st.query_params.get("dataset")
+        if dataset_q is not None:
+            idx = int(dataset_q)
+            if 0 <= idx < len(obs_list):
+                st.session_state["main_obs_choice"] = obs_list[idx]
+                current_choice = obs_list[idx]
+    
+        html = [
+            '<div class="nav-panel dataset-panel">',
+            '<div class="nav-panel-title">데이터셋 선택</div>',
+            '<div class="nav-links">'
+        ]
+    
+        for i, name in enumerate(obs_list):
+            active = " active" if name == current_choice else ""
+            html.append(
+                f'<a class="nav-link{active}" href="?module=fit&dataset={i}" target="_self">{name}</a>'
+            )
+    
+        html.append('</div></div>')
+        st.markdown("".join(html), unsafe_allow_html=True)
+    
+        controls["obs_choice"] = current_choice
+        controls["current_obs_data"] = np.interp(
+            years_axis,
+            list(obs_datasets[current_choice].keys()),
+            list(obs_datasets[current_choice].values()),
+        )
+    
+    elif current_page == "모델 검증 및 불확실성 정량화":
+        obs_list = list(obs_datasets.keys())
+        current_choice = st.session_state.get("main_diag_obs_choice", obs_list[0])
+    
+        dataset_q = st.query_params.get("dataset")
+        if dataset_q is not None:
+            idx = int(dataset_q)
+            if 0 <= idx < len(obs_list):
+                st.session_state["main_diag_obs_choice"] = obs_list[idx]
+                current_choice = obs_list[idx]
+    
+        html = [
+            '<div class="nav-panel dataset-panel">',
+            '<div class="nav-panel-title">검증 데이터셋</div>',
+            '<div class="nav-links">'
+        ]
+    
+        for i, name in enumerate(obs_list):
+            active = " active" if name == current_choice else ""
+            html.append(
+                f'<a class="nav-link{active}" href="?module=uncertainty&dataset={i}" target="_self">{name}</a>'
+            )
+    
+        html.append('</div></div>')
+        st.markdown("".join(html), unsafe_allow_html=True)
+    
+        controls["diag_obs_choice"] = current_choice
+        controls["diag_obs_data"] = np.interp(
+            years_axis,
+            list(obs_datasets[current_choice].keys()),
+            list(obs_datasets[current_choice].values()),
+        )
+        
+    return controls
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 시작 페이지
+# ═══════════════════════════════════════════════════════════════════════════════
+if page == "시작 페이지":
+    st.query_params["module"] = "home"
+
+    st.markdown(
+        """
+<div class="hero">
+  <div class="hero-badge">Research Presentation Interface</div>
+  <div class="hero-title">기후 모델링 연구 대시보드</div>
+  <div class="hero-desc">
+    본 연구는 단순화된 물리 기반 에너지 균형 모델(Energy Balance Model)에 
+    수치 최적화 기법을 결합하여 전지구 평균기온의 역사적 변화를 재현하고, 
+    주요 기후 강제력 및 파라미터 변화가 장기 온난화 경로에 미치는 영향을 정량적으로 분석하는 것을 목적으로 한다.
+  </div>
+  
+  <div class="hero-chips">
+    <div class="hero-chip">물리 기반 모델</div>
+    <div class="hero-chip">관측자료 비교</div>
+    <div class="hero-chip">불확실성 분석</div>
+    <div class="hero-chip">시나리오 예측</div>
+  </div>
+</div>""",
+        unsafe_allow_html=True,
+    )
+
+    sec("분석 모듈 구성")
+
+    def modcard(num, title, desc, slug):
+        href = f"?module={quote(slug)}"
+        st.markdown(
+            f"""
+    <a class="modcard" href="{href}" target="_self">
+      <div class="modcard-num">Module {num:02d}</div>
+      <div class="modcard-title">{title}</div>
+      <div class="modcard-desc">{desc}</div>
+    </a>""",
+            unsafe_allow_html=True,
+        )
+
+    row_gap = "1.2rem"
+
+    r1c1, r1c2 = st.columns(2, gap="small")
+    with r1c1:
+        modcard(
+            1,
+            "시나리오 기반 기후 변화 예측",
+            "배출 시나리오에 따른 장기 온도 변화 분석",
+            "scenario",
+        )
+    with r1c2:
+        modcard(
+            2,
+            "기후 시스템 파라미터 실험",
+            "피드백, 해양 열흡수 등 주요 파라미터 민감도 분석",
+            "experiment",
+        )
+
+    grid_gap(row_gap)
+
+    r2c1, r2c2 = st.columns(2, gap="small")
+    with r2c1:
+        modcard(
+            3,
+            "모델 적합도 및 관측자료 비교",
+            "관측자료 기반 모델 적합도 평가 및 잔차 분석",
+            "fit",
+        )
+    with r2c2:
+        modcard(
+            4,
+            "다중 데이터 비교",
+            "복수 관측 데이터셋 간 편차 및 공통 경향 분석",
+            "multi",
+        )
+
+    grid_gap(row_gap)
+
+    r3c1, r3c2 = st.columns(2, gap="small")
+    with r3c1:
+         modcard(
+            5,
+            "모델 검증",
+            "모델 성능 검증 및 불확실성 정량화",
+            "uncertainty",
+        )
+        
+    with r3c2:
+        modcard(
+            6,
+            "연구 결과 요약",
+            "모델 구조, 주요 결과 및 해석상의 한계 종합",
+            "summary",
+        )
+
+    st.caption("각 모듈 카드를 선택하면 해당 분석 페이지로 이동한다.")
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 시나리오 기반 기후 변화 예측
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "시나리오 기반 기후 변화 예측":
+    st.query_params["module"] = "scenario"
+    left_col, main_col = st.columns([1.05, 4.2], gap="large")
+
+    with left_col:
+        
+        render_left_panel()
+        controls = render_settings(page)
+        render_source_panel()
+
+    with main_col:
+        policy = controls["policy"]
+
+        page_header(
+            "시나리오 기반 기후 변화 예측",
+            "배출 경로별 장기 온난화 궤적 비교 · 1.5 / 2.0°C 임계선 관계 분석",
+        )
+
+        emission_map = {
+            "탄소중립": 280,
+            "저배출": 380,
+            "현재정책": 550,
+            "고배출": 850,
+            "극단배출": 1500,
+        }
+
+        res_full, _, _, _, _ = run_model(
+            [1.5, 1.0, 2.0, 0.12, 1.0, 0.75, 1.0],
+            -0.22,
+            end_year=2100,
+            end_co2=emission_map[policy],
+            co2_history=co2_observations,
+        )
+
+        p_2100 = res_full[-1]
+        trend_21c = np.polyfit(np.arange(1925, 2101), res_full, 1)[0]
+
+        render_infobox(
+            "분석 목적",
+            "배출 시나리오에 따른 대기 중 CO₂ 농도 변화가 전지구 평균기온에 미치는 장기적 영향을 분석한다. "
+            "또한 1.5°C 및 2.0°C 기준선과의 상대적 위치를 통해 시나리오 간 온난화 경향을 비교한다.",
+        )
+
+        target_co2 = emission_map[policy]
+
+        st.markdown(
+            f"""
+<div class="cond-bar">
+  <div class="cond-item">
+    <div class="cond-label">선택 시나리오</div>
+    <div class="cond-val" style="font-size:0.93rem">{policy}</div>
+  </div>
+  <div class="cond-item">
+    <div class="cond-label">2100년 목표 CO2</div>
+    <div class="cond-val">{target_co2} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">ppm</span></div>
+  </div>
+  <div class="cond-item">
+    <div class="cond-label">2100년 예상 온도</div>
+    <div class="cond-val">+{p_2100:.2f} <span style="font-size:0.8rem;font-weight:500;color:#94a3b8">°C</span></div>
+  </div>
+</div>
+""",
+            unsafe_allow_html=True,
+        )
+
+        sec("핵심 결과")
+        c1, c2 = st.columns(2)
+        
+        with c1:
+            render_metric(
+                "2100년 예상 온난화",
+                f"+{p_2100:.2f}",
+                "°C",
+                "선택한 시나리오 기준 장기 예측값",
+            )
+
+        with c2:
+            render_metric(
+                "평균 온난화 속도",
+                f"{trend_21c:.3f}",
+                "°C/yr",
+                "1925–2100 전체 구간 평균 추세",
+            )
+
+        sec("장기 기온 변화 궤적")
+
+        obs_vals = np.interp(
+            years_axis,
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
+        )
+
+        years_full = np.arange(1925, 2101)
+        future_years = years_full[len(years_axis) - 1:]
+        future_vals = res_full[len(years_axis) - 1:]
+
+        frame_indices = list(range(1, len(future_years) + 1, 1))
+        if frame_indices[-1] != len(future_years):
+            frame_indices.append(len(future_years))
+
+        frames = []
+
+        for i in frame_indices:
+            frames.append(
+                go.Frame(
+                    data=[
+                        go.Scatter(
+                            x=years_axis,
+                            y=obs_vals,
+                            mode="lines",
+                            name="Historical Observation",
+                            line=dict(width=3, color="#0f2744"),
+                        ),
+                        go.Scatter(
+                            x=future_years[:i],
+                            y=future_vals[:i],
+                            mode="lines",
+                            name="Projected Response",
+                            line=dict(width=3, color="#1a56a0", dash="dash"),
+                        ),
+                        go.Scatter(
+                            x=list(future_years[:i]) + list(future_years[:i][::-1]),
+                            y=list(future_vals[:i]) + [0] * i,
+                            fill="toself",
+                            fillcolor="rgba(26, 86, 160, 0.14)",
+                            line=dict(color="rgba(255,255,255,0)"),
+                            hoverinfo="skip",
+                            showlegend=False,
+                        ),
+                    ],
+                    name=str(i),
+                )
+            )
+
+        fig = go.Figure(
+            data=[
+                go.Scatter(
+                    x=years_axis,
+                    y=obs_vals,
+                    mode="lines",
+                    name="Historical Observation",
+                    line=dict(width=3, color="#0f2744"),
+                ),
+                go.Scatter(
+                    x=[future_years[0]],
+                    y=[future_vals[0]],
+                    mode="lines",
+                    name="Projected Response",
+                    line=dict(width=3, color="#1a56a0", dash="dash"),
+                ),
+                go.Scatter(
+                    x=[future_years[0], future_years[0]],
+                    y=[future_vals[0], 0],
+                    fill="toself",
+                    fillcolor="rgba(26, 86, 160, 0.14)",
+                    line=dict(color="rgba(255,255,255,0)"),
+                    hoverinfo="skip",
+                    showlegend=False,
+                ),
+            ],
+            frames=frames,
+        )
+
+        fig.add_hline(
+            y=1.5,
+            line_dash="dot",
+            line_color="#f59e0b",
+            annotation_text="1.5°C Threshold",
+            annotation_position="top left",
+        )
+
+        fig.add_hline(
+            y=2.0,
+            line_dash="dot",
+            line_color="#ef4444",
+            annotation_text="2.0°C Threshold",
+            annotation_position="top left",
+        )
+
+        fig.add_vline(
+            x=2025,
+            line_dash="dash",
+            line_color="#94a3b8",
+            annotation_text="2025",
+            annotation_position="bottom right",
+        )
+
+        fig.update_layout(
+            title=dict(
+                text="Projected Global Temperature Trajectory",
+                x=0.5,
+                font=dict(size=18, color="#0f2744"),
+            ),
+            xaxis_title="Year",
+            yaxis_title="Temperature Anomaly (°C)",
+            plot_bgcolor="#f8fafc",
+            paper_bgcolor="#f8fafc",
+            font=dict(color="#64748b"),
+            height=520,
+            margin=dict(l=40, r=30, t=70, b=50),
+            legend=dict(
+                bgcolor="rgba(255,255,255,0.85)",
+                bordercolor="#d6e2f0",
+                borderwidth=1,
+            ),
+            updatemenus=[
+                dict(
+                    type="buttons",
+                    showactive=False,
+                    x=0.02,
+                    y=1.12,
+                    buttons=[
+                        dict(
+                            label="▶ 예측 애니메이션",
+                            method="animate",
+                            args=[
+                                None,
+                                {
+                                    "frame": {"duration": 22, "redraw": False},
+                                    "fromcurrent": True,
+                                    "transition": {"duration": 12},
+                                },
+                            ],
+                        ),
+                        dict(
+                            label="⏸ 정지",
+                            method="animate",
+                            args=[
+                                [None],
+                                {
+                                    "frame": {"duration": 0, "redraw": False},
+                                    "mode": "immediate",
+                                    "transition": {"duration": 0},
+                                },
+                            ],
+                        ),
+                    ],
+                )
+            ],
+        )
+
+        fig.update_xaxes(
+            range=[1925, 2100],
+            gridcolor="#d6e2f0",
+            showgrid=True,
+        )
+
+        y_min = min(-0.4, float(np.min(obs_vals)) - 0.2)
+        y_max = max(2.3, float(np.max(future_vals)) + 0.25)
+
+        fig.update_yaxes(
+            range=[y_min, y_max],
+            gridcolor="#d6e2f0",
+            showgrid=True,
+        )
+
+        plotly_html = fig.to_html(
+            full_html=False,
+            include_plotlyjs="cdn",
+            config={
+                "displayModeBar": False,
+                "scrollZoom": False,
+            },
+            auto_play=False,
+        )
+
+        auto_play_script = """
+<script>
+setTimeout(() => {
+    const graph = document.querySelector('.plotly-graph-div');
+    if (graph) {
+        Plotly.animate(graph, null, {
+            frame: {duration: 10, redraw: false},
+            transition: {duration: 6},
+            fromcurrent: true,
+            mode: 'immediate'
+        });
+    }
+}, 300);
+</script>
+"""
+
+        components.html(
+            plotly_html + auto_play_script,
+            height=560,
+            scrolling=False,
+        )
+
+        render_infobox(
+            "해석",
+            "배출량 증가에 따라 복사 강제력이 증가하며, 이에 따라 온난화 경향이 가속되는 경향이 나타난다. "
+            "시나리오 간 차이는 대기 중 CO₂ 농도 변화에 기인한다. "
+            "단, 본 결과는 단순화된 전지구 평균 모델에 기반하므로 절대적 예측값보다는 상대 비교에 적합하다.",
+        )
+        
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 기후 시스템 파라미터 실험
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "기후 시스템 파라미터 실험":
+    st.query_params["module"] = "experiment"
+    left_col, main_col = st.columns([1.05, 4.2], gap="large")
+
+    with left_col:
+        
+    
+        render_left_panel()
+        render_source_panel()
+        
+        
+    with main_col:
+        page_header(
+            "기후 시스템 파라미터 실험",
+            "CO₂ 농도, 기후 피드백, 에어로졸 강도 변화에 따른 장기 온난화 경로 분석",
+        )
+
+        render_infobox(
+            "분석 목적",
+            "CO₂ 농도, 기후 피드백 파라미터, 에어로졸 강도 변화가 "
+            "전지구 평균기온 변화에 미치는 영향을 정량적으로 분석한다. "
+            "기타 강제력은 기준값으로 고정하여 개별 파라미터의 영향을 분리한다.",
+        )
+        
+        with st.container(border=True, key="param_panel"):
+            st.markdown(
+                """
+<div class="param-panel-head">
+  <div class="param-panel-copy">
+    <div class="param-panel-title">파라미터 조정</div>
+    <div class="param-panel-subtitle">입력 파라미터 변화에 따른 기후 시스템의 열적 반응을 정량적으로 분석한다.</div>
+  </div>
+  <a class="param-reset-link" href="?module=experiment&reset=param" target="_self">Reset</a>
+</div>
+<div class="param-panel-divider"></div>
+""",
+                unsafe_allow_html=True,
+            )
+
+            p1, p2, p3 = st.columns(3, gap="large")
+
+            with p1:
+                with st.container(key="param_card_co2"):
+                    st.markdown(
+                        """
+<div class="param-control-head">
+  <div>
+    <div class="param-control-title">2100년 CO₂ 농도</div>
+    <div class="param-control-desc">대기 중 이산화탄소 농도 조건</div>
+  </div>
+  <div class="param-control-unit">ppm</div>
+</div>
+""",
+                        unsafe_allow_html=True,
+                    )
+                    co2 = st.number_input(
+                        "2100년 CO2 농도 (ppm)",
+                        min_value=250,
+                        max_value=1500,
+                        value=int(st.session_state.get("main_exp_co2", 550)),
+                        step=10,
+                        key="main_exp_co2",
+                        label_visibility="collapsed",
+                    )
+                    st.markdown('<div class="param-control-range">범위 250–1500 ppm · 기준 550 ppm</div>', unsafe_allow_html=True)
+
+            with p2:
+                with st.container(key="param_card_lambda"):
+                    st.markdown(
+                        """
+<div class="param-control-head">
+  <div>
+    <div class="param-control-title">기후 피드백 파라미터</div>
+    <div class="param-control-desc">복사 되먹임에 의한 안정화 강도</div>
+  </div>
+  <div class="param-control-unit">λ</div>
+</div>
+""",
+                        unsafe_allow_html=True,
+                    )
+                    lam = st.number_input(
+                        "기후 피드백 파라미터 (λ)",
+                        min_value=0.5,
+                        max_value=3.0,
+                        value=float(st.session_state.get("main_exp_lambda", 1.5)),
+                        step=0.1,
+                        format="%.2f",
+                        key="main_exp_lambda",
+                        label_visibility="collapsed",
+                    )
+                    st.markdown('<div class="param-control-range">범위 0.50–3.00 W/m²/°C · 기준 1.50</div>', unsafe_allow_html=True)
+
+            with p3:
+                with st.container(key="param_card_aer"):
+                    st.markdown(
+                        """
+<div class="param-control-head">
+  <div>
+    <div class="param-control-title">에어로졸 강도</div>
+    <div class="param-control-desc">에어로졸 냉각 효과의 상대 배율</div>
+  </div>
+  <div class="param-control-unit">×</div>
+</div>
+""",
+                        unsafe_allow_html=True,
+                    )
+                    aer = st.number_input(
+                        "에어로졸 강도",
+                        min_value=0.0,
+                        max_value=3.0,
+                        value=float(st.session_state.get("main_exp_aer", 1.0)),
+                        step=0.1,
+                        format="%.2f",
+                        key="main_exp_aer",
+                        label_visibility="collapsed",
+                    )
+                    st.markdown('<div class="param-control-range">범위 0.00–3.00 배율 · 기준 1.00</div>', unsafe_allow_html=True)
+                
+        exp_co2 = co2
+        exp_lambda = lam
+        exp_aer = aer
+        exp_klo = 2.0
+        exp_enso = 0.12
+
+        custom_params = [exp_lambda, exp_aer, exp_klo, exp_enso, 1.0, 0.75, 1.0]
+        res_exp, tl_exp, tm_exp, td_exp, _ = run_model(
+            custom_params,
+            -0.22,
+            end_year=2100,
+            end_co2=exp_co2,
+            co2_history=co2_observations,
+        )
+
+        cond_html = "\n".join([
+            '<div class="cond-bar">',
+        
+            '  <div class="cond-item">',
+            '    <div class="cond-label">CO₂ (2100)</div>',
+            f'    <div class="cond-val">{exp_co2:.0f} <span style="font-size:0.8rem;color:#94a3b8">ppm</span></div>',
+            '    <div class="cond-base">기준: 550 ppm</div>',
+            "  </div>",
+        
+            '  <div class="cond-item">',
+            '    <div class="cond-label">Aerosol</div>',
+            f'    <div class="cond-val">{exp_aer:.2f} <span style="font-size:0.8rem;color:#94a3b8">배율</span></div>',
+            '    <div class="cond-base">기준: 1.00</div>',
+            "  </div>",
+        
+            '  <div class="cond-item">',
+            '    <div class="cond-label">Feedback</div>',
+            f'    <div class="cond-val">{exp_lambda:.2f}</div>',
+            '    <div class="cond-base">기준: 1.50</div>',
+            "  </div>",
+        
+            '  <div class="cond-item">',
+            '    <div class="cond-label">Ocean Heat</div>',
+            f'    <div class="cond-val">{exp_klo:.2f}</div>',
+            '    <div class="cond-base">본 분석에서는 고정</div>',
+            "  </div>",
+        
+            '  <div class="cond-item">',
+            '    <div class="cond-label">ENSO</div>',
+            f'    <div class="cond-val">{exp_enso:.2f}</div>',
+            '    <div class="cond-base">본 분석에서는 고정</div>',
+            "  </div>",
+        
+            '  <div class="cond-item">',
+            '    <div class="cond-label">Volcanic</div>',
+            '    <div class="cond-val">1.00</div>',
+            '    <div class="cond-base">본 분석에서는 고정</div>',
+            "  </div>",
+        
+            '  <div class="cond-item">',
+            '    <div class="cond-label">Non-CO₂</div>',
+            '    <div class="cond-val">0.75</div>',
+            '    <div class="cond-base">본 분석에서는 고정</div>',
+            "  </div>",
+
+            '  <div class="cond-item">',
+            '    <div class="cond-label">Solar</div>',
+            '    <div class="cond-val">1.00</div>',
+            '    <div class="cond-base">11년 주기 자연 강제력</div>',
+            "  </div>",
+        
+            '</div>',
+        ])
+        
+        st.markdown(cond_html, unsafe_allow_html=True)
+
+        sec("핵심 결과")
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            render_metric(
+                "2100년 육지 온도 상승",
+                f"+{tl_exp[-1]:.2f}",
+                "°C",
+                "육지 표면의 빠른 열적 응답 반영",
+            )
+
+        with c2:
+            render_metric(
+                "2100년 해양 표층 온도 상승",
+                f"+{tm_exp[-1]:.2f}",
+                "°C",
+                "해양 혼합층의 열 저장 효과 반영",
+            )
+
+        with c3:
+            render_metric(
+                "2100년 심해 온도 상승",
+                f"+{td_exp[-1]:.2f}",
+                "°C",
+                "심해의 장기 열 흡수 지연 반영",
+            )
+            
+        sec("파라미터 실험 결과 시계열")
+        
+        fig, ax = _styled_fig(figsize=(12, 5.2))
+
+        obs_vals = np.interp(
+            years_axis,
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].keys()),
+            list(obs_datasets["NASA GISS (GISTEMP v4)"].values()),
+        )
+
+        years_exp = np.arange(1925, 2101)
+
+        ax.plot(
+            years_axis,
+            obs_vals,
+            color="#0f2744",
+            lw=1.8,
+            label="Observed Temperature",
+        )
+
+        ax.fill_between(years_exp, res_exp, alpha=0.1, color="#1a56a0")
+
+        ax.plot(
+            years_exp,
+            res_exp,
+            color="#1a56a0",
+            lw=2.4,
+            label="Experimental Simulation",
+        )
+
+        ax.axhline(0, color="#94a3b8", lw=0.8, ls="--")
+        ax.axhline(1.5, color="#f59e0b", ls=":", lw=1.6, label="1.5°C Threshold")
+        ax.axvline(2025, color="#94a3b8", ls="--", lw=1, alpha=0.6)
+
+        _apply_chart_style(
+            ax,
+            title=f"Projected Warming — User-Defined Parameters | 2100: +{res_exp[-1]:.2f}°C",
+            xlabel="Year",
+            ylabel="Temperature Anomaly (°C)",
+        )
+
+        ax.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()   
+        st.pyplot(fig)
+        
+        render_infobox(
+            "해석",
+            "기후 시스템은 동일한 외부 강제력 조건에서도 내부 파라미터 값에 따라 서로 다른 응답을 보인다. "
+            "특히 해양의 높은 열용량은 온도 변화의 지연 효과를 유발하며, 이는 장기 기후 변화 해석에서 중요한 요소로 작용한다.",
+        )
+        
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 모델 적합도 및 관측자료 비교
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "모델 적합도 및 관측자료 비교":
+    st.query_params["module"] = "fit"
+    left_col, main_col = st.columns([1.05, 4.2], gap="large")
+
+    with left_col:
+        
+        
+        render_left_panel()
+        controls = render_settings(page)
+        render_source_panel()
+        
+        
+        
+    with main_col:
+        obs_choice = controls["obs_choice"]
+        current_obs_data = controls["current_obs_data"]
+
+        page_header("모델 적합도 및 관측자료 비교",
+                    "관측값과 모의값의 차이 정량화 · 강제력 기여 요소 분해")
+
+        render_infobox(
+            "분석 목적",
+            "모델이 관측자료의 장기 기온 변화를 재현하는 정도를 정량적으로 평가한다. "
+            "모든 관측 온도 편차 자료는 데이터셋 간 기준기간 차이를 줄이기 위해 1981–2010년 평균 기준으로 재정렬하였다. "
+            "최적화된 파라미터를 기반으로 관측값과 모의값의 차이를 분석하고, "
+            "CO₂ 역사 경로와 태양복사 강제력을 포함하여 인위적 및 자연적 강제력의 상대적 기여를 분해한다.",
+        )
+
+        with st.spinner(f"{obs_choice} 데이터에 맞춰 모델을 최적화하는 중입니다..."):
+            best_params = get_optimized_params(current_obs_data, co2_history=co2_observations)
+            best_global, best_tl, best_tm, best_td, daily_all = run_model(
+                best_params, current_obs_data[0], co2_history=co2_observations
+            )
+
+        err = 2 * (best_global - current_obs_data) / (
+            np.abs(best_global) + np.abs(current_obs_data) + 0.2
+        ) * 100
+                
+        avg_err = np.mean(np.abs(err))
+        rmse = np.sqrt(np.mean((best_global - current_obs_data) ** 2))
+        mae = np.mean(np.abs(best_global - current_obs_data))
+        bias = np.mean(best_global - current_obs_data)
+
+        sec("핵심 지표")
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            render_metric("RMSE", f"{rmse:.3f}", "°C", "제곱근 평균 오차")
+        with c2:
+            render_metric("MAE", f"{mae:.3f}", "°C", "평균 절대 오차")
+        with c3:
+            render_metric("Bias", f"{bias:.3f}", "°C", "모델의 평균적 과대·과소 추정 경향")
+        with c4:
+            render_metric("평균 안정화 상대오차", f"{avg_err:.2f}", "%", "분모 안정화 항을 포함한 상대 오차 평균")
+
+        render_infobox(
+            "지표 해석",
+            "RMSE는 큰 오차에 민감한 지표이며, MAE는 평균적인 절대 오차를 나타낸다. "
+            "Bias는 모델이 관측값보다 전반적으로 높거나 낮게 예측하는 경향을 의미한다. "
+            "평균 안정화 상대오차는 0에 가까운 온도 편차 구간에서 상대오차가 과도하게 커지는 문제를 완화하기 위해 분모 안정화 항을 포함한 상대 오차 지표이다.",
+        )
+
+        sec("모델 적합도 및 강제력 분해 결과")
+        fig, axes = _styled_fig(nrows=3, ncols=2, figsize=(16, 18))
+        plt.subplots_adjust(hspace=0.42, wspace=0.32)
+
+        axes[0, 0].plot(years_axis, best_tl, color="#c2410c", lw=1.8, label="Land Surface")
+        axes[0, 0].plot(years_axis, best_tm, color="#1d4ed8", lw=1.8, label="Ocean Mixed Layer")
+        axes[0, 0].plot(years_axis, best_td, color="#1e3a8a", lw=2, label="Deep Ocean")
+        _apply_chart_style(axes[0, 0], title="Layer-Specific Thermal Response",
+                           xlabel="Year", ylabel="Anomaly (°C)")
+        axes[0, 0].legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+
+        axes[0, 1].fill_between(years_axis, best_global, current_obs_data, alpha=0.15, color="#1a56a0")
+        axes[0, 1].plot(years_axis, best_global, color="#1a56a0", lw=2.2, label="Model Simulation")
+        axes[0, 1].plot(years_axis, current_obs_data, color="#0f2744", lw=1.6, ls="--",
+                        alpha=0.75, label="Observed Series")
+        _apply_chart_style(axes[0, 1], title="Observed vs Simulated Temperature Anomaly",
+                           xlabel="Year", ylabel="Anomaly (°C)")
+        axes[0, 1].legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+
+        bar_colors = ["#ef4444" if x > 0 else "#3b82f6" for x in err]
+        axes[1, 0].bar(years_axis, err, color=bar_colors, alpha=0.8, width=0.85)
+        axes[1, 0].axhline(0, color="#0f2744", lw=0.8)
+        _apply_chart_style(
+            axes[1, 0],
+            title=f"Stabilized Relative Error  |  Mean: {avg_err:.2f}%  RMSE: {rmse:.3f}°C  MAE: {mae:.3f}°C  Bias: {bias:.3f}°C",
+            xlabel="Year", ylabel="Stabilized Relative Error (%)",
+        )
+
+        f_co2 = [
+            co2_forcing(np.interp(y, list(co2_observations.keys()), list(co2_observations.values())), best_global[int(y - 1925)])
+            for y in years_axis
+        ]
+        f_non_co2 = [best_params[5] * ((y - 1925) / 100) ** 2.2 for y in years_axis]
+        f_aero = [aerosol_effect(y, best_params[1]) for y in years_axis]
+        axes[1, 1].stackplot(
+            years_axis, f_co2, f_non_co2,
+            labels=["CO2 Forcing", "Other Anthropogenic"],
+            colors=["#1a56a0", "#60a5fa"], alpha=0.75,
+        )
+        axes[1, 1].plot(years_axis, f_aero, color="#ef4444", lw=2, label="Aerosol Cooling")
+        _apply_chart_style(axes[1, 1], title="Anthropogenic Forcing Components",
+                           xlabel="Year", ylabel="Forcing (W/m²)")
+        axes[1, 1].legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0", loc="upper left")
+
+        f_volc = [
+            sum(
+                best_params[4] * s * np.exp(-(y - ys) / d)
+                for ys, s, d in [(1963.2, -0.8, 1.2), (1982.3, -1.3, 1.5), (1991.4, -1.8, 1.8)]
+                if y >= ys
+            )
+            for y in years_axis
+        ]
+        f_osc = [
+            best_params[3] * (
+                np.sin(2 * np.pi * (y - 1925) / 3.8)
+                + 0.7 * np.sin(2 * np.pi * (y - 1925) / 5.5)
+                + 0.4 * np.sin(2 * np.pi * (y - 1925) / 2.7)
+            )
+            for y in years_axis
+        ]
+        f_solar = [solar_effect(y, best_params[6]) for y in years_axis]
+        axes[2, 0].fill_between(years_axis, 0, f_volc, color="#64748b", alpha=0.55, label="Volcanic Forcing")
+        axes[2, 0].plot(years_axis, f_osc, color="#f59e0b", lw=1.8, label="Internal Oscillation")
+        axes[2, 0].plot(years_axis, f_solar, color="#22c55e", lw=1.4, label="Solar Cycle")
+        _apply_chart_style(axes[2, 0], title="Natural Forcing Components",
+                           xlabel="Year", ylabel="Forcing (W/m²)")
+        axes[2, 0].legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+
+        anthro = np.array(f_co2) + np.array(f_non_co2) + np.array(f_aero)
+        natural = np.array(f_volc) + np.array(f_osc) + np.array(f_solar)
+        axes[2, 1].plot(years_axis, anthro, color="#1a56a0", lw=2.2, label="Anthropogenic Contribution")
+        axes[2, 1].plot(years_axis, natural, color="#0f2744", lw=1.6, ls="--", label="Natural Contribution")
+        axes[2, 1].axhline(0, color="#94a3b8", lw=0.8, ls="--")
+        _apply_chart_style(
+            axes[2, 1],
+            title="Relative Contribution: Anthropogenic vs Natural",
+            xlabel="Year", ylabel="Forcing (W/m²)",
+        )
+        axes[2, 1].legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+
+        plt.tight_layout()
+        st.pyplot(fig)
+        
+        from io import BytesIO
+        
+        buf = BytesIO()
+        fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
+        buf.seek(0)
+        
+        st.download_button(
+            label="상세 분석 차트 다운로드 (PNG)",
+            data=buf,
+            file_name="climate_analysis_6charts.png",
+            mime="image/png",
+            use_container_width=True,
+        )
+
+        render_infobox(
+            "해석",
+            "모델은 전반적인 장기 온난화 추세를 재현하지만, 특정 시점에서는 체계적인 오차가 나타난다. "
+            "이는 강제력 입력의 단순화 및 내부 변동성 표현의 제한에서 기인할 가능성이 있다. "
+            "따라서 본 모델은 장기 추세 분석과 상대 비교에는 적합하지만, 지역별 기후 차이, 계절성, 구름 피드백, 해양 순환의 공간적 구조 등은 명시적으로 반영하지 못한다.",
+        )
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 모델 검증 및 불확실성 정량화
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "모델 검증 및 불확실성 정량화":
+    st.query_params["module"] = "uncertainty"
+    left_col, main_col = st.columns([1.05, 4.2], gap="large")
+
+    with left_col:
+        
+    
+        render_left_panel()
+        controls = render_settings(page)
+        render_source_panel()
+
+        
+        
+    with main_col:
+        diag_obs_choice = controls["diag_obs_choice"]
+        diag_obs_data = controls["diag_obs_data"]
+
+        page_header("모델 검증 및 불확실성 정량화",
+                    "잔차 진단 · 파라미터 불확실성 범위 · 민감도 평가")
+
+        render_infobox(
+            "분석 목적",
+            "잔차 구조, 파라미터 변화에 따른 예측 분산, 민감도를 분석하여 "
+            "모델 결과의 안정성과 불확실성을 정량적으로 평가한다.",
+        )
+
+        with st.spinner(f"{diag_obs_choice} 자료를 기준으로 검증을 수행하는 중입니다..."):
+            diag_best_params = get_optimized_params(diag_obs_data, co2_history=co2_observations)
+            diag_best_global, _, _, _, _ = run_model(diag_best_params, diag_obs_data[0], co2_history=co2_observations)
+
+        residuals = diag_best_global - diag_obs_data
+        rmse_diag = np.sqrt(np.mean((diag_best_global - diag_obs_data) ** 2))
+        mae_diag = np.mean(np.abs(diag_best_global - diag_obs_data))
+        bias_diag = np.mean(diag_best_global - diag_obs_data)
+
+        sec("핵심 지표")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            render_metric("RMSE", f"{rmse_diag:.3f}", "°C", "예측과 관측의 전체 오차 수준")
+        with c2:
+            render_metric("MAE", f"{mae_diag:.3f}", "°C", "평균 절대 오차")
+        with c3:
+            render_metric("Bias", f"{bias_diag:.3f}", "°C", "모델 예측의 평균적 편향")
+
+        sec("잔차 구조 진단")
+        render_infobox(
+            "잔차 해석",
+            "잔차가 양수이면 모델이 관측값보다 높게 예측한 것이며, 음수이면 관측값보다 낮게 예측한 것이다. "
+            "특정 기간에 동일한 부호의 잔차가 지속되면 강제력 입력 또는 내부 변동성 표현에서 구조적 편향이 존재할 가능성을 시사한다.",
+        )
+        c1, c2 = st.columns(2)
+        with c1:
+            fig_rl, ax_rl = _styled_fig(figsize=(10, 4.5))
+            ax_rl.fill_between(years_axis, residuals, 0, alpha=0.25,
+                               color=["#1a56a0" if r > 0 else "#ef4444" for r in residuals])
+            ax_rl.plot(years_axis, residuals, color="#1a56a0", lw=1.8)
+            ax_rl.axhline(0, color="#0f2744", lw=0.9)
+            _apply_chart_style(ax_rl, title="Residual Time Series",
+                               xlabel="Year", ylabel="Residual (°C)")
+            plt.tight_layout()
+            st.pyplot(fig_rl)
+        with c2:
+            fig_rh, ax_rh = _styled_fig(figsize=(10, 4.5))
+            ax_rh.hist(residuals, bins=15, color="#1a56a0", edgecolor="#ffffff",
+                       alpha=0.85, linewidth=0.8)
+            ax_rh.axvline(0, color="#ef4444", lw=1.5, ls="--")
+            _apply_chart_style(ax_rh, title="Residual Distribution",
+                               xlabel="Residual (°C)", ylabel="Frequency")
+            plt.tight_layout()
+            st.pyplot(fig_rh)
+
+        sec("예측 불확실성 범위")
+        rng = np.random.default_rng(42)
+        samples = []
+        for _ in range(20):
+            noisy_params = np.array(diag_best_params) + rng.normal(
+                0, [0.08, 0.08, 0.10, 0.01, 0.10, 0.08, 0.15], size=7
+            )
+            
+            noisy_params[0] = np.clip(noisy_params[0], 0.7, 2.3)
+            noisy_params[1] = np.clip(noisy_params[1], 0.5, 2.0)
+            noisy_params[2] = np.clip(noisy_params[2], 0.5, 3.5)
+            noisy_params[3] = np.clip(noisy_params[3], 0.05, 0.25)
+            noisy_params[4] = np.clip(noisy_params[4], 0.3, 2.0)
+            noisy_params[5] = np.clip(noisy_params[5], 0.3, 1.5)
+            noisy_params[6] = np.clip(noisy_params[6], 0.0, 2.0)
+            res_tmp, _, _, _, _ = run_model(noisy_params.tolist(), diag_obs_data[0], co2_history=co2_observations)
+            samples.append(res_tmp)
+
+        samples = np.array(samples)
+        mean_path = samples.mean(axis=0)
+        std_path = samples.std(axis=0)
+
+        fig_unc, ax_unc = _styled_fig(figsize=(12, 5.2))
+        ax_unc.fill_between(years_axis, mean_path - std_path, mean_path + std_path,
+                            color="#1a56a0", alpha=0.2, label="Uncertainty Band (±1σ)")
+        ax_unc.fill_between(years_axis, mean_path - 2 * std_path, mean_path + 2 * std_path,
+                            color="#1a56a0", alpha=0.08, label="Uncertainty Band (±2σ)")
+        ax_unc.plot(years_axis, diag_obs_data, color="#0f2744", lw=1.6, ls="--",
+                    alpha=0.75, label="Observed")
+        ax_unc.plot(years_axis, mean_path, color="#1a56a0", lw=2.2, label="Mean Prediction")
+        _apply_chart_style(ax_unc, title="Prediction Uncertainty Envelope",
+                           xlabel="Year", ylabel="Temperature Anomaly (°C)")
+        ax_unc.legend(fontsize=9, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()
+        st.pyplot(fig_unc)
+
+        render_infobox(
+            "해석",
+            "파라미터 변화에 따른 예측 결과의 분산은 장기 예측에서 불확실성이 증가함을 보여준다. "
+            "따라서 단일 예측 경로보다 확률적 범위를 함께 제시하는 것이 보다 적절한 해석 방법이다.",
+        )
+
+        sec("민감도 평가")
+        sens_options = ["기후 피드백 파라미터", "에어로졸 강도", "해양 열흡수 계수", "ENSO 진폭", "화산 강제력", "태양복사 강제력"]
+        sens_param = st.selectbox(
+            "민감도 평가 대상 파라미터",
+            sens_options,
+            index=sens_options.index(st.session_state.get("main_sens_param", sens_options[0])),
+            key="main_sens_param",
+        )
+
+        param_config = {
+            "기후 피드백 파라미터": (np.linspace(0.7, 2.3, 12), 0),
+            "에어로졸 강도": (np.linspace(0.5, 2.0, 12), 1),
+            "해양 열흡수 계수": (np.linspace(0.5, 3.5, 12), 2),
+            "ENSO 진폭": (np.linspace(0.05, 0.25, 12), 3),
+            "화산 강제력": (np.linspace(0.3, 2.0, 12), 4),
+            "태양복사 강제력": (np.linspace(0.0, 2.0, 12), 6),
+        }
+        sens_param_en_map = {
+            "기후 피드백 파라미터": "Climate Feedback Parameter",
+            "에어로졸 강도": "Aerosol Strength",
+            "해양 열흡수 계수": "Ocean Heat Uptake Coefficient",
+            "ENSO 진폭": "ENSO Amplitude",
+            "화산 강제력": "Volcanic Forcing",
+            "태양복사 강제력": "Solar Forcing",
+        }
+        sens_param_en = sens_param_en_map[sens_param]
+        test_range, idx_change = param_config[sens_param]
+
+        sens_results = []
+        for val in test_range:
+            params = list(diag_best_params)
+            params[idx_change] = val
+            res_tmp, _, _, _, _ = run_model(params, diag_obs_data[0], end_year=2100, end_co2=550, co2_history=co2_observations)
+            sens_results.append(res_tmp[-1])
+
+        fig_s, ax_s = _styled_fig(figsize=(12, 4.8))
+        ax_s.fill_between(test_range, min(sens_results), sens_results, alpha=0.15, color="#1a56a0")
+        ax_s.plot(test_range, sens_results, color="#1a56a0", lw=2.2, marker="o",
+                  markersize=7, markerfacecolor="#ffffff", markeredgecolor="#1a56a0",
+                  markeredgewidth=1.8)
+        _apply_chart_style(
+            ax_s,
+            title=f"Sensitivity of Projected 2100 Warming — {sens_param_en}",
+            xlabel="Parameter Value",
+            ylabel="Projected Temperature in 2100 (°C)",
+        )
+        plt.tight_layout()
+        st.pyplot(fig_s)
+        
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 다중 관측 데이터 비교
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "다중 관측 데이터 비교":
+    st.query_params["module"] = "multi"
+    left_col, main_col = st.columns([1.05, 4.2], gap="large")
+
+    with left_col:
+        
+    
+        render_left_panel()
+        render_source_panel()
+        
+        
+        
+    with main_col:
+        page_header(
+            "다중 관측 데이터 비교",
+            "NASA GISS · HadCRUT5 · Berkeley Earth 관측자료의 공통 경향 및 차이 분석",
+        )
+
+        render_infobox(
+            "분석 목적",
+            "복수의 관측 데이터셋을 비교하여 데이터 간 편차와 공통적인 장기 온난화 경향을 분석한다. "
+            "자료 간 직접 비교의 일관성을 높이기 위해 모든 관측 온도 편차 자료는 1981–2010년 평균 기준으로 재정렬하였다. "
+            "관측자료 간 최소–최대 범위와 평균을 통해 관측 불확실성을 정량적으로 평가한다.",
+        )
+
+        obs_names_all = [name for name in obs_datasets.keys() if name != MULTI_MEAN_NAME]
+
+        selected_names = st.multiselect(
+            "비교 대상 관측 데이터셋 선택",
+            obs_names_all,
+            default=obs_names_all,
+        )
+
+        if len(selected_names) == 0:
+            st.warning("분석을 위해 최소 1개 이상의 관측 데이터셋을 선택해야 한다.")
+            st.stop()
+
+        all_obs = []
+        obs_names = []
+
+        dataset_meta = []
+        for name in selected_names:
+            data = obs_datasets[name]
+            years_available = sorted(data.keys())
+            dataset_meta.append({
+                "데이터셋": name,
+                "시작 연도": int(min(years_available)),
+                "종료 연도": int(max(years_available)),
+                "자료 수": len(years_available),
+                "공통 기준기간": "1981–2010",
+            })
+            obs_vals = np.interp(
+                years_axis,
+                years_available,
+                [data[y] for y in years_available],
+            )
+            all_obs.append(obs_vals)
+            obs_names.append(name)
+
+        st.dataframe(pd.DataFrame(dataset_meta), use_container_width=True, hide_index=True)
+
+        all_obs = np.array(all_obs)
+
+        mean_obs = np.mean(all_obs, axis=0)
+        min_obs = np.min(all_obs, axis=0)
+        max_obs = np.max(all_obs, axis=0)
+
+        sec("관측 데이터셋 통합 비교")
+
+        fig_multi, ax_multi = _styled_fig(figsize=(12, 5.5))
+
+        for name, vals in zip(obs_names, all_obs):
+            ax_multi.plot(
+                years_axis,
+                vals,
+                lw=1.6,
+                alpha=0.72,
+                label=name,
+            )
+
+        ax_multi.fill_between(
+            years_axis,
+            min_obs,
+            max_obs,
+            color="#64748b",
+            alpha=0.16,
+            label="Observation Range",
+        )
+
+        ax_multi.plot(
+            years_axis,
+            mean_obs,
+            color="#0f2744",
+            lw=2.5,
+            ls="--",
+            label="Mean Observation",
+        )
+
+        _apply_chart_style(
+            ax_multi,
+            title="Multi-Dataset Global Temperature Anomaly Comparison",
+            xlabel="Year",
+            ylabel="Temperature Anomaly (°C)",
+        )
+
+        ax_multi.legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()
+        st.pyplot(fig_multi)
+
+        sec("관측 데이터셋별 편차 지표")
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            render_metric(
+                "데이터셋 수",
+                f"{len(obs_names)}",
+                "개",
+                "현재 선택된 관측자료 수",
+            )
+
+        with c2:
+            avg_spread = np.mean(max_obs - min_obs)
+            render_metric(
+                "평균 관측 범위",
+                f"{avg_spread:.3f}",
+                "°C",
+                "관측자료 간 평균 분산 범위",
+            )
+
+        with c3:
+            final_spread = max_obs[-1] - min_obs[-1]
+            render_metric(
+                "최근 관측 범위",
+                f"{final_spread:.3f}",
+                "°C",
+                "최종 연도 기준 관측자료 간 차이",
+            )
+
+        render_infobox(
+            "해석",
+            "서로 다른 관측 데이터셋 간에는 절대값 수준에서 차이가 존재하지만, "
+            "장기적인 온난화 추세는 일관되게 나타난다. "
+            "공통 기준기간 보정을 통해 데이터셋 간 수직 오프셋의 영향을 줄였으며, "
+            "이는 데이터 처리 방법의 차이에도 불구하고 기후 변화 신호가 강하게 나타남을 의미한다.",
+        )
+        sec("모델과 다중 관측 평균의 비교")
+
+        with st.spinner("다중 관측 평균에 맞춰 모델을 최적화하는 중입니다..."):
+            mean_best_params = get_optimized_params(mean_obs, co2_history=co2_observations)
+            mean_model, _, _, _, _ = run_model(mean_best_params, mean_obs[0], co2_history=co2_observations)
+
+        fig_cmp, ax_cmp = _styled_fig(figsize=(12, 5.2))
+
+        ax_cmp.fill_between(
+            years_axis,
+            min_obs,
+            max_obs,
+            color="#64748b",
+            alpha=0.14,
+            label="Observation Range",
+        )
+
+        ax_cmp.plot(
+            years_axis,
+            mean_obs,
+            color="#0f2744",
+            lw=2.4,
+            ls="--",
+            label="Mean Observation",
+        )
+
+        ax_cmp.plot(
+            years_axis,
+            mean_model,
+            color="#1a56a0",
+            lw=2.5,
+            label="Model fitted to Mean Observation",
+        )
+
+        _apply_chart_style(
+            ax_cmp,
+            title="Model vs Multi-Dataset Mean Observation",
+            xlabel="Year",
+            ylabel="Temperature Anomaly (°C)",
+        )
+
+        ax_cmp.legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()
+        st.pyplot(fig_cmp)
+
+        sec("관측 데이터셋 간 편차 시계열")
+
+        spread = max_obs - min_obs
+
+        fig_spread, ax_spread = _styled_fig(figsize=(12, 4.8))
+
+        ax_spread.plot(
+            years_axis,
+            spread,
+            color="#ef4444",
+            lw=2.2,
+            label="Max - Min Spread",
+        )
+
+        ax_spread.fill_between(
+            years_axis,
+            0,
+            spread,
+            color="#ef4444",
+            alpha=0.12,
+        )
+
+        _apply_chart_style(
+            ax_spread,
+            title="Spread Between Observation Datasets",
+            xlabel="Year",
+            ylabel="Max - Min Difference (°C)",
+        )
+
+        ax_spread.legend(fontsize=8, framealpha=0.85, edgecolor="#d6e2f0")
+        plt.tight_layout()
+        st.pyplot(fig_spread)
+
+        sec("관측 데이터셋 간 상관성")
+
+        if len(obs_names) >= 2:
+            corr_matrix = np.corrcoef(all_obs)
+            df_corr = pd.DataFrame(
+                corr_matrix,
+                index=obs_names,
+                columns=obs_names,
+            )
+            st.dataframe(df_corr, use_container_width=True)
+        else:
+            st.info("상관계수 산출을 위해서는 최소 2개 이상의 데이터셋이 필요하다.")
+            
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 기후 모델링 용어 및 개념 정의
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "기후 모델링 용어 및 개념 정의":
+    st.query_params["module"] = "glossary"
+    left_col, main_col = st.columns([1.05, 4.2], gap="large")
+
+    with left_col:
+        
+    
+        render_left_panel()
+        render_source_panel()
+        
+        
+        
+    with main_col:
+        page_header("기후 모델링 용어 및 개념 정의",
+                    "모델에서 사용되는 주요 기후학 개념 · 물리 파라미터 · 검증 지표 참고")
+
+        render_infobox(
+            "페이지 안내",
+            "본 페이지는 모델에 사용된 주요 기후학 개념, 물리 파라미터, 검증 지표를 체계적으로 정리한 참고 자료이다. "
+            "그래프 해석에 필요한 핵심 개념을 사전에 확인할 수 있도록 구성하였다.",
+        )
+
+        sec("기후 변화의 주요 강제 요인")
+        glossary_forcing = [
+            ("온실가스 복사 강제력 (Greenhouse Gas Radiative Forcing)",
+             "대기 중 온실가스가 지구 장파복사의 우주 방출을 감소시켜 "
+             "복사 평형을 변화시키는 현상이다."
+             "이산화탄소 농도가 증가할수록 복사강제력이 증가하며, 본 모델에서는 로그 함수 형태로 반영된다.", True),
+            ("에어로졸 효과 (Aerosol Effect)",
+             "대기 중 에어로졸 입자가 태양복사를 직접 산란·반사하거나 구름 반사도를 변화시켜 지표로 유입되는 순복사 에너지를 감소시키는 과정이다."
+             "온난화를 일부 상쇄할 수 있으나, 그 영향은 시기와 지역에 따라 달라진다.", False),
+            ("화산 강제력 (Volcanic Forcing)",
+             "대규모 화산 분출 이후 성층권에 주입된 에어로졸 입자가 태양복사를 차단하여 단기적 냉각을 유도하는 효과이다. "
+             "본 모델에서는 이를 시간에 따라 약화되는 지수 감쇠 형태로 표현한다.", False),
+            ("화산 강제력 배율 (Volcanic Forcing Multiplier)",
+             "화산 분출에 의한 냉각 효과의 강도를 조절하는 파라미터이다. "
+             "값이 클수록 화산 강제력의 영향이 크게 반영된다.", False),
+            ("엘니뇨-남방진동 (ENSO, El Niño-Southern Oscillation)",
+             "열대 태평양의 해수면 온도와 대기 순환 간 상호작용으로 발생하는 자연 변동성이다. "
+             "전지구 평균기온에 단기적 변동성을 유도한다.", False),
+            ("태양복사 강제력 (Solar Radiative Forcing)",
+             "태양 활동의 주기적 변화가 지구 에너지 수지에 미치는 자연 강제력이다. "
+             "본 모델에서는 11년 태양 주기를 단순화한 약한 주기 함수로 표현한다.", False),
+            ("비이산화탄소 인위적 강제력 (Non-CO₂ Anthropogenic Forcing)",
+             "메탄(CH₄), 아산화질소(N₂O) 등 CO₂ 이외의 온실가스와 기타 인위적 요인이 "
+             "기후 시스템에 작용하는 추가적인 복사강제력이다.", False),
+        ]
+        for title, body, expanded in glossary_forcing:
+            with st.expander(title, expanded=expanded):
+                st.write(body)
+
+        sec("기후 시스템의 물리적 응답")
+        glossary_physics = [
+            ("기온 편차 (Temperature Anomaly)",
+             "절대기온이 아니라 기준 기간 평균으로부터의 차이를 나타내는 값이다. "
+             "서로 다른 시기와 관측자료를 비교할 때 널리 사용된다."),
+            ("열용량 (Heat Capacity)",
+             "물질의 온도를 1°C 상승시키는 데 필요한 에너지량이다. "
+             "해양은 열용량이 커 육지보다 느리게 가열되고 느리게 냉각된다."),
+            ("해양 층위 분리 (Ocean Layering)",
+             "모델에서 해양을 혼합층과 심해로 구분하여 열 저장 및 전달 과정을 표현하는 방식이다. "
+             "이는 해양의 열관성과 장기 온난화 반응을 설명하는 데 중요하다."),
+            ("열 교환 계수 (Heat Exchange Rate)",
+             "육지와 해양, 또는 해양 혼합층과 심해 사이의 열 전달 속도를 나타내는 계수이다."),
+            ("기후 피드백 파라미터 (Climate Feedback Parameter)",
+             "기온 상승에 대해 기후 시스템이 복사 냉각을 통해 얼마나 강하게 에너지 평형을 회복하려 하는지를 나타내는 계수이다. "
+             "값이 클수록 온난화 억제 효과가 크게 나타난다."),
+        ]
+        for title, body in glossary_physics:
+            with st.expander(title):
+                st.write(body)
+
+        sec("모델 평가 및 검증 지표")
+        glossary_metrics = [
+            ("수치 최적화 알고리즘 (L-BFGS-B)",
+             "관측값과 모델값의 차이가 최소화되도록 파라미터를 반복적으로 조정하는 제한 조건 기반 수치 최적화 알고리즘이다."),
+            ("안정화 상대오차 (Stabilized Relative Error)",
+             "예측값과 관측값의 차이를 상대적으로 정규화하되, 분모에 안정화 항을 추가하여 0에 가까운 온도 편차 구간에서 오차가 과도하게 커지는 문제를 완화한 지표이다. "
+             "본 대시보드의 평균 안정화 상대오차는 표준 sMAPE와 유사하지만, 안정화 항을 포함한다는 점에서 구분된다."),
+            ("평균제곱근오차 (RMSE, Root Mean Squared Error)",
+             "예측값과 관측값 차이의 제곱 평균에 제곱근을 취한 오차 지표이다. "
+             "큰 오차에 민감하므로 특정 시점의 큰 예측 오차를 평가하는 데 유용하다."),
+            ("평균절대오차 (MAE, Mean Absolute Error)",
+             "예측값과 관측값 차이의 절댓값 평균으로 정의되는 오차 지표이다. "
+             "평균적으로 어느 정도의 온도 오차가 발생하는지 직관적으로 해석할 수 있다."),
+            ("편향 (Bias)",
+             "예측값에서 관측값을 뺀 차이의 평균이다. "
+             "양수는 전반적 과대예측, 음수는 전반적 과소예측 경향을 의미한다."),
+            ("잔차 (Residual)",
+             "각 시점에서 모델 예측값과 관측값의 차이를 의미한다. "
+             "잔차 패턴을 통해 특정 시기에 구조적인 과대예측 또는 과소예측이 존재하는지 평가할 수 있다."),
+            ("불확실성 범위 (Uncertainty Band)",
+             "모델 파라미터를 일정 범위 내에서 변화시켜 반복 계산했을 때 나타나는 예측 범위이다. "
+             "단일 예측선보다 모델 결과의 불확실성을 더 명확하게 제시한다."),
+            ("민감도 분석 (Sensitivity Analysis)",
+             "특정 파라미터의 변화가 모델 결과에 미치는 영향을 평가하는 분석이다. "
+             "이를 통해 모델 출력에 대한 주요 영향 변수를 파악할 수 있다."),
+            ("인위적 요인과 자연적 요인의 상대 기여 (Forcing Dominance)",
+             "온실가스, 에어로졸, 화산, 내부 변동 등 여러 강제력 요소를 비교하여 "
+             "온도 변화에 상대적으로 크게 작용하는 요인을 해석하는 개념이다."),
+        ]
+        for title, body in glossary_metrics:
+            with st.expander(title):
+                st.write(body)
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 페이지: 연구 요약 및 보고서
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "연구 요약 및 보고서":
+    st.query_params["module"] = "summary"
+    left_col, main_col = st.columns([1.05, 4.2], gap="large")
+
+    with left_col:
+        
+
+        render_left_panel()
+        render_source_panel()
+
+        
+        
+    with main_col:
+        page_header("연구 요약 및 보고서",
+                    "연구 목적 · 모델 구조 · 해석상의 한계 · 연구 의의")
+
+        st.markdown("""
+        <div class="summary-card">
+          <div class="summary-tag">Research Objective</div>
+          <div class="summary-title">연구 목적</div>
+          <div class="summary-text">
+            본 연구는 단순화된 에너지 균형 모델을 활용하여 전지구 평균기온 변화를 재현하고,
+            기후 강제력 및 파라미터 변화가 장기 온난화에 미치는 영향을 정량적으로 분석하였다.
+            시나리오 분석, 파라미터 민감도 분석, 모델 적합도 평가 및 불확실성 정량화를 통합적으로 수행하였다.
+          </div>
+        </div>
+        
+        <div class="summary-card">
+          <div class="summary-tag">Model Assumption</div>
+          <div class="summary-title">모델 구조와 물리적 가정</div>
+          <div class="summary-text">
+            본 모델은 육지, 해양 혼합층, 심해의 세 층으로 구성된 단순 에너지 균형 모델이다.
+            각 층은 서로 다른 열용량을 가지며, 이를 통해 기후 시스템의 시간 지연 효과와
+            열 저장 특성을 표현한다. 모델에는 CO₂ 복사 강제력, 에어로졸 냉각 효과,
+            비CO₂ 인위적 강제력, 화산 강제력, 태양복사 강제력, ENSO 유사 내부 변동성이 포함된다.
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-tag">Data Processing</div>
+          <div class="summary-title">관측자료 전처리</div>
+          <div class="summary-text">
+            NASA GISS, HadCRUT5, Berkeley Earth의 전지구 평균기온 편차 자료는 데이터셋 간 기준기간 차이를 줄이기 위해
+            1981–2010년 평균 기준으로 재정렬하였다. 이를 통해 관측자료 간 수직 오프셋의 영향을 완화하고,
+            모델 적합도 및 다중 관측자료 비교의 일관성을 높였다.
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        sec("연구 결과 요약")
+        c1, c2 = st.columns(2, gap="medium")
+        with c1:
+            st.markdown(
+                """
+<div class="pcard">
+  <div class="pcard-tag">Summary</div>
+  <div class="pcard-title">핵심 분석 구성</div>
+  <div class="pcard-body">
+    본 연구는 배출 시나리오 예측, 파라미터 민감도 평가, 관측자료 기반 적합도 분석,
+    다중 관측 데이터 비교, 잔차 진단 및 불확실성 정량화를 주요 분석 축으로 구성하였다.
+    이를 통해 단순화된 모델 내에서 기후 강제력과 열적 응답 간의 관계를 종합적으로 해석하였다.
+  </div>
+</div>""",
+                unsafe_allow_html=True,
+            )
+        with c2:
+            st.markdown(
+                """
+<div class="pcard">
+  <div class="pcard-tag">Interpretation</div>
+  <div class="pcard-title">해석상의 주의점</div>
+  <div class="pcard-body">
+    본 모델은 정밀 예측을 목적으로 하는 종합 기후모형이 아니라, 기후 시스템의 주요 메커니즘을 이해하기 위한 해석 중심의 교육·연구용 모델이다.
+    지역별 기후 차이, 계절성, 구름 피드백, 해양 순환의 공간적 구조 등은 명시적으로 반영하지 않으며, 일부 강제력과 내부 변동성은 단순화된 형태로 구현되어 있다.
+    따라서 결과는 절대적인 미래 예측값보다 장기 경향 분석 및 상대적 비교에 적합하다.
+  </div>
+</div>""",
+                unsafe_allow_html=True,
+            )
+
+        sec("연구 의의")
+        st.markdown(
+            """
+<div class="abstract-box">
+  <div class="abstract-label">Research Significance</div>
+  <div class="abstract-text">
+    본 대시보드는 기후 강제력, 내부 변동성, 열 저장 구조를 통합적으로 고려하여 
+    전지구 평균기온 변화를 분석할 수 있도록 구성되었다. 
+    다중 관측 평균 기반 검증, 파라미터 민감도 분석, 불확실성 평가를 결합함으로써 
+    기후 시스템의 주요 동작 메커니즘을 정량적으로 해석할 수 있다.
+  </div>
+</div>""",
+            unsafe_allow_html=True,
+        )
+
+        sec("보고서 파일 다운로드")
+        report_name, report_bytes = load_report_file()
+        if report_bytes is not None:
+            st.download_button(
+                label="분석 리포트 다운로드 (.docx)",
+                data=report_bytes,
+                file_name=report_name,
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True,
+            )
+        else:
+            st.info(
+                "리포트 파일을 찾을 수 없다. "
+                "app.py와 동일한 디렉터리에 .docx 파일이 있는지 확인해야 한다."
+            )
