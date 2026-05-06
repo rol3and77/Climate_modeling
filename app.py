@@ -17,27 +17,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
-
-# Matplotlib 그래프에서 한글이 네모(□)로 깨지는 문제를 방지한다.
-# 실행 환경에 설치된 한글 지원 글꼴을 우선순위에 따라 자동 선택한다.
-def set_korean_matplotlib_font():
-    preferred_fonts = [
-        "Noto Sans CJK KR",
-        "NanumSquare",
-        "NanumGothic",
-        "AppleGothic",
-        "Malgun Gothic",
-        "UnDotum",
-        "Baekmuk Dotum",
-    ]
-    available_fonts = {f.name for f in fm.fontManager.ttflist}
-    for font_name in preferred_fonts:
-        if font_name in available_fonts:
-            matplotlib.rcParams["font.family"] = font_name
-            break
-    matplotlib.rcParams["axes.unicode_minus"] = False
-
-set_korean_matplotlib_font()
 import pandas as pd
 
 import streamlit.components.v1 as components
